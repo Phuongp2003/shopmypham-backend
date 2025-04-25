@@ -9,11 +9,21 @@ import { redis } from '../config/redis';
 import { swaggerConfig } from '../config/swagger';
 import { initAdminUser } from './init-admin';
 import authRouter from '../modules/auth/auth.router';
+import postRouter from '../modules/post/post.router';
+import cosmeticRouter from '../modules/cosmetic/cosmetic.router';
 import { startHealthCheck } from '../config/db.health';
 
+/**
+ * AppInitializer class handles the initialization and configuration of the Express application.
+ * It sets up middleware, services, routes, and error handling.
+ */
 export class AppInitializer {
   private static app: Express;
 
+  /**
+   * Initializes the Express application with all necessary configurations.
+   * @returns {Promise<Express>} The configured Express application
+   */
   static async initialize(): Promise<Express> {
     this.app = express();
 
@@ -78,16 +88,24 @@ export class AppInitializer {
     }
   }
 
+  /**
+   * Registers all application routes.
+   * This includes:
+   * - Health check endpoint
+   * - Authentication routes (/auth)
+   * - Post management routes (/posts)
+   * - Cosmetic management routes (/cosmetics)
+   */
   private static registerRoutes() {
     // Health check endpoint
     this.app.get('/healthz', (req, res) => {
       res.json({ status: 'ok' });
     });
 
-    // Register auth routes
+    // Register module routes
     this.app.use('/auth', authRouter);
-
-    // TODO: Register other module routes
+    this.app.use('/posts', postRouter);
+    this.app.use('/cosmetics', cosmeticRouter);
   }
 
   private static registerErrorHandler() {

@@ -250,7 +250,7 @@ Authorization: Bearer <access-token>
 
 ### 4.1 Get All Cosmetics
 ```http
-GET /cosmetics?search=keyword&type=SKINCARE&minPrice=0&maxPrice=100&sortBy=price&sortOrder=desc&page=1&limit=10&inStock=true
+GET /cosmetics?search=keyword&sortBy=createdAt&sortOrder=desc&page=1&limit=10&category=face
 Authorization: Bearer <access-token>
 ```
 
@@ -261,13 +261,11 @@ Authorization: Bearer <access-token>
     {
       "id": "cosmetic-id",
       "name": "Cosmetic Name",
-      "description": "Cosmetic Description",
-      "price": 50.00,
+      "description": "Product description",
+      "price": 29.99,
+      "category": "face",
+      "brand": "Brand Name",
       "stock": 100,
-      "type": "SKINCARE",
-      "distributorId": "distributor-id",
-      "styleId": "style-id",
-      "inStock": true,
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
     }
@@ -287,13 +285,11 @@ Authorization: Bearer <access-token>
 {
   "id": "cosmetic-id",
   "name": "Cosmetic Name",
-  "description": "Cosmetic Description",
-  "price": 50.00,
+  "description": "Product description",
+  "price": 29.99,
+  "category": "face",
+  "brand": "Brand Name",
   "stock": 100,
-  "type": "SKINCARE",
-  "distributorId": "distributor-id",
-  "styleId": "style-id",
-  "inStock": true,
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z"
 }
@@ -307,12 +303,11 @@ Content-Type: application/json
 
 {
   "name": "New Cosmetic",
-  "description": "Cosmetic Description",
-  "price": 50.00,
-  "stock": 100,
-  "type": "SKINCARE",
-  "distributorId": "distributor-id",
-  "styleId": "style-id"
+  "description": "Product description",
+  "price": 29.99,
+  "category": "face",
+  "brand": "Brand Name",
+  "stock": 100
 }
 ```
 
@@ -321,13 +316,11 @@ Content-Type: application/json
 {
   "id": "cosmetic-id",
   "name": "New Cosmetic",
-  "description": "Cosmetic Description",
-  "price": 50.00,
+  "description": "Product description",
+  "price": 29.99,
+  "category": "face",
+  "brand": "Brand Name",
   "stock": 100,
-  "type": "SKINCARE",
-  "distributorId": "distributor-id",
-  "styleId": "style-id",
-  "inStock": true,
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z"
 }
@@ -341,12 +334,11 @@ Content-Type: application/json
 
 {
   "name": "Updated Cosmetic",
-  "description": "Updated Description",
-  "price": 60.00,
-  "stock": 90,
-  "type": "SKINCARE",
-  "distributorId": "new-distributor-id",
-  "styleId": "new-style-id"
+  "description": "Updated description",
+  "price": 39.99,
+  "category": "face",
+  "brand": "Brand Name",
+  "stock": 50
 }
 ```
 
@@ -355,13 +347,11 @@ Content-Type: application/json
 {
   "id": "cosmetic-id",
   "name": "Updated Cosmetic",
-  "description": "Updated Description",
-  "price": 60.00,
-  "stock": 90,
-  "type": "SKINCARE",
-  "distributorId": "new-distributor-id",
-  "styleId": "new-style-id",
-  "inStock": true,
+  "description": "Updated description",
+  "price": 39.99,
+  "category": "face",
+  "brand": "Brand Name",
+  "stock": 50,
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z"
 }

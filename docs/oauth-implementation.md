@@ -11,18 +11,26 @@ Tài liệu này mô tả việc triển khai xác thực Google OAuth trong ứ
    - Xử lý luồng xác thực OAuth2.0 với Google
    - Cấu hình thông qua biến môi trường
 
-2. **Auth Controller**
+2. **Auth Router**
+   - Vị trí: `src/modules/auth/auth.router.ts`
+   - Định nghĩa các routes OAuth:
+     - `/auth/google` - Khởi tạo OAuth flow
+     - `/auth/google/callback` - Xử lý callback từ Google
+     - `/auth/refresh-token` - Làm mới token
+     - `/auth/logout` - Đăng xuất
+
+3. **Auth Controller**
    - Vị trí: `src/modules/auth/auth.controller.ts`
    - Quản lý các routes OAuth và callbacks
    - Xử lý thiết lập cookie và chuyển hướng
 
-3. **Auth Service**
+4. **Auth Service**
    - Vị trí: `src/modules/auth/auth.service.ts`
    - Xử lý dữ liệu người dùng OAuth
    - Quản lý tạo/cập nhật người dùng
    - Tạo JWT tokens
 
-4. **Tích Hợp Redis**
+5. **Tích Hợp Redis**
    - Vị trí: `src/config/redis.ts`
    - Xử lý blacklist token
    - Quản lý trạng thái phiên
@@ -45,6 +53,8 @@ export const googleOAuthConfig = {
 // Routes Google OAuth
 router.get('/google', AuthController.googleAuth);
 router.get('/google/callback', AuthController.googleAuthCallback);
+router.post('/refresh-token', AuthController.refreshToken);
+router.post('/logout', AuthController.logout);
 ```
 
 ### 3. Model Người Dùng
@@ -52,11 +62,12 @@ router.get('/google/callback', AuthController.googleAuthCallback);
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String
+  password  String?
   name      String
   googleId  String?  @unique
   role      String   @default("user")
-  // ... các trường khác
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 ```
 
@@ -64,7 +75,10 @@ model User {
 1. **Khởi Tạo OAuth**
    ```typescript
    static async googleAuth(req: Request, res: Response): Promise<void> {
-     passport.authenticate('google', { scope: ['profile', 'email'] })(req, res);
+     passport.authenticate('google', { 
+       scope: ['profile', 'email'],
+       prompt: 'select_account'
+     })(req, res);
    }
    ```
 
@@ -72,10 +86,17 @@ model User {
    ```typescript
    static async googleAuthCallback(req: Request, res: Response): Promise<void> {
      passport.authenticate('google', async (err: Error, profile: any) => {
-       // Xử lý thông tin profile
-       // Tạo/cập nhật người dùng
-       // Thiết lập cookies
-       // Chuyển hướng về frontend
+       if (err) {
+         return res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
+       }
+       
+       try {
+         const authResponse = await AuthService.handleGoogleOAuth(profile);
+         this.setAuthCookies(res, authResponse);
+         res.redirect(`${googleOAuthConfig.frontendURL}/auth/success`);
+       } catch (error) {
+         res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
+       }
      })(req, res);
    }
    ```
@@ -83,32 +104,46 @@ model User {
 3. **Xử Lý Người Dùng**
    ```typescript
    static async handleGoogleOAuth(profile: Profile): Promise<AuthResponseDto> {
-     // Tìm hoặc tạo người dùng
-     // Tạo tokens
-     // Trả về response
+     const user = await this.findOrCreateUser(profile);
+     const tokens = await this.generateTokens(user);
+     return {
+       user: {
+         id: user.id,
+         email: user.email,
+         name: user.name,
+         role: user.role
+       },
+       ...tokens
+     };
    }
    ```
 
 ## Biện Pháp Bảo Mật
 
 ### Lưu Trữ Token
-- Access và refresh tokens được lưu trong HTTP-only cookies
+- Access token được trả về trong response body
+- Refresh token được lưu trong HTTP-only cookie
 - Hỗ trợ cross-domain với SameSite=lax
 - Bật flag Secure trong môi trường production
 
 ### Làm Mới Token
 ```typescript
 const newAccessToken = jwt.sign(
-  { id: user.id, email: user.email, role: user.role },
-  AuthMiddleware.ACCESS_TOKEN_SECRET,
-  { expiresIn: AuthMiddleware.ACCESS_TOKEN_EXPIRES_IN }
+  { 
+    sub: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: '15m' }
 );
 ```
 
 ### Blacklist Token
 ```typescript
 if (redis && refreshToken) {
-  await redis.set(`blacklist:${refreshToken}`, '1', 'EX', expiresIn);
+  await redis.set(`blacklist:${refreshToken}`, '1', 'EX', 7 * 24 * 60 * 60); // 7 days
 }
 ```
 
@@ -150,7 +185,6 @@ interface AuthResponse {
     email: string;
     name: string;
     role: string;
-    googleId?: string;
   };
   accessToken: string;
   refreshToken: string;
@@ -171,11 +205,16 @@ interface AuthResponse {
 ## Bảo Trì
 
 ### Biến Môi Trường
-- Thay đổi định kỳ các secrets
-- URL theo môi trường
-- Ghi log lỗi đầy đủ
+```env
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+FRONTEND_URL=http://localhost:5173
+JWT_SECRET=your_jwt_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+```
 
 ### Cập Nhật Bảo Mật
 - Cập nhật dependencies thường xuyên
 - Giám sát hết hạn token
-- Rà soát quản lý phiên 
+- Rà soát quản lý phiên
