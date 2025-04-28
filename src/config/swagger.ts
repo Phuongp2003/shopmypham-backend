@@ -3,12 +3,14 @@ import { Express, Request, Response } from 'express';
 import { logger } from '../common/logger/logger.factory';
 import { authSwagger } from '../modules/auth/swagger/auth.controller.swagger';
 import { orderSwagger } from '../modules/order/swagger/order.controller.swagger';
+import { cartSwagger } from '../modules/cart/swagger/cart.controller.swagger';
 import { SwaggerBuilder } from './swagger-builder';
 
 const swaggerBuilder = new SwaggerBuilder()
     .addTag('Health', 'Health check endpoints')
     .addTag('Auth', 'Authentication endpoints')
     .addTag('Orders', 'Order management endpoints')
+    .addTag('Cart', 'Shopping cart management endpoints')
     .addSecurityScheme('bearerAuth', {
         type: 'http',
         scheme: 'bearer',
@@ -41,7 +43,7 @@ const swaggerBuilder = new SwaggerBuilder()
         }
     });
 
-// Merge auth and order swagger docs
+// Merge auth, order, and cart swagger docs
 const swaggerOptions = {
     openapi: '3.1.0',
     info: {
@@ -71,12 +73,14 @@ const swaggerOptions = {
     paths: {
         ...swaggerBuilder.build().paths,
         ...authSwagger.paths,
-        ...orderSwagger.paths
+        ...orderSwagger.paths,
+        ...cartSwagger.paths
     },
     components: {
         ...swaggerBuilder.build().components,
         ...(authSwagger.components || {}),
-        ...(orderSwagger.components || {})
+        ...(orderSwagger.components || {}),
+        ...(cartSwagger.components || {})
     }
 };
 
