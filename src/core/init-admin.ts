@@ -14,7 +14,7 @@ export async function initAdminUser() {
     if (!adminUser) {
       // Create admin user if not exists
       const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@123';
-      await AuthService.register('admin@phuongy.works', adminPassword, 'admin', 'System Administrator');
+      await AuthService.register({email: 'admin@phuongy.works', password: adminPassword, name: 'System Administrator', role: 'admin'});
       logger.info('Admin user created successfully');
     } else {
       logger.info('Admin user already exists');

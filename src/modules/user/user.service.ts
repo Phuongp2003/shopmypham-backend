@@ -3,10 +3,13 @@ import { CreateUserDTO, UpdateUserDTO, UserResponse } from './types/user.types';
 import { HttpException } from '@/common/exceptions/http.exception';
 import { HttpStatus } from '@/common/enums/http-status.enum';
 import * as bcrypt from 'bcrypt';
-import { prisma } from '@/config/prisma';
 
 export class UserService {
-  constructor(private readonly prisma: PrismaClient = prisma) {}
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient = new PrismaClient()) {
+    this.prisma = prisma;
+  }
 
   async findAll(): Promise<UserResponse[]> {
     const users = await this.prisma.user.findMany();

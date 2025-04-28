@@ -5,6 +5,8 @@ import { authSwagger } from '../modules/auth/swagger/auth.controller.swagger';
 import { orderSwagger } from '../modules/order/swagger/order.controller.swagger';
 import { cartSwagger } from '../modules/cart/swagger/cart.controller.swagger';
 import { userSwagger } from '../modules/user/swagger/user.controller.swagger';
+import { cosmeticSwagger } from '../modules/cosmetic/swagger/cosmetic.swagger';
+import { paymentSwagger } from '../modules/payment/swagger/payment.swagger';
 import { SwaggerBuilder } from './swagger-builder';
 
 const swaggerBuilder = new SwaggerBuilder()
@@ -77,14 +79,18 @@ const swaggerOptions = {
         ...authSwagger.paths,
         ...orderSwagger.paths,
         ...cartSwagger.paths,
-        ...userSwagger.paths
+        ...userSwagger.paths,
+        ...cosmeticSwagger.paths,
+        ...paymentSwagger.paths,
     },
     components: {
         ...swaggerBuilder.build().components,
         ...(authSwagger.components || {}),
         ...(orderSwagger.components || {}),
         ...(cartSwagger.components || {}),
-        ...(userSwagger.components || {})
+        ...(userSwagger.components || {}),
+        ...(cosmeticSwagger.components || {}),
+        ...(paymentSwagger.components || {}),
     }
 };
 

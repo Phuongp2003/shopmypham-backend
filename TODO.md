@@ -4,7 +4,7 @@
 - [x] Hoàn thiện cấu trúc dự án
 - [x] Triển khai các module còn thiếu
 - [~] Cập nhật tài liệu
-- [ ] Thiết lập testing
+- [~] Thiết lập testing
 - [ ] Tối ưu hiệu suất
 - [ ] Triển khai production
 
@@ -16,6 +16,7 @@
 - [x] Cấu hình Swagger
 - [x] Cấu hình Docker
 - [x] Cấu hình Nginx
+- [x] Cấu hình Testing
 
 ### Design Patterns
 - [x] Singleton (PrismaClient, RedisClient)
@@ -33,6 +34,7 @@
 - [x] Role-based Authorization
 - [x] Refresh Token
 - [x] Session Management
+- [~] Testing
 
 ### Post Module
 - [x] Cấu trúc cơ bản
@@ -41,6 +43,7 @@
 - [x] Pagination
 - [x] Sorting
 - [x] Validation
+- [ ] Testing
 
 ### Cosmetic Module
 - [x] Cấu trúc cơ bản
@@ -49,6 +52,7 @@
 - [x] Pagination
 - [x] Sorting
 - [x] Validation
+- [ ] Testing
 
 ### Order Module
 - [x] Cấu trúc cơ bản
@@ -57,6 +61,7 @@
 - [x] Payment Integration
 - [x] Order Status Management
 - [x] Validation
+- [ ] Testing
 
 ### Cart Module
 - [x] Cấu trúc cơ bản
@@ -64,6 +69,7 @@
 - [x] Cart Management
 - [x] Checkout Process
 - [x] Validation
+- [ ] Testing
 
 ### User Module
 - [x] Cấu trúc cơ bản
@@ -89,6 +95,7 @@
 - [x] api-docs.md
 - [x] oauth-implementation.md
 - [x] design-patterns.md
+- [x] testing-setup.md
 
 ### Cần cập nhật/bổ sung
 - [ ] README.md
@@ -98,7 +105,7 @@
   - [ ] Project Overview
 
 - [ ] testing-guide.md
-  - [ ] Test Structure
+  - [x] Test Structure
   - [ ] Best Practices
   - [ ] Examples
 
@@ -124,7 +131,7 @@
 
 ## 🧪 Testing
 ### Unit Tests
-- [ ] Auth Module Tests
+- [~] Auth Module Tests
 - [ ] Post Module Tests
 - [ ] Cosmetic Module Tests
 - [ ] Order Module Tests
@@ -182,7 +189,7 @@
 ### Phase 2: Core Features (2-3 tuần)
 - [x] Triển khai Post Module
 - [x] Triển khai Cosmetic Module
-- [ ] Thiết lập testing cơ bản
+- [~] Thiết lập testing cơ bản
 
 ### Phase 3: E-commerce (2-3 tuần)
 - [x] Triển khai Order Module
@@ -208,3 +215,4 @@
 - Cấu trúc router đã được đơn giản hóa
 - User Module đã được cập nhật và tối ưu
 - Payment Module đã được tích hợp với MOMO
+- Testing setup đã được cấu hình cơ bản
