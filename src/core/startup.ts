@@ -12,6 +12,7 @@ import authRouter from '../modules/auth/auth.router';
 import postRouter from '../modules/post/post.router';
 import cosmeticRouter from '../modules/cosmetic/cosmetic.router';
 import cartRouter from '../modules/cart/cart.router';
+import userRouter from '../modules/user/user.router';
 import { startHealthCheck } from '../config/db.health';
 
 /**
@@ -97,6 +98,7 @@ export class AppInitializer {
    * - Post management routes (/posts)
    * - Cosmetic management routes (/cosmetics)
    * - Cart management routes (/cart)
+   * - User management routes (/users)
    */
   private static registerRoutes() {
     // Health check endpoint
@@ -109,6 +111,7 @@ export class AppInitializer {
     this.app.use('/posts', postRouter);
     this.app.use('/cosmetics', cosmeticRouter);
     this.app.use('/cart', cartRouter);
+    this.app.use('/users', userRouter);
   }
 
   private static registerErrorHandler() {

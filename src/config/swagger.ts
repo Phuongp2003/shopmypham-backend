@@ -4,6 +4,7 @@ import { logger } from '../common/logger/logger.factory';
 import { authSwagger } from '../modules/auth/swagger/auth.controller.swagger';
 import { orderSwagger } from '../modules/order/swagger/order.controller.swagger';
 import { cartSwagger } from '../modules/cart/swagger/cart.controller.swagger';
+import { userSwagger } from '../modules/user/swagger/user.controller.swagger';
 import { SwaggerBuilder } from './swagger-builder';
 
 const swaggerBuilder = new SwaggerBuilder()
@@ -11,6 +12,7 @@ const swaggerBuilder = new SwaggerBuilder()
     .addTag('Auth', 'Authentication endpoints')
     .addTag('Orders', 'Order management endpoints')
     .addTag('Cart', 'Shopping cart management endpoints')
+    .addTag('Users', 'User management endpoints')
     .addSecurityScheme('bearerAuth', {
         type: 'http',
         scheme: 'bearer',
@@ -43,7 +45,7 @@ const swaggerBuilder = new SwaggerBuilder()
         }
     });
 
-// Merge auth, order, and cart swagger docs
+// Merge auth, order, cart, and user swagger docs
 const swaggerOptions = {
     openapi: '3.1.0',
     info: {
@@ -74,13 +76,15 @@ const swaggerOptions = {
         ...swaggerBuilder.build().paths,
         ...authSwagger.paths,
         ...orderSwagger.paths,
-        ...cartSwagger.paths
+        ...cartSwagger.paths,
+        ...userSwagger.paths
     },
     components: {
         ...swaggerBuilder.build().components,
         ...(authSwagger.components || {}),
         ...(orderSwagger.components || {}),
-        ...(cartSwagger.components || {})
+        ...(cartSwagger.components || {}),
+        ...(userSwagger.components || {})
     }
 };
 
