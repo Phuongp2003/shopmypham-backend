@@ -303,6 +303,14 @@ export const cosmeticSwagger = new SwaggerBuilder()
       },
     },
   })
+  .addSchema("Error", {
+    type: "object",
+    properties: {
+      statusCode: { type: "integer" },
+      message: { type: "string" },
+      error: { type: "string" },
+    },
+  })
   .addSchema("Cosmetic", {
     type: "object",
     properties: {

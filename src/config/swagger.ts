@@ -7,9 +7,21 @@ import { cartSwagger } from "../modules/cart/swagger/cart.controller.swagger";
 import { cosmeticSwagger } from "../modules/cosmetic/swagger/cosmetic.swagger";
 import { orderSwagger } from "../modules/order/swagger/order.controller.swagger";
 import { paymentSwagger } from "../modules/payment/swagger/payment.swagger";
-import {postSwagger} from "../modules/post/swagger/post.swagger";
+import { postSwagger } from "../modules/post/swagger/post.swagger";
 import { userSwagger } from "../modules/user/swagger/user.swagger";
 import { SwaggerBuilder } from "./swagger-builder";
+
+// Define common reusable components
+const commonComponents = new SwaggerBuilder()
+  .addSchema("Error", {
+    type: "object",
+    properties: {
+      statusCode: { type: "integer" },
+      message: { type: "string" },
+      error: { type: "string" },
+    },
+  })
+  .build();
 
 const swaggerBuilder = new SwaggerBuilder()
   .addTag("Health", "Health check endpoints")
@@ -17,6 +29,9 @@ const swaggerBuilder = new SwaggerBuilder()
   .addTag("Orders", "Order management endpoints")
   .addTag("Cart", "Shopping cart management endpoints")
   .addTag("Users", "User management endpoints")
+  .addTag("Cosmetics", "Cosmetic management endpoints")
+  .addTag("Payments", "Payment management endpoints")
+  .addTag("Posts", "Post management endpoints")
   .addSecurityScheme("bearerAuth", {
     type: "http",
     scheme: "bearer",
@@ -50,9 +65,9 @@ const swaggerBuilder = new SwaggerBuilder()
     },
   });
 
-// Merge auth, order, cart, and user swagger docs
+// Merge all swagger docs
 const swaggerOptions = {
-  openapi: "3.1.0",
+  openapi: "3.0.0", // Changed from 3.1.0 to 3.0.0 for better compatibility
   info: {
     title: "Backend API",
     version: "1.0.0",
@@ -89,12 +104,28 @@ const swaggerOptions = {
   },
   components: {
     ...swaggerBuilder.build().components,
-    ...(authSwagger.components || {}),
-    ...(orderSwagger.components || {}),
-    ...(cartSwagger.components || {}),
-    ...(userSwagger.components || {}),
-    ...(cosmeticSwagger.components || {}),
-    ...(paymentSwagger.components || {}),
+    ...commonComponents.components,
+    schemas: {
+      ...swaggerBuilder.build().components.schemas,
+      ...commonComponents.components.schemas,
+      ...(authSwagger.components?.schemas || {}),
+      ...(orderSwagger.components?.schemas || {}),
+      ...(cartSwagger.components?.schemas || {}),
+      ...(userSwagger.components?.schemas || {}),
+      ...(cosmeticSwagger.components?.schemas || {}),
+      ...(paymentSwagger.components?.schemas || {}),
+      ...(postSwagger.components?.schemas || {}),
+    },
+    securitySchemes: {
+      ...swaggerBuilder.build().components.securitySchemes,
+      ...(authSwagger.components?.securitySchemes || {}),
+      ...(orderSwagger.components?.securitySchemes || {}),
+      ...(cartSwagger.components?.securitySchemes || {}),
+      ...(userSwagger.components?.securitySchemes || {}),
+      ...(cosmeticSwagger.components?.securitySchemes || {}),
+      ...(paymentSwagger.components?.securitySchemes || {}),
+      ...(postSwagger.components?.securitySchemes || {}),
+    },
   },
 };
 
