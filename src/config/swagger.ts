@@ -127,8 +127,9 @@ export const swaggerConfig = (app: Express) => {
       res.json({ status: "ok" });
     });
 
-    logger.info("Swagger UI is available at /docs");
+    logger.info("Swagger UI is available at /docs", { service: "Swagger" });
   } catch (error) {
-    logger.error("Failed to initialize Swagger:", error);
+    logger.error("Failed to initialize Swagger:", error, { service: "Swagger" });
+    throw error;
   }
 };

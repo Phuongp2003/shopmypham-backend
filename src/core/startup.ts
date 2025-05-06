@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { logger } from "../common/logger/logger.factory";
 import { startHealthCheck } from "../config/db.health";
 import { prisma } from "../config/prisma";
-import { redis } from "../config/redis";
+import { redis, initializeRedis, disconnectRedis } from "../config/redis";
 import { swaggerConfig } from "../config/swagger";
 import authRouter from "../modules/auth/auth.router";
 import cartRouter from "../modules/cart/cart.router";
@@ -48,18 +48,26 @@ export class AppInitializer {
 
     // Graceful shutdown
     process.on("SIGTERM", async () => {
-      logger.info("SIGTERM received. Shutting down gracefully...");
+      logger.info("SIGTERM received. Shutting down gracefully...", {service: "Startup"});
       cleanupHealthCheck();
+      // Disconnect from Redis
+      await disconnectRedis();
+      // Disconnect from Prisma
+      await prisma.$disconnect();
       process.exit(0);
     });
 
     process.on("SIGINT", async () => {
-      logger.info("SIGINT received. Shutting down gracefully...");
+      logger.info("SIGINT received. Shutting down gracefully...", {service: "Startup"});
       cleanupHealthCheck();
+      // Disconnect from Redis
+      await disconnectRedis();
+      // Disconnect from Prisma
+      await prisma.$disconnect();
       process.exit(0);
     });
 
-    logger.info("Application setup completed successfully");
+    logger.info("Application setup completed successfully", {service: "Startup"});
 
     return this.app;
   }
@@ -76,22 +84,24 @@ export class AppInitializer {
     try {
       // Initialize Prisma
       await prisma.$connect();
-      logger.info("Prisma connected successfully");
+      logger.info("Prisma connected successfully", {service: "Startup"});
 
-      // Initialize Redis (optional)
-      if (redis) {
-        await redis.connect();
-        logger.info("Redis connected successfully");
+      // Initialize Redis (ensuring it's only initialized once)
+      await initializeRedis();
+      if (global.redis) {
+        logger.info("Redis connected successfully", {service: "Startup"});
+      } else {
+        logger.warn("Redis client could not be initialized", {service: "Startup"});
       }
 
       // Initialize Swagger
       swaggerConfig(this.app);
-      logger.info("Swagger initialized successfully");
+      logger.info("Swagger initialized successfully", {service: "Startup"});
 
       // Initialize admin user
       await initAdminUser();
     } catch (error) {
-      logger.error("\nFailed to initialize services:", error);
+      logger.error("\nFailed to initialize services:", error, {service: "Startup"});
       throw error;
     }
   }
@@ -129,10 +139,10 @@ export class AppInitializer {
         res: express.Response,
         next: express.NextFunction,
       ) => {
-        logger.error("Unhandled error:", err);
+        logger.error("Unhandled error:", err, {service: "Startup"});
 
         if (err.details) {
-          logger.error("Error details:", err.details);
+          logger.error("Error details:", err.details, {service: "Startup"});
         }
         res.status(500).json({
           status: "error",

@@ -20,12 +20,12 @@ export async function initAdminUser() {
         name: "System Administrator",
         role: "admin",
       });
-      logger.info("Admin user created successfully");
+      logger.info("Admin user created successfully", { service: "InitAdmin" });
     } else {
-      logger.info("Admin user already exists");
+      logger.info("Admin user already exists", { service: "InitAdmin" });
     }
   } catch (error) {
-    logger.error("Failed to initialize admin user:", error);
+    logger.error("Failed to initialize admin user:", error, { service: "InitAdmin" });
     throw error;
   }
 }

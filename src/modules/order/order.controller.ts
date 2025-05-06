@@ -26,7 +26,7 @@ export class OrderController {
       const order = await OrderController.orderService.createOrder(userId, data);
       res.status(HttpStatus.CREATED).json(order);
     } catch (error: any) {
-      logger.error("Order create error:", error);
+      logger.error("Order create error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
         res.status(error.status).json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
@@ -47,7 +47,7 @@ export class OrderController {
       const result = await OrderController.orderService.getOrders(query);
       res.status(HttpStatus.OK).json(result);
     } catch (error: any) {
-      logger.error("Order list error:", error);
+      logger.error("Order list error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
         res.status(error.status).json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
@@ -68,7 +68,7 @@ export class OrderController {
       }
       res.status(HttpStatus.OK).json(order);
     } catch (error: any) {
-      logger.error("Order get by id error:", error);
+      logger.error("Order get by id error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
         res.status(error.status).json({ status: "error", message: error.message });
       } else {
@@ -87,7 +87,7 @@ export class OrderController {
       const order = await OrderController.orderService.updateOrderStatus(id, data);
       res.status(HttpStatus.OK).json(order);
     } catch (error: any) {
-      logger.error("Order update status error:", error);
+      logger.error("Order update status error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
         res.status(error.status).json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
@@ -109,7 +109,7 @@ export class OrderController {
       const cancelledOrder = await OrderController.orderService.cancelOrder(id);
       res.status(HttpStatus.OK).json(cancelledOrder);
     } catch (error: any) {
-      logger.error("Order cancel error:", error);
+      logger.error("Order cancel error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
         res.status(error.status).json({ status: "error", message: error.message });
       } else {

@@ -105,7 +105,7 @@ export class AuthMiddleware {
         return next();
       }
     } catch (error) {
-      logger.error("Authentication error:", error);
+      logger.error("Authentication error:", error, { service: "AuthMiddleware" });
       return res.status(401).json({
         status: "error",
         message: "Authentication failed",
@@ -126,7 +126,7 @@ export class AuthMiddleware {
         const expiresIn = decoded.exp
           ? decoded.exp - Math.floor(Date.now() / 1000)
           : 7 * 24 * 60 * 60; // 7 days
-        await redis.set(`blacklist:${refreshToken}`, "1", "EX", expiresIn);
+        await redis.set(`blacklist:${refreshToken}`, "1", { EX: expiresIn });
       }
 
       // Clear cookies
@@ -138,7 +138,7 @@ export class AuthMiddleware {
         message: "Logged out successfully",
       });
     } catch (error) {
-      logger.error("Logout error:", error);
+      logger.error("Logout error:", error, { service: "AuthMiddleware" });
       return res.status(500).json({
         status: "error",
         message: "Logout failed",

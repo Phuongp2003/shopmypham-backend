@@ -64,7 +64,7 @@ export class AuthService {
         refreshToken,
       };
     } catch (error) {
-      logger.error("Login error:", error);
+      logger.error("Login error:", error, { service: "AuthService" });
       throw error;
     }
   }
@@ -124,7 +124,7 @@ export class AuthService {
         refreshToken,
       };
     } catch (error) {
-      logger.error("Registration error:", error);
+      logger.error("Registration error:", error, { service: "AuthService" });
       throw error;
     }
   }
@@ -176,7 +176,7 @@ export class AuthService {
         refreshToken: newRefreshToken,
       };
     } catch (error) {
-      logger.error("Refresh token error:", error);
+      logger.error("Refresh token error:", error, { service: "AuthService" });
       throw error;
     }
   }
@@ -238,7 +238,7 @@ export class AuthService {
         refreshToken,
       };
     } catch (error) {
-      logger.error("Google OAuth error:", error);
+      logger.error("Google OAuth error:", error, { service: "AuthService" });
       throw error;
     }
   }

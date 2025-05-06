@@ -13,9 +13,9 @@ export const checkDatabaseHealth = async () => {
     // Check Prisma connection
     await prisma.$queryRaw`SELECT 1`;
     health.prisma = true;
-    logger.info("Prisma connection is healthy");
+    logger.info("Prisma connection is healthy", { service: "DBHealth" });
   } catch (error) {
-    logger.error("Prisma connection check failed:", error);
+    logger.error("Prisma connection check failed:", error, { service: "DBHealth" });
   }
 
   try {
@@ -23,12 +23,12 @@ export const checkDatabaseHealth = async () => {
     if (redis) {
       await redis.ping();
       health.redis = true;
-      logger.info("Redis connection is healthy");
+      logger.info("Redis connection is healthy", { service: "DBHealth" });
     } else {
-      logger.warn("Redis client is not initialized");
+      logger.warn("Redis client is not initialized", { service: "DBHealth" });
     }
   } catch (error) {
-    logger.error("Redis connection check failed:", error);
+    logger.error("Redis connection check failed:", error, { service: "DBHealth" });
   }
 
   return health;
@@ -54,13 +54,13 @@ export const checkDatabaseHealth = async () => {
 export const startHealthCheck = (intervalMs = 0) => {
   const check = async () => {
     const health = await checkDatabaseHealth();
-    logger.info("Database health check:", health);
+    logger.info("Database health check:", health, { service: "DBHealth" });
   };
   // Skip periodic checks if only one check is needed
   if (intervalMs <= 0) {
-    logger.info("Health check configured for one-time execution only");
+    logger.info("Health check configured for one-time execution only", { service: "DBHealth" });
     return () => {
-      logger.debug("No interval to clear for one-time health check");
+      logger.debug("No interval to clear for one-time health check", { service: "DBHealth" });
     };
   }
 
