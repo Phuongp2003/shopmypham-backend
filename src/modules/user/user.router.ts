@@ -1,29 +1,27 @@
-import { Router } from 'express';
-import { UserController } from './user.controller';
-import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
-import { roleMiddleware } from '@/common/middlewares/role.middleware';
-import { UserRole } from '@/common/enums/user-role.enum';
+import { Router } from "express";
+import { UserRole } from "@/common/enums/user-role.enum";
+import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
+import { roleMiddleware } from "@/common/middlewares/role.middleware";
+import { UserController } from "./user.controller";
 
 const router = Router();
-const controller = new UserController();
-const authMiddleware = new AuthMiddleware();
 
 // Public routes
-router.post('/', controller.create.bind(controller));
+router.post("/", UserController.create);
 
 // Protected routes
-router.use(authMiddleware.handle);
+router.use(AuthMiddleware.handle);
 
 // User routes
-router.get('/me', controller.getMe.bind(controller));
-router.put('/me', controller.updateMe.bind(controller));
-router.delete('/me', controller.deleteMe.bind(controller));
+router.get("/me", UserController.getMe);
+router.put("/me", UserController.updateMe);
+router.delete("/me", UserController.deleteMe);
 
 // Admin routes
 router.use(roleMiddleware([UserRole.ADMIN]));
-router.get('/', controller.findAll.bind(controller));
-router.get('/:id', controller.findById.bind(controller));
-router.put('/:id', controller.update.bind(controller));
-router.delete('/:id', controller.delete.bind(controller));
+router.get("/", UserController.findAll);
+router.get("/:id", UserController.findById);
+router.put("/:id", UserController.update);
+router.delete("/:id", UserController.delete);
 
-export default router; 
+export default router;

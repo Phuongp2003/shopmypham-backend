@@ -1,4 +1,4 @@
-import { Cosmetic } from '@prisma/client';
+import { Cosmetic } from "@prisma/client";
 
 export interface CartItem {
   cosmeticId: string;
@@ -38,4 +38,4 @@ export interface CartSummary {
     price: number;
     total: number;
   }[];
-} 
+}

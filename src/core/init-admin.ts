@@ -1,26 +1,31 @@
-import { prisma } from '../config/prisma';
-import { AuthService } from '../modules/auth/auth.service';
-import { logger } from '../common/logger/logger.factory';
+import { logger } from "../common/logger/logger.factory";
+import { prisma } from "../config/prisma";
+import { AuthService } from "../modules/auth/auth.service";
 
 export async function initAdminUser() {
   try {
     // Check if admin user exists
     const adminUser = await prisma.user.findUnique({
       where: {
-        email: 'admin@phuongy.works'
-      }
+        email: "admin@phuongy.works",
+      },
     });
 
     if (!adminUser) {
       // Create admin user if not exists
-      const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@123';
-      await AuthService.register({email: 'admin@phuongy.works', password: adminPassword, name: 'System Administrator', role: 'admin'});
-      logger.info('Admin user created successfully');
+      const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "Admin@123";
+      await AuthService.register({
+        email: "admin@phuongy.works",
+        password: adminPassword,
+        name: "System Administrator",
+        role: "admin",
+      });
+      logger.info("Admin user created successfully");
     } else {
-      logger.info('Admin user already exists');
+      logger.info("Admin user already exists");
     }
   } catch (error) {
-    logger.error('Failed to initialize admin user:', error);
+    logger.error("Failed to initialize admin user:", error);
     throw error;
   }
-} 
+}

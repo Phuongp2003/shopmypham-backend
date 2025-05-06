@@ -1,20 +1,35 @@
 import { Router } from 'express';
-import { CosmeticController } from './cosmetic.controller';
+
+import { UserRole } from '@/common/enums/user-role.enum';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
 import { roleMiddleware } from '@/common/middlewares/role.middleware';
-import { UserRole } from '@/common/enums/user-role.enum';
+
+import { CosmeticController } from './cosmetic.controller';
 
 const router = Router();
-const cosmeticController = new CosmeticController();
-const authMiddleware = new AuthMiddleware();
 
 // Client routes
-router.get('/', cosmeticController.getCosmetics);
-router.get('/:id', cosmeticController.getCosmeticById);
+router.get('/', CosmeticController.getCosmetics);
+router.get('/:id', CosmeticController.getCosmeticById);
 
 // Manager routes
-router.post('/', authMiddleware.handle, roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]), cosmeticController.createCosmetic);
-router.put('/:id', authMiddleware.handle, roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]), cosmeticController.updateCosmetic);
-router.delete('/:id', authMiddleware.handle, roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]), cosmeticController.deleteCosmetic);
+router.post(
+	'/',
+	AuthMiddleware.handle,
+	roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+	CosmeticController.createCosmetic
+);
+router.put(
+	'/:id',
+	AuthMiddleware.handle,
+	roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+	CosmeticController.updateCosmetic
+);
+router.delete(
+	'/:id',
+	AuthMiddleware.handle,
+	roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+	CosmeticController.deleteCosmetic
+);
 
-export default router; 
+export default router;

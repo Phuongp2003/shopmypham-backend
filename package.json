@@ -13,6 +13,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "test:ci": "jest --ci --coverage"
   },
   "dependencies": {
@@ -35,6 +37,7 @@
     "morgan": "^1.10.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "prettier": "^3.5.3",
     "redis": "^4.6.13",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.11.0",

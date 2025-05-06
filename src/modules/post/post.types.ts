@@ -1,13 +1,13 @@
-import { Post, User } from '@prisma/client';
+import { Post, User } from "@prisma/client";
 
 export type PostWithAuthor = Post & {
-  author: Pick<User, 'id' | 'name' | 'email'>;
+  author: Pick<User, "id" | "name" | "email">;
 };
 
 export type PostQueryParams = {
   search?: string;
-  sortBy?: 'createdAt' | 'title';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "createdAt" | "title";
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
   published?: boolean;
@@ -33,4 +33,4 @@ export type PostResponse = {
   };
   createdAt: Date;
   updatedAt: Date;
-}; 
+};

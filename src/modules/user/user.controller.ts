@@ -1,132 +1,126 @@
-import { Request, Response } from 'express';
-import { UserService } from './user.service';
-import { CreateUserDTO, UpdateUserDTO } from './types/user.types';
-import { HttpException } from '@/common/exceptions/http.exception';
-import { HttpStatus } from '@/common/enums/http-status.enum';
+import { Request, Response } from "express";
+import { HttpStatus } from "@/common/enums/http-status.enum";
+import { HttpException } from "@/common/exceptions/http.exception";
+import { CreateUserDTO, UpdateUserDTO } from "./types/user.types";
+import { UserService } from "./user.service";
 
 export class UserController {
-  private userService: UserService;
-
-  constructor() {
-    this.userService = new UserService();
-  }
-
-  findAll = async (req: Request, res: Response) => {
+  static async findAll(req: Request, res: Response) {
     try {
-      const users = await this.userService.findAll();
+      const users = await UserService.findAll();
       res.json(users);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  findById = async (req: Request, res: Response) => {
+  static async findById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const user = await this.userService.findById(id);
+      const user = await UserService.findById(id);
       res.json(user);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  create = async (req: Request, res: Response) => {
+  static async create(req: Request, res: Response) {
     try {
       const dto: CreateUserDTO = req.body;
-      const user = await this.userService.create(dto);
+      const user = await UserService.create(dto);
       res.status(HttpStatus.CREATED).json(user);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  update = async (req: Request, res: Response) => {
+  static async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const dto: UpdateUserDTO = req.body;
-      const user = await this.userService.update(id, dto);
+      const user = await UserService.update(id, dto);
       res.json(user);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  delete = async (req: Request, res: Response) => {
+  static async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      await this.userService.delete(id);
+      await UserService.delete(id);
       res.status(HttpStatus.NO_CONTENT).send();
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  getMe = async (req: Request, res: Response) => {
+  static async getMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       }
-      const user = await this.userService.findById(req.user.id);
+      const user = await UserService.findById(req.user.id);
       res.json(user);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  updateMe = async (req: Request, res: Response) => {
+  static async updateMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       }
       const dto: UpdateUserDTO = req.body;
-      const user = await this.userService.update(req.user.id, dto);
+      const user = await UserService.update(req.user.id, dto);
       res.json(user);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
+  }
 
-  deleteMe = async (req: Request, res: Response) => {
+  static async deleteMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       }
-      await this.userService.delete(req.user.id);
+      await UserService.delete(req.user.id);
       res.status(HttpStatus.NO_CONTENT).send();
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
       }
     }
-  };
-} 
+  }
+}

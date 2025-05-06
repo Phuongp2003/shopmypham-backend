@@ -1,11 +1,16 @@
-import { Request, Response } from 'express';
-import { AuthService } from '@/modules/auth/auth.service';
-import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
-import { logger } from '@/common/logger/logger.factory';
-import { LoginDto, RegisterDto, RefreshTokenDto } from '@/modules/auth/auth.dto';
-import { AuthResponse } from '@/modules/auth/auth.types';
-import passport from 'passport';
-import { googleOAuthConfig } from '@/config/google-oauth.config';
+import { Request, Response } from "express";
+import passport from "passport";
+
+import { logger } from "@/common/logger/logger.factory";
+import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
+import { googleOAuthConfig } from "@/config/google-oauth.config";
+import {
+  LoginDto,
+  RefreshTokenDto,
+  RegisterDto,
+} from "@/modules/auth/auth.dto";
+import { AuthService } from "@/modules/auth/auth.service";
+import { AuthResponse } from "@/modules/auth/auth.types";
 
 export class AuthController {
   static async login(req: Request, res: Response): Promise<void> {
@@ -14,10 +19,13 @@ export class AuthController {
       const response: AuthResponse = await AuthService.login(payload);
       res.json(response);
     } catch (error: unknown) {
-      logger.error('Lỗi đăng nhập:', error);
+      logger.error("Lỗi đăng nhập:", error);
       res.status(401).json({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.',
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.",
       });
     }
   }
@@ -28,10 +36,13 @@ export class AuthController {
       const response: AuthResponse = await AuthService.register(payload);
       res.status(201).json(response);
     } catch (error: unknown) {
-      logger.error('Lỗi đăng ký:', error);
+      logger.error("Lỗi đăng ký:", error);
       res.status(400).json({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
       });
     }
   }
@@ -40,10 +51,10 @@ export class AuthController {
     try {
       await AuthMiddleware.logout(req, res);
     } catch (error) {
-      logger.error('Lỗi đăng xuất:', error);
+      logger.error("Lỗi đăng xuất:", error);
       return res.status(500).json({
-        status: 'error',
-        message: 'Đăng xuất thất bại. Vui lòng thử lại sau.'
+        status: "error",
+        message: "Đăng xuất thất bại. Vui lòng thử lại sau.",
       });
     }
   }
@@ -55,50 +66,53 @@ export class AuthController {
       res.json(response);
     } catch (error: unknown) {
       res.status(401).json({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Làm mới token thất bại. Vui lòng đăng nhập lại.',
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Làm mới token thất bại. Vui lòng đăng nhập lại.",
       });
     }
   }
 
   static async googleAuth(req: Request, res: Response): Promise<void> {
-    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res);
+    passport.authenticate("google", { scope: ["profile", "email"] })(req, res);
   }
 
   static async googleAuthCallback(req: Request, res: Response): Promise<void> {
-    passport.authenticate('google', async (err: Error, profile: any) => {
+    passport.authenticate("google", async (err: Error, profile: any) => {
       try {
         if (err) {
           throw err;
         }
 
         if (!profile) {
-          throw new Error('Không nhận được thông tin từ Google');
+          throw new Error("Không nhận được thông tin từ Google");
         }
 
         const response = await AuthService.handleGoogleOAuth(profile);
-        
+
         // Set tokens in cookies
-        res.cookie('accessToken', response.accessToken, {
+        res.cookie("accessToken", response.accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 1 day
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 24 * 60 * 60 * 1000, // 1 day
         });
 
-        res.cookie('refreshToken', response.refreshToken, {
+        res.cookie("refreshToken", response.refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         // Redirect to frontend with success message
         res.redirect(`${googleOAuthConfig.frontendURL}/auth/success`);
       } catch (error) {
-        logger.error('Lỗi xác thực Google:', error);
+        logger.error("Lỗi xác thực Google:", error);
         res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
       }
     })(req, res);
   }
-} 
+}

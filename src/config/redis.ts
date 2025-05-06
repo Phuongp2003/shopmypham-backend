@@ -1,5 +1,6 @@
-import Redis from 'ioredis';
-import { logger } from '../common/logger/logger.factory';
+import Redis from "ioredis";
+
+import { logger } from "../common/logger/logger.factory";
 
 declare global {
   var redis: Redis | null;
@@ -15,7 +16,7 @@ class RedisClient {
     }
 
     if (this.isConnecting) {
-      logger.warn('Redis is already connecting, waiting for connection...');
+      logger.warn("Redis is already connecting, waiting for connection...");
       return new Promise((resolve) => {
         const checkConnection = () => {
           if (this.instance) {
@@ -30,8 +31,8 @@ class RedisClient {
 
     this.isConnecting = true;
     try {
-      const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-      const REDIS_PORT = process.env.REDIS_PORT || '6379';
+      const REDIS_HOST = process.env.REDIS_HOST || "localhost";
+      const REDIS_PORT = process.env.REDIS_PORT || "6379";
       const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 
       this.instance = new Redis({
@@ -40,28 +41,28 @@ class RedisClient {
         password: REDIS_PASSWORD,
         retryStrategy: (times: number) => {
           if (times > 10) {
-            logger.error('Redis connection failed after 10 retries');
+            logger.error("Redis connection failed after 10 retries");
             return null;
           }
           return Math.min(times * 100, 3000);
-        }
+        },
       });
 
-      this.instance.on('error', (err: Error) => {
-        logger.error('Redis connection error:', err);
+      this.instance.on("error", (err: Error) => {
+        logger.error("Redis connection error:", err);
         this.instance = null;
         this.isConnecting = false;
       });
 
-      this.instance.on('connect', () => {
-        logger.info('Redis connected successfully');
+      this.instance.on("connect", () => {
+        logger.info("Redis connected successfully");
         this.isConnecting = false;
       });
 
       return this.instance;
     } catch (error) {
       this.isConnecting = false;
-      logger.error('Failed to create Redis client:', error);
+      logger.error("Failed to create Redis client:", error);
       return null;
     }
   }
@@ -76,11 +77,13 @@ class RedisClient {
 
 // Initialize global Redis instance
 if (!global.redis) {
-  RedisClient.getInstance().then((instance) => {
-    global.redis = instance;
-  }).catch((error) => {
-    logger.error('Failed to initialize global Redis instance:', error);
-  });
+  RedisClient.getInstance()
+    .then((instance) => {
+      global.redis = instance;
+    })
+    .catch((error) => {
+      logger.error("Failed to initialize global Redis instance:", error);
+    });
 }
 
-export { redis }; 
+export { redis };

@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from "@prisma/client";
 
 export interface CreateUserDTO {
   email: string;
@@ -22,4 +22,4 @@ export interface UserResponse {
   googleId: string | null;
   createdAt: Date;
   updatedAt: Date;
-} 
+}

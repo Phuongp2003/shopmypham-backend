@@ -1,16 +1,18 @@
-import { PrismaClient } from '@prisma/client';
-import { Redis } from 'ioredis';
-import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { clearDatabase } from './utils';
-import { setupDatabase } from './db.setup';
+import { Redis } from "ioredis";
+import { DeepMockProxy, mockDeep } from "jest-mock-extended";
+
+import { PrismaClient } from "@prisma/client";
+
+import { setupDatabase } from "./db.setup";
+import { clearDatabase } from "./utils";
 
 // Mock Prisma Client
-jest.mock('@prisma/client', () => ({
+jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => mockDeep<PrismaClient>()),
 }));
 
 // Mock Redis Client
-jest.mock('ioredis', () => {
+jest.mock("ioredis", () => {
   return jest.fn().mockImplementation(() => mockDeep<Redis>());
 });
 
@@ -24,7 +26,7 @@ declare global {
 beforeEach(() => {
   // Reset all mocks
   jest.clearAllMocks();
-  
+
   // Initialize global mocks
   global.prismaMock = mockDeep<PrismaClient>();
   global.redisMock = mockDeep<Redis>();
@@ -33,8 +35,8 @@ beforeEach(() => {
 // Global setup
 beforeAll(async () => {
   // Setup any global configurations here
-  process.env.NODE_ENV = 'test';
-  
+  process.env.NODE_ENV = "test";
+
   // Setup database
   await setupDatabase();
 });
@@ -48,4 +50,4 @@ afterEach(async () => {
 afterAll(async () => {
   // Clean up any global resources here
   jest.restoreAllMocks();
-}); 
+});

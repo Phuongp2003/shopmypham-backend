@@ -1,27 +1,27 @@
-import { Router } from 'express';
-import { CartController } from './cart.controller';
-import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
+import { Router } from "express";
+
+import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
+
+import { CartController } from "./cart.controller";
 
 const router = Router();
-const cartController = new CartController();
-const authMiddleware = new AuthMiddleware();
 
 // Apply auth middleware to all routes
-router.use(authMiddleware.handle);
+router.use(AuthMiddleware.handle);
 
 // Get user's cart
-router.get('/', cartController.getCart);
+router.get("/", CartController.getCart);
 
 // Create new cart
-router.post('/', cartController.createCart);
+router.post("/", CartController.createCart);
 
 // Update cart
-router.put('/', cartController.updateCart);
+router.put("/", CartController.updateCart);
 
 // Clear cart
-router.delete('/', cartController.clearCart);
+router.delete("/", CartController.clearCart);
 
 // Get cart summary
-router.get('/summary', cartController.getCartSummary);
+router.get("/summary", CartController.getCartSummary);
 
-export default router; 
+export default router;

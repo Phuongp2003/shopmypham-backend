@@ -1,21 +1,26 @@
-import { PrismaClient } from '@prisma/client';
-import { prisma } from '@/config/prisma';
-import { execSync } from 'child_process';
-import path from 'path';
+import { execSync } from "child_process";
+import path from "path";
+
+import { prisma } from "@/config/prisma";
+import { PrismaClient } from "@prisma/client";
 
 async function connectToDatabase() {
   try {
     await prisma.$connect();
-    console.log('Database connection established');
+    console.log("Database connection established");
   } catch (error) {
-    console.error('Failed to connect to database:', error);
+    console.error("Failed to connect to database:", error);
     throw error;
   }
 }
 
 async function dropDatabase(dbName: string) {
   const result = await prisma.$queryRaw<{ Database: string }[]>`SHOW DATABASES`;
-  if (result && Array.isArray(result) && result.some(db => db.Database === dbName)) {
+  if (
+    result &&
+    Array.isArray(result) &&
+    result.some((db) => db.Database === dbName)
+  ) {
     console.log(`Database ${dbName} exists, dropping it...`);
     await prisma.$executeRawUnsafe(`DROP DATABASE ${dbName}`);
   } else {
@@ -29,12 +34,12 @@ async function createDatabase(dbName: string) {
 }
 
 async function runMigrations() {
-  console.log('Running Prisma migrations...');
-  const testPrismaPath = path.join(process.cwd(), 'prisma', 'test.prisma');
+  console.log("Running Prisma migrations...");
+  const testPrismaPath = path.join(process.cwd(), "prisma", "test.prisma");
   execSync(`npx prisma migrate deploy --schema=${testPrismaPath}`, {
-    stdio: 'inherit',
+    stdio: "inherit",
   });
-  console.log('Prisma migrations completed');
+  console.log("Prisma migrations completed");
 
   // Kiểm tra xem bảng User có tồn tại không
   const users = await prisma.user.findMany();
@@ -42,12 +47,12 @@ async function runMigrations() {
 }
 
 async function seedDatabase() {
-  console.log('Seeding database with sample data...');
+  console.log("Seeding database with sample data...");
   const user = await prisma.user.create({
     data: {
-      email: 'test@example.com',
-      password: 'password123',
-      name: 'Test User',
+      email: "test@example.com",
+      password: "password123",
+      name: "Test User",
     },
   });
   console.log(`User created: ${JSON.stringify(user)}`);
@@ -55,16 +60,16 @@ async function seedDatabase() {
 
 async function checkDatabaseStatus() {
   const userCount = await prisma.user.count();
-  console.log('Database status:');
+  console.log("Database status:");
   console.log(`- Users: ${userCount}`);
   if (userCount === 0) {
-    console.error('No users found in the database. Exiting...');
-    throw new Error('Database is empty');
+    console.error("No users found in the database. Exiting...");
+    throw new Error("Database is empty");
   }
 }
 
 export async function setupDatabase() {
-  const dbName = 'shopmyphamtest';
+  const dbName = "shopmyphamtest";
   try {
     await connectToDatabase();
     await dropDatabase(dbName);
@@ -74,7 +79,7 @@ export async function setupDatabase() {
     await checkDatabaseStatus();
     return true;
   } catch (error) {
-    console.error('Database setup failed:', error);
+    console.error("Database setup failed:", error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -86,4 +91,4 @@ if (require.main === module) {
   setupDatabase()
     .then(() => process.exit(0))
     .catch(() => process.exit(1));
-} 
+}
