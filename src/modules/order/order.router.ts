@@ -15,25 +15,16 @@ interface AuthenticatedRequest extends Request {
 
 const orderRouter = Router();
 
-orderRouter.post(
-  "/",
-  AuthMiddleware.handle,
-  (req: Request, res: Response) =>
-    OrderController.createOrder(req as AuthenticatedRequest, res),
+orderRouter.post("/", AuthMiddleware.handle, (req: Request, res: Response) =>
+  OrderController.createOrder(req as AuthenticatedRequest, res),
 );
 
-orderRouter.get(
-  "/",
-  AuthMiddleware.handle,
-  (req: Request, res: Response) =>
-    OrderController.getOrders(req as AuthenticatedRequest, res),
+orderRouter.get("/", AuthMiddleware.handle, (req: Request, res: Response) =>
+  OrderController.getOrders(req as AuthenticatedRequest, res),
 );
 
-orderRouter.get(
-  "/:id",
-  AuthMiddleware.handle,
-  (req: Request, res: Response) =>
-    OrderController.getOrderById(req as AuthenticatedRequest, res),
+orderRouter.get("/:id", AuthMiddleware.handle, (req: Request, res: Response) =>
+  OrderController.getOrderById(req as AuthenticatedRequest, res),
 );
 
 orderRouter.patch(

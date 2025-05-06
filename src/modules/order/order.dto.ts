@@ -10,7 +10,7 @@ export const CreateOrderDto = z.object({
         cosmeticId: z.string().min(1),
         quantity: z.number().int().min(1),
         price: z.number().min(0),
-      })
+      }),
     )
     .min(1),
 });

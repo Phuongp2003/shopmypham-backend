@@ -12,9 +12,13 @@ export class PaymentController {
       res.status(201).json(payment);
     } catch (error) {
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res
+          .status(500)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -35,9 +39,13 @@ export class PaymentController {
       res.status(200).json(result);
     } catch (error) {
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res
+          .status(500)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -48,9 +56,13 @@ export class PaymentController {
       res.status(200).json(result);
     } catch (error) {
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res
+          .status(500)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -62,9 +74,13 @@ export class PaymentController {
       res.status(200).json(payment);
     } catch (error) {
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res
+          .status(500)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }

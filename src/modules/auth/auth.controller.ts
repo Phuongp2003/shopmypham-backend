@@ -110,7 +110,9 @@ export class AuthController {
         // Redirect to frontend with success message
         res.redirect(`${googleOAuthConfig.frontendURL}/auth/success`);
       } catch (error) {
-        logger.error("Lỗi xác thực Google:", error, { service: "AuthController" });
+        logger.error("Lỗi xác thực Google:", error, {
+          service: "AuthController",
+        });
         res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
       }
     })(req, res);

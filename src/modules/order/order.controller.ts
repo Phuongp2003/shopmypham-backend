@@ -5,7 +5,11 @@ import { HttpStatus } from "@/common/enums/http-status.enum";
 import { UserRole } from "@/common/enums/user-role.enum";
 import { HttpException } from "@/common/exceptions/http.exception";
 import { OrderService } from "./order.service";
-import { CreateOrderDto, UpdateOrderStatusDto, OrderQueryDto } from "./order.dto";
+import {
+  CreateOrderDto,
+  UpdateOrderStatusDto,
+  OrderQueryDto,
+} from "./order.dto";
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -23,16 +27,30 @@ export class OrderController {
     try {
       const userId = req.user.id;
       const data = CreateOrderDto.parse(req.body);
-      const order = await OrderController.orderService.createOrder(userId, data);
+      const order = await OrderController.orderService.createOrder(
+        userId,
+        data,
+      );
       res.status(HttpStatus.CREATED).json(order);
     } catch (error: any) {
-      logger.error("Order create error:", error, { service: "OrderController" });
+      logger.error("Order create error:", error, {
+        service: "OrderController",
+      });
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
-        res.status(HttpStatus.BAD_REQUEST).json({ status: "error", message: error.errors.map(e => e.message).join(", ") });
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({
+            status: "error",
+            message: error.errors.map((e) => e.message).join(", "),
+          });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ status: "error", message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -49,11 +67,20 @@ export class OrderController {
     } catch (error: any) {
       logger.error("Order list error:", error, { service: "OrderController" });
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
-        res.status(HttpStatus.BAD_REQUEST).json({ status: "error", message: error.errors.map(e => e.message).join(", ") });
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({
+            status: "error",
+            message: error.errors.map((e) => e.message).join(", "),
+          });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ status: "error", message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -68,11 +95,17 @@ export class OrderController {
       }
       res.status(HttpStatus.OK).json(order);
     } catch (error: any) {
-      logger.error("Order get by id error:", error, { service: "OrderController" });
+      logger.error("Order get by id error:", error, {
+        service: "OrderController",
+      });
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ status: "error", message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -84,16 +117,30 @@ export class OrderController {
       if (req.user.role !== UserRole.ADMIN) {
         throw new HttpException(HttpStatus.FORBIDDEN, "Access denied");
       }
-      const order = await OrderController.orderService.updateOrderStatus(id, data);
+      const order = await OrderController.orderService.updateOrderStatus(
+        id,
+        data,
+      );
       res.status(HttpStatus.OK).json(order);
     } catch (error: any) {
-      logger.error("Order update status error:", error, { service: "OrderController" });
+      logger.error("Order update status error:", error, {
+        service: "OrderController",
+      });
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else if (error instanceof z.ZodError) {
-        res.status(HttpStatus.BAD_REQUEST).json({ status: "error", message: error.errors.map(e => e.message).join(", ") });
+        res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({
+            status: "error",
+            message: error.errors.map((e) => e.message).join(", "),
+          });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ status: "error", message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }
@@ -109,11 +156,17 @@ export class OrderController {
       const cancelledOrder = await OrderController.orderService.cancelOrder(id);
       res.status(HttpStatus.OK).json(cancelledOrder);
     } catch (error: any) {
-      logger.error("Order cancel error:", error, { service: "OrderController" });
+      logger.error("Order cancel error:", error, {
+        service: "OrderController",
+      });
       if (error instanceof HttpException) {
-        res.status(error.status).json({ status: "error", message: error.message });
+        res
+          .status(error.status)
+          .json({ status: "error", message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ status: "error", message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ status: "error", message: "Internal server error" });
       }
     }
   }

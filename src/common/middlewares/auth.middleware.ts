@@ -105,7 +105,9 @@ export class AuthMiddleware {
         return next();
       }
     } catch (error) {
-      logger.error("Authentication error:", error, { service: "AuthMiddleware" });
+      logger.error("Authentication error:", error, {
+        service: "AuthMiddleware",
+      });
       return res.status(401).json({
         status: "error",
         message: "Authentication failed",

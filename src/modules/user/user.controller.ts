@@ -13,7 +13,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -27,7 +29,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -41,7 +45,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -56,7 +62,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -70,7 +78,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -78,7 +88,10 @@ export class UserController {
   static async getMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        throw new HttpException(
+          HttpStatus.UNAUTHORIZED,
+          "User not authenticated",
+        );
       }
       const user = await UserService.findById(req.user.id);
       res.json(user);
@@ -86,7 +99,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -94,7 +109,10 @@ export class UserController {
   static async updateMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        throw new HttpException(
+          HttpStatus.UNAUTHORIZED,
+          "User not authenticated",
+        );
       }
       const dto: UpdateUserDTO = req.body;
       const user = await UserService.update(req.user.id, dto);
@@ -103,7 +121,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }
@@ -111,7 +131,10 @@ export class UserController {
   static async deleteMe(req: Request, res: Response) {
     try {
       if (!req.user) {
-        throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        throw new HttpException(
+          HttpStatus.UNAUTHORIZED,
+          "User not authenticated",
+        );
       }
       await UserService.delete(req.user.id);
       res.status(HttpStatus.NO_CONTENT).send();
@@ -119,7 +142,9 @@ export class UserController {
       if (error instanceof HttpException) {
         res.status(error.status).json({ message: error.message });
       } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
     }
   }

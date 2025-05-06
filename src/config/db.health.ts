@@ -15,7 +15,9 @@ export const checkDatabaseHealth = async () => {
     health.prisma = true;
     logger.info("Prisma connection is healthy", { service: "DBHealth" });
   } catch (error) {
-    logger.error("Prisma connection check failed:", error, { service: "DBHealth" });
+    logger.error("Prisma connection check failed:", error, {
+      service: "DBHealth",
+    });
   }
 
   try {
@@ -28,7 +30,9 @@ export const checkDatabaseHealth = async () => {
       logger.warn("Redis client is not initialized", { service: "DBHealth" });
     }
   } catch (error) {
-    logger.error("Redis connection check failed:", error, { service: "DBHealth" });
+    logger.error("Redis connection check failed:", error, {
+      service: "DBHealth",
+    });
   }
 
   return health;
@@ -58,9 +62,13 @@ export const startHealthCheck = (intervalMs = 0) => {
   };
   // Skip periodic checks if only one check is needed
   if (intervalMs <= 0) {
-    logger.info("Health check configured for one-time execution only", { service: "DBHealth" });
+    logger.info("Health check configured for one-time execution only", {
+      service: "DBHealth",
+    });
     return () => {
-      logger.debug("No interval to clear for one-time health check", { service: "DBHealth" });
+      logger.debug("No interval to clear for one-time health check", {
+        service: "DBHealth",
+      });
     };
   }
 

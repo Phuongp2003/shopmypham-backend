@@ -48,7 +48,9 @@ export class AppInitializer {
 
     // Graceful shutdown
     process.on("SIGTERM", async () => {
-      logger.info("SIGTERM received. Shutting down gracefully...", {service: "Startup"});
+      logger.info("SIGTERM received. Shutting down gracefully...", {
+        service: "Startup",
+      });
       cleanupHealthCheck();
       // Disconnect from Redis
       await disconnectRedis();
@@ -58,7 +60,9 @@ export class AppInitializer {
     });
 
     process.on("SIGINT", async () => {
-      logger.info("SIGINT received. Shutting down gracefully...", {service: "Startup"});
+      logger.info("SIGINT received. Shutting down gracefully...", {
+        service: "Startup",
+      });
       cleanupHealthCheck();
       // Disconnect from Redis
       await disconnectRedis();
@@ -67,7 +71,9 @@ export class AppInitializer {
       process.exit(0);
     });
 
-    logger.info("Application setup completed successfully", {service: "Startup"});
+    logger.info("Application setup completed successfully", {
+      service: "Startup",
+    });
 
     return this.app;
   }
@@ -84,24 +90,28 @@ export class AppInitializer {
     try {
       // Initialize Prisma
       await prisma.$connect();
-      logger.info("Prisma connected successfully", {service: "Startup"});
+      logger.info("Prisma connected successfully", { service: "Startup" });
 
       // Initialize Redis (ensuring it's only initialized once)
       await initializeRedis();
       if (global.redis) {
-        logger.info("Redis connected successfully", {service: "Startup"});
+        logger.info("Redis connected successfully", { service: "Startup" });
       } else {
-        logger.warn("Redis client could not be initialized", {service: "Startup"});
+        logger.warn("Redis client could not be initialized", {
+          service: "Startup",
+        });
       }
 
       // Initialize Swagger
       swaggerConfig(this.app);
-      logger.info("Swagger initialized successfully", {service: "Startup"});
+      logger.info("Swagger initialized successfully", { service: "Startup" });
 
       // Initialize admin user
       await initAdminUser();
     } catch (error) {
-      logger.error("\nFailed to initialize services:", error, {service: "Startup"});
+      logger.error("\nFailed to initialize services:", error, {
+        service: "Startup",
+      });
       throw error;
     }
   }
@@ -139,10 +149,10 @@ export class AppInitializer {
         res: express.Response,
         next: express.NextFunction,
       ) => {
-        logger.error("Unhandled error:", err, {service: "Startup"});
+        logger.error("Unhandled error:", err, { service: "Startup" });
 
         if (err.details) {
-          logger.error("Error details:", err.details, {service: "Startup"});
+          logger.error("Error details:", err.details, { service: "Startup" });
         }
         res.status(500).json({
           status: "error",

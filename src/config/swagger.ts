@@ -67,7 +67,7 @@ const swaggerBuilder = new SwaggerBuilder()
 
 // Merge all swagger docs
 const swaggerOptions = {
-  openapi: "3.0.0", // Changed from 3.1.0 to 3.0.0 for better compatibility
+  openapi: "3.0.0",
   info: {
     title: "Backend API",
     version: "1.0.0",
@@ -160,7 +160,9 @@ export const swaggerConfig = (app: Express) => {
 
     logger.info("Swagger UI is available at /docs", { service: "Swagger" });
   } catch (error) {
-    logger.error("Failed to initialize Swagger:", error, { service: "Swagger" });
+    logger.error("Failed to initialize Swagger:", error, {
+      service: "Swagger",
+    });
     throw error;
   }
 };

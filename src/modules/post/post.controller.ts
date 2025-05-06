@@ -28,7 +28,8 @@ export class PostController {
       } else {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           status: "error",
-          message: "Đã xảy ra lỗi khi lấy danh sách bài viết. Vui lòng thử lại sau.",
+          message:
+            "Đã xảy ra lỗi khi lấy danh sách bài viết. Vui lòng thử lại sau.",
           code: HttpStatus.INTERNAL_SERVER_ERROR,
         });
       }
@@ -53,7 +54,8 @@ export class PostController {
       } else {
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           status: "error",
-          message: "Đã xảy ra lỗi khi lấy thông tin bài viết. Vui lòng thử lại sau.",
+          message:
+            "Đã xảy ra lỗi khi lấy thông tin bài viết. Vui lòng thử lại sau.",
           code: HttpStatus.INTERNAL_SERVER_ERROR,
         });
       }
@@ -124,7 +126,8 @@ export class PostController {
         } else {
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             status: "error",
-            message: "Đã xảy ra lỗi khi cập nhật bài viết. Vui lòng thử lại sau.",
+            message:
+              "Đã xảy ra lỗi khi cập nhật bài viết. Vui lòng thử lại sau.",
             code: HttpStatus.INTERNAL_SERVER_ERROR,
           });
         }

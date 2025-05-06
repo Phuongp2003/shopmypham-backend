@@ -39,7 +39,9 @@ const initializeRedis = async () => {
       logger.info("Global Redis instance initialized", { service: "Redis" });
     }
   } catch (error) {
-    logger.error("Failed to initialize global Redis instance:", error, { service: "Redis" });
+    logger.error("Failed to initialize global Redis instance:", error, {
+      service: "Redis",
+    });
   }
   return redis;
 };

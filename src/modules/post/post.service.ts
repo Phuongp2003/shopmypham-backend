@@ -107,7 +107,9 @@ export class PostService {
         },
       },
     });
-    await PostService.cacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+    await PostService.cacheService.clearByPrefix(
+      `${PostService.CACHE_PREFIX}:list`,
+    );
     return post;
   }
 
@@ -138,9 +140,14 @@ export class PostService {
         },
       },
     });
-    await PostService.cacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+    await PostService.cacheService.clearByPrefix(
+      `${PostService.CACHE_PREFIX}:list`,
+    );
     await PostService.cacheService.delete(
-      PostService.cacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, { id }),
+      PostService.cacheService.generateKey(
+        `${PostService.CACHE_PREFIX}:detail`,
+        { id },
+      ),
     );
     return updatedPost;
   }
@@ -158,9 +165,14 @@ export class PostService {
     await prisma.post.delete({
       where: { id },
     });
-    await PostService.cacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+    await PostService.cacheService.clearByPrefix(
+      `${PostService.CACHE_PREFIX}:list`,
+    );
     await PostService.cacheService.delete(
-      PostService.cacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, { id }),
+      PostService.cacheService.generateKey(
+        `${PostService.CACHE_PREFIX}:detail`,
+        { id },
+      ),
     );
   }
 }

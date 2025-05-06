@@ -1,9 +1,7 @@
 import { SwaggerBuilder } from "@/config/swagger-builder";
 
 export const userSwagger = new SwaggerBuilder()
-  .addTag("Users",
-    "User management endpoints"
-  )
+  .addTag("Users", "User management endpoints")
   .addPath("/users", {
     get: {
       tags: ["Users"],
@@ -382,14 +380,7 @@ export const userSwagger = new SwaggerBuilder()
   })
   .addSchema("CreateAddressDTO", {
     type: "object",
-    required: [
-      "userId",
-      "street",
-      "city",
-      "state",
-      "country",
-      "postalCode",
-    ],
+    required: ["userId", "street", "city", "state", "country", "postalCode"],
     properties: {
       userId: { type: "string" },
       street: { type: "string" },
