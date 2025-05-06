@@ -152,6 +152,33 @@ export const authSwagger = new SwaggerBuilder()
       },
     },
   })
+  .addPath("/auth/google", {
+    get: {
+      summary: "Authenticate using Google OAuth",
+      tags: ["Auth"],
+      description: "Redirects to Google authentication page",
+      responses: {
+        302: {
+          description: "Redirect to Google authentication",
+        },
+      },
+    },
+  })
+  .addPath("/auth/google/callback", {
+    get: {
+      summary: "Google OAuth callback",
+      tags: ["Auth"],
+      description: "Callback endpoint for Google OAuth authentication",
+      responses: {
+        302: {
+          description: "Redirect to frontend with authentication result",
+        },
+        401: {
+          description: "Authentication failed",
+        },
+      },
+    },
+  })
   .addSchema("User", {
     type: "object",
     properties: {

@@ -1,7 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
 
-import { AuthMiddleware } from "../../common/middlewares/auth.middleware";
 import { googleStrategy } from "../../config/google-oauth.config";
 import { AuthController } from "./auth.controller";
 
