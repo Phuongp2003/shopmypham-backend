@@ -1,10 +1,15 @@
-import { z } from 'zod';
-import { PostQueryParams, PostCreateInput, PostUpdateInput } from './post.types';
+import { z } from "zod";
+
+import {
+  PostCreateInput,
+  PostQueryParams,
+  PostUpdateInput,
+} from "./post.types";
 
 export const postQueryParamsSchema = z.object({
   search: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'title']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
+  sortBy: z.enum(["createdAt", "title"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().optional(),
   published: z.boolean().optional(),
@@ -16,4 +21,5 @@ export const postCreateSchema = z.object({
   published: z.boolean().optional(),
 }) satisfies z.ZodType<PostCreateInput>;
 
-export const postUpdateSchema = postCreateSchema.partial() satisfies z.ZodType<PostUpdateInput>; 
+export const postUpdateSchema =
+  postCreateSchema.partial() satisfies z.ZodType<PostUpdateInput>;

@@ -1,28 +1,45 @@
-import { prisma } from '@/config/prisma';
-import { CosmeticQueryParams, CosmeticCreateInput, CosmeticUpdateInput, CosmeticResponse } from './cosmetic.types';
-import { HttpException } from '@/common/exceptions/http.exception';
-import { HttpStatus } from '@/common/enums/http-status.enum';
-import { CacheService } from '@/common/services/cache.service';
+import { HttpStatus } from "@/common/enums/http-status.enum";
+import { HttpException } from "@/common/exceptions/http.exception";
+import { CacheService } from "@/common/services/cache.service";
+import { prisma } from "@/config/prisma";
+
+import {
+  CosmeticCreateInput,
+  CosmeticQueryParams,
+  CosmeticResponse,
+  CosmeticUpdateInput,
+} from "./cosmetic.types";
 
 export class CosmeticService {
-  private cacheService: CacheService;
-  private readonly CACHE_PREFIX = 'cosmetic';
+  private static readonly CACHE_PREFIX = "cosmetic";
 
-  constructor() {
-    this.cacheService = CacheService.getInstance();
-  }
+  static async getCosmetics(
+    params: CosmeticQueryParams,
+  ): Promise<{ cosmetics: CosmeticResponse[]; total: number }> {
+    const cacheService = CacheService.getInstance();
+    const cacheKey = cacheService.generateKey(
+      `${this.CACHE_PREFIX}:list`,
+      params,
+    );
 
-  async getCosmetics(params: CosmeticQueryParams): Promise<{ cosmetics: CosmeticResponse[]; total: number }> {
-    const cacheKey = this.cacheService.generateKey(`${this.CACHE_PREFIX}:list`, params);
-    
-    return this.cacheService.getOrSet(cacheKey, async () => {
-      const { search, type, minPrice, maxPrice, sortBy, sortOrder, page = 1, limit = 10, inStock } = params;
+    return cacheService.getOrSet(cacheKey, async () => {
+      const {
+        search,
+        type,
+        minPrice,
+        maxPrice,
+        sortBy,
+        sortOrder,
+        page = 1,
+        limit = 10,
+        inStock,
+      } = params;
 
       const where = {
         ...(search && {
           OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
           ],
         }),
         ...(type && { type }),
@@ -34,14 +51,16 @@ export class CosmeticService {
       const [cosmetics, total] = await Promise.all([
         prisma.cosmetic.findMany({
           where,
-          orderBy: sortBy ? { [sortBy]: sortOrder || 'desc' } : { createdAt: 'desc' },
+          orderBy: sortBy
+            ? { [sortBy]: sortOrder || "desc" }
+            : { createdAt: "desc" },
           skip: (page - 1) * limit,
           take: limit,
         }),
         prisma.cosmetic.count({ where }),
       ]);
 
-      const cosmeticsWithStock = cosmetics.map(cosmetic => ({
+      const cosmeticsWithStock = cosmetics.map((cosmetic) => ({
         ...cosmetic,
         inStock: cosmetic.stock > 0,
       }));
@@ -50,16 +69,19 @@ export class CosmeticService {
     });
   }
 
-  async getCosmeticById(id: string): Promise<CosmeticResponse> {
-    const cacheKey = this.cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id });
-    
-    return this.cacheService.getOrSet(cacheKey, async () => {
+  static async getCosmeticById(id: string): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
+    const cacheKey = cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, {
+      id,
+    });
+
+    return cacheService.getOrSet(cacheKey, async () => {
       const cosmetic = await prisma.cosmetic.findUnique({
         where: { id },
       });
 
       if (!cosmetic) {
-        throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+        throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
       }
 
       return {
@@ -69,7 +91,10 @@ export class CosmeticService {
     });
   }
 
-  async createCosmetic(data: CosmeticCreateInput): Promise<CosmeticResponse> {
+  static async createCosmetic(
+    data: CosmeticCreateInput,
+  ): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
     // Check if distributor and style exist
     const [distributor, style] = await Promise.all([
       prisma.cosmeticDistributor.findUnique({
@@ -81,11 +106,11 @@ export class CosmeticService {
     ]);
 
     if (!distributor) {
-      throw new HttpException(HttpStatus.NOT_FOUND, 'Distributor not found');
+      throw new HttpException(HttpStatus.NOT_FOUND, "Distributor not found");
     }
 
     if (!style) {
-      throw new HttpException(HttpStatus.NOT_FOUND, 'Style not found');
+      throw new HttpException(HttpStatus.NOT_FOUND, "Style not found");
     }
 
     const cosmetic = await prisma.cosmetic.create({
@@ -101,7 +126,7 @@ export class CosmeticService {
     });
 
     // Clear list cache since we added a new cosmetic
-    await this.cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
 
     return {
       ...cosmetic,
@@ -109,13 +134,17 @@ export class CosmeticService {
     };
   }
 
-  async updateCosmetic(id: string, data: CosmeticUpdateInput): Promise<CosmeticResponse> {
+  static async updateCosmetic(
+    id: string,
+    data: CosmeticUpdateInput,
+  ): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
     const cosmetic = await prisma.cosmetic.findUnique({
       where: { id },
     });
 
     if (!cosmetic) {
-      throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+      throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
     }
 
     // If updating distributor or style, check if they exist
@@ -124,7 +153,7 @@ export class CosmeticService {
         where: { id: data.distributorId },
       });
       if (!distributor) {
-        throw new HttpException(HttpStatus.NOT_FOUND, 'Distributor not found');
+        throw new HttpException(HttpStatus.NOT_FOUND, "Distributor not found");
       }
     }
 
@@ -133,7 +162,7 @@ export class CosmeticService {
         where: { id: data.styleId },
       });
       if (!style) {
-        throw new HttpException(HttpStatus.NOT_FOUND, 'Style not found');
+        throw new HttpException(HttpStatus.NOT_FOUND, "Style not found");
       }
     }
 
@@ -143,8 +172,10 @@ export class CosmeticService {
     });
 
     // Clear both list and detail cache
-    await this.cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
-    await this.cacheService.delete(this.cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }));
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.delete(
+      cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
+    );
 
     return {
       ...updatedCosmetic,
@@ -152,13 +183,14 @@ export class CosmeticService {
     };
   }
 
-  async deleteCosmetic(id: string): Promise<void> {
+  static async deleteCosmetic(id: string): Promise<void> {
+    const cacheService = CacheService.getInstance();
     const cosmetic = await prisma.cosmetic.findUnique({
       where: { id },
     });
 
     if (!cosmetic) {
-      throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+      throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
     }
 
     await prisma.cosmetic.delete({
@@ -166,7 +198,9 @@ export class CosmeticService {
     });
 
     // Clear both list and detail cache
-    await this.cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
-    await this.cacheService.delete(this.cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }));
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.delete(
+      cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
+    );
   }
-} 
+}

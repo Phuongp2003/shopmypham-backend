@@ -1,7 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, ZodError } from 'zod';
+import { NextFunction, Request, Response } from "express";
+import { AnyZodObject, ZodError } from "zod";
 
-export const validateRequest = (schema: { body?: AnyZodObject; query?: AnyZodObject; params?: AnyZodObject }) => {
+export const validateRequest = (schema: {
+  body?: AnyZodObject;
+  query?: AnyZodObject;
+  params?: AnyZodObject;
+}) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (schema.body) {
@@ -17,12 +21,12 @@ export const validateRequest = (schema: { body?: AnyZodObject; query?: AnyZodObj
     } catch (error) {
       if (error instanceof ZodError) {
         return res.status(400).json({
-          status: 'error',
-          message: 'Validation failed',
+          status: "error",
+          message: "Validation failed",
           errors: error.errors,
         });
       }
       next(error);
     }
   };
-}; 
+};

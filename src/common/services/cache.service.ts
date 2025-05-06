@@ -1,5 +1,6 @@
-import { redis } from '@/config/redis';
-import { logger } from '../logger/logger.factory';
+import { redis } from "@/config/redis";
+
+import { logger } from "../logger/logger.factory";
 
 export class CacheService {
   private static instance: CacheService;
@@ -17,56 +18,86 @@ export class CacheService {
   public generateKey(prefix: string, params: Record<string, any>): string {
     const sortedParams = Object.keys(params)
       .sort()
-      .reduce((acc, key) => {
-        acc[key] = params[key];
-        return acc;
-      }, {} as Record<string, any>);
+      .reduce(
+        (acc, key) => {
+          acc[key] = params[key];
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
 
     return `${prefix}:${JSON.stringify(sortedParams)}`;
   }
 
   async get<T>(key: string): Promise<T | null> {
     try {
-      if (!redis) {
-        logger.warn('Redis client not initialized');
-        return null;
+      if (!redis.isOpen) {
+        await redis.connect();
+        logger.info("Redis connected from CacheService", {
+          service: "CacheService",
+        });
       }
+
       const data = await redis.get(key);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+
+      return JSON.parse(data) as T;
     } catch (error) {
-      logger.error('Cache get error:', error);
+      logger.error(`Error getting cache for key ${key}:`, error, {
+        service: "CacheService",
+      });
       return null;
     }
   }
 
-  async set(key: string, value: any, ttl: number = this.defaultTTL): Promise<void> {
+  async set(
+    key: string,
+    value: any,
+    ttl: number = this.defaultTTL,
+  ): Promise<void> {
     try {
-      if (!redis) {
-        logger.warn('Redis client not initialized');
-        return;
+      if (!redis.isOpen) {
+        await redis.connect();
+        logger.info("Redis connected from CacheService", {
+          service: "CacheService",
+        });
       }
-      await redis.set(key, JSON.stringify(value), 'EX', ttl);
+
+      const serializedValue = JSON.stringify(value);
+
+      if (ttl) {
+        await redis.setEx(key, ttl, serializedValue);
+      } else {
+        await redis.set(key, serializedValue);
+      }
     } catch (error) {
-      logger.error('Cache set error:', error);
+      logger.error(`Error setting cache for key ${key}:`, error, {
+        service: "CacheService",
+      });
     }
   }
 
   async delete(key: string): Promise<void> {
     try {
-      if (!redis) {
-        logger.warn('Redis client not initialized');
-        return;
+      if (!redis.isOpen) {
+        await redis.connect();
+        logger.info("Redis connected from CacheService", {
+          service: "CacheService",
+        });
       }
+
       await redis.del(key);
     } catch (error) {
-      logger.error('Cache delete error:', error);
+      logger.error(`Error deleting cache for key ${key}:`, error, {
+        service: "CacheService",
+      });
     }
   }
 
   async getOrSet<T>(
     key: string,
     fetchFn: () => Promise<T>,
-    ttl: number = this.defaultTTL
+    ttl: number = this.defaultTTL,
   ): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached) {
@@ -80,16 +111,40 @@ export class CacheService {
 
   async clearByPrefix(prefix: string): Promise<void> {
     try {
-      if (!redis) {
-        logger.warn('Redis client not initialized');
-        return;
+      if (!redis.isOpen) {
+        await redis.connect();
+        logger.info("Redis connected from CacheService", {
+          service: "CacheService",
+        });
       }
+
       const keys = await redis.keys(`${prefix}:*`);
       if (keys.length > 0) {
-        await redis.del(...keys);
+        await redis.del(keys);
       }
     } catch (error) {
-      logger.error('Cache clear by prefix error:', error);
+      logger.error("Cache clear by prefix error:", error, {
+        service: "CacheService",
+      });
     }
   }
-} 
+
+  async exists(key: string): Promise<boolean> {
+    try {
+      if (!redis.isOpen) {
+        await redis.connect();
+        logger.info("Redis connected from CacheService", {
+          service: "CacheService",
+        });
+      }
+
+      const result = await redis.exists(key);
+      return result === 1;
+    } catch (error) {
+      logger.error(`Error checking existence for key ${key}:`, error, {
+        service: "CacheService",
+      });
+      return false;
+    }
+  }
+}

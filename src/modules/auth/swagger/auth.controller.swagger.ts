@@ -1,268 +1,209 @@
-import { Router } from 'express';
+import { SwaggerBuilder } from "@/config/swagger-builder";
 
-export const authSwagger = {
-  paths: {
-    '/auth/login': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Login user',
-        description: 'Login with email and password. Returns access token and sets refresh token in HTTP-only cookie.',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['email', 'password'],
-                properties: {
-                  email: {
-                    type: 'string',
-                    format: 'email',
-                    description: 'User email'
-                  },
-                  password: {
-                    type: 'string',
-                    format: 'password',
-                    description: 'User password'
-                  }
-                }
-              }
-            }
-          }
+export const authSwagger = new SwaggerBuilder()
+  .addTag("Auth", "Authentication endpoints")
+  .addSecurityScheme("bearerAuth", {
+    type: "http",
+    scheme: "bearer",
+    bearerFormat: "JWT",
+  })
+  .addPath("/auth/login", {
+    post: {
+      summary: "Login user",
+      tags: ["Auth"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["email", "password"],
+              properties: {
+                email: {
+                  type: "string",
+                  format: "email",
+                },
+                password: {
+                  type: "string",
+                  format: "password",
+                },
+              },
+            },
+          },
         },
-        responses: {
-          '200': {
-            description: 'Login successful',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    user: {
-                      type: 'object',
-                      properties: {
-                        id: {
-                          type: 'string',
-                          description: 'User ID'
-                        },
-                        email: {
-                          type: 'string',
-                          description: 'User email'
-                        },
-                        name: {
-                          type: 'string',
-                          description: 'User name'
-                        },
-                        role: {
-                          type: 'string',
-                          enum: ['admin', 'user'],
-                          description: 'User role'
-                        },
-                        googleId: {
-                          type: 'string',
-                          description: 'Google ID (if logged in with Google)',
-                          nullable: true
-                        }
-                      }
-                    },
-                    accessToken: {
-                      type: 'string',
-                      description: 'JWT access token'
-                    },
-                    refreshToken: {
-                      type: 'string',
-                      description: 'JWT refresh token'
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            description: 'Invalid credentials'
-          }
-        }
-      }
-    },
-    '/auth/google': {
-      get: {
-        tags: ['Auth'],
-        summary: 'Google OAuth Login',
-        description: 'Initiates Google OAuth flow',
-        responses: {
-          '302': {
-            description: 'Redirects to Google login page'
-          }
-        }
-      }
-    },
-    '/auth/google/callback': {
-      get: {
-        tags: ['Auth'],
-        summary: 'Google OAuth Callback',
-        description: 'Callback endpoint for Google OAuth. Sets authentication cookies and redirects to frontend.',
-        responses: {
-          '302': {
-            description: 'Redirects to frontend with authentication cookies set',
-            headers: {
-              'Set-Cookie': {
-                schema: {
-                  type: 'string',
-                  description: 'Authentication cookies (accessToken and refreshToken)'
-                }
-              }
-            }
-          },
-          '401': {
-            description: 'Authentication failed'
-          }
-        }
-      }
-    },
-    '/auth/register': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Register new user',
-        description: 'Register a new user with email and password',
-        requestBody: {
-          required: true,
+      },
+      responses: {
+        200: {
+          description: "Login successful",
           content: {
-            'application/json': {
+            "application/json": {
               schema: {
-                type: 'object',
-                required: ['email', 'password', 'name'],
+                type: "object",
                 properties: {
-                  email: {
-                    type: 'string',
-                    format: 'email',
-                    description: 'User email'
+                  accessToken: {
+                    type: "string",
                   },
-                  password: {
-                    type: 'string',
-                    format: 'password',
-                    description: 'User password'
-                  },
-                  name: {
-                    type: 'string',
-                    description: 'User name'
-                  }
-                }
-              }
-            }
-          }
-        },
-        responses: {
-          '201': {
-            description: 'Registration successful',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    user: {
-                      type: 'object',
-                      properties: {
-                        id: {
-                          type: 'string',
-                          description: 'User ID'
-                        },
-                        email: {
-                          type: 'string',
-                          description: 'User email'
-                        },
-                        name: {
-                          type: 'string',
-                          description: 'User name'
-                        },
-                        role: {
-                          type: 'string',
-                          enum: ['admin', 'user'],
-                          description: 'User role'
-                        }
-                      }
-                    },
-                    accessToken: {
-                      type: 'string',
-                      description: 'JWT access token'
-                    },
-                    refreshToken: {
-                      type: 'string',
-                      description: 'JWT refresh token'
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '400': {
-            description: 'Invalid input or user already exists'
-          }
-        }
-      }
-    },
-    '/auth/refresh-token': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Refresh access token',
-        description: 'Get new access token using refresh token',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['refreshToken'],
-                properties: {
                   refreshToken: {
-                    type: 'string',
-                    description: 'Refresh token'
-                  }
-                }
-              }
-            }
-          }
+                    type: "string",
+                  },
+                  user: {
+                    $ref: "#/components/schemas/User",
+                  },
+                },
+              },
+            },
+          },
         },
-        responses: {
-          '200': {
-            description: 'Token refresh successful',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    accessToken: {
-                      type: 'string',
-                      description: 'New JWT access token'
-                    },
-                    refreshToken: {
-                      type: 'string',
-                      description: 'New JWT refresh token'
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '401': {
-            description: 'Invalid or expired refresh token'
-          }
-        }
-      }
+        401: {
+          description: "Invalid credentials",
+        },
+      },
     },
-    '/auth/logout': {
-      post: {
-        tags: ['Auth'],
-        summary: 'Logout user',
-        description: 'Invalidate current session and clear authentication cookies',
-        responses: {
-          '200': {
-            description: 'Logout successful'
+  })
+  .addPath("/auth/register", {
+    post: {
+      summary: "Register new user",
+      tags: ["Auth"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["email", "password", "name"],
+              properties: {
+                email: {
+                  type: "string",
+                  format: "email",
+                },
+                password: {
+                  type: "string",
+                  format: "password",
+                },
+                name: {
+                  type: "string",
+                },
+              },
+            },
           },
-          '401': {
-            description: 'Not authenticated'
-          }
-        }
-      }
-    }
-  }
-}; 
+        },
+      },
+      responses: {
+        201: {
+          description: "User registered successfully",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/User",
+              },
+            },
+          },
+        },
+        400: {
+          description: "Invalid input",
+        },
+      },
+    },
+  })
+  .addPath("/auth/refresh-token", {
+    post: {
+      summary: "Refresh access token",
+      tags: ["Auth"],
+      responses: {
+        200: {
+          description: "Token refreshed successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  accessToken: {
+                    type: "string",
+                  },
+                  refreshToken: {
+                    type: "string",
+                  },
+                  user: {
+                    $ref: "#/components/schemas/User",
+                  },
+                },
+              },
+            },
+          },
+        },
+        401: {
+          description: "Invalid refresh token",
+        },
+      },
+    },
+  })
+  .addPath("/auth/logout", {
+    post: {
+      summary: "Logout user",
+      tags: ["Auth"],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: "Logout successful",
+        },
+        401: {
+          description: "Unauthorized",
+        },
+      },
+    },
+  })
+  .addPath("/auth/google", {
+    get: {
+      summary: "Authenticate using Google OAuth",
+      tags: ["Auth"],
+      description: "Redirects to Google authentication page",
+      responses: {
+        302: {
+          description: "Redirect to Google authentication",
+        },
+      },
+    },
+  })
+  .addPath("/auth/google/callback", {
+    get: {
+      summary: "Google OAuth callback",
+      tags: ["Auth"],
+      description: "Callback endpoint for Google OAuth authentication",
+      responses: {
+        302: {
+          description: "Redirect to frontend with authentication result",
+        },
+        401: {
+          description: "Authentication failed",
+        },
+      },
+    },
+  })
+  .addSchema("User", {
+    type: "object",
+    properties: {
+      id: {
+        type: "string",
+      },
+      email: {
+        type: "string",
+        format: "email",
+      },
+      name: {
+        type: "string",
+      },
+      role: {
+        type: "string",
+        enum: ["ADMIN", "MANAGER", "USER"],
+      },
+      createdAt: {
+        type: "string",
+        format: "date-time",
+      },
+      updatedAt: {
+        type: "string",
+        format: "date-time",
+      },
+    },
+  })
+  .build();

@@ -1,12 +1,12 @@
-import { Cosmetic, CosmeticType } from '@prisma/client';
+import { Cosmetic, CosmeticType } from "@prisma/client";
 
 export type CosmeticQueryParams = {
   search?: string;
   type?: CosmeticType;
   minPrice?: number;
   maxPrice?: number;
-  sortBy?: 'price' | 'name' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "price" | "name" | "createdAt";
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
   inStock?: boolean;
@@ -26,4 +26,4 @@ export type CosmeticUpdateInput = Partial<CosmeticCreateInput>;
 
 export type CosmeticResponse = Cosmetic & {
   inStock: boolean;
-}; 
+};
