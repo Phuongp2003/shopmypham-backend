@@ -93,41 +93,49 @@ model CartDetail {
 }
 
 model Cosmetic {
-    id           String        @id @default(uuid())
-    name         String
-    description  String?
-    price        Float
-    stock        Int          @default(0)
-    type         CosmeticType
+    id            String              @id @default(uuid())
+    name          String
+    description   String?
+    price         Float
+    stock         Int                 @default(0)
+    type          CosmeticType
     distributorId String
-    styleId      String
-    distributor  CosmeticDistributor @relation(fields: [distributorId], references: [id])
-    style        CosmeticStyle       @relation(fields: [styleId], references: [id])
-    cartDetails  CartDetail[]
-    orderDetails OrderDetail[]
-    createdAt    DateTime     @default(now())
-    updatedAt    DateTime     @updatedAt
+    distributor   CosmeticDistributor @relation(fields: [distributorId], references: [id])
+    cartDetails   CartDetail[]
+    orderDetails  OrderDetail[]
+    meta          CosmeticMeta[]
+    createdAt     DateTime            @default(now())
+    updatedAt     DateTime            @updatedAt
 }
 
 model CosmeticDistributor {
-    id          String     @id @default(uuid())
-    name        String
-    address     String?
-    phone       String?
-    email       String?
-    cosmetics   Cosmetic[]
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
+    id        String     @id @default(uuid())
+    name      String
+    address   String?
+    phone     String?
+    email     String?
+    cosmetics Cosmetic[]
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
 }
 
-model CosmeticStyle {
-    id          String     @id @default(uuid())
-    name        String
-    description String?
-    cosmetics   Cosmetic[]
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
+// model CosmeticStyle {
+//     id          String     @id @default(uuid())
+//     name        String
+//     description String?
+//     cosmetics   Cosmetic[]
+//     createdAt   DateTime   @default(now())
+//     updatedAt   DateTime   @updatedAt
+// }
+
+model CosmeticMeta {
+  id       String   @id @default(uuid())    // 👈 Đây là khóa chính
+  key      String
+  value    String
+  cosId    String
+  cosmetic Cosmetic @relation(fields: [cosId], references: [id])
 }
+
 
 enum OrderStatus {
     PENDING
