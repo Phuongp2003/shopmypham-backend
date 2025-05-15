@@ -11,17 +11,16 @@ import {
 } from "./post.types";
 
 export class PostService {
-  static cacheService = CacheService.getInstance();
   static readonly CACHE_PREFIX = "post";
 
   static async getPosts(
     params: PostQueryParams,
   ): Promise<{ posts: PostWithAuthor[]; total: number }> {
-    const cacheKey = PostService.cacheService.generateKey(
+    const cacheKey = CacheService.generateKey(
       `${PostService.CACHE_PREFIX}:list`,
       params,
     );
-    return PostService.cacheService.getOrSet(cacheKey, async () => {
+    const cached = await CacheService.getOrSet(cacheKey, async () => {
       const {
         search,
         sortBy,
@@ -61,14 +60,54 @@ export class PostService {
       ]);
       return { posts, total };
     });
+    if (cached) return cached;
+    // fallback: fetch from DB (same as cache miss logic)
+    const {
+      search,
+      sortBy,
+      sortOrder,
+      page = 1,
+      limit = 10,
+      published,
+    } = params;
+    const where = {
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: "insensitive" } },
+          { content: { contains: search, mode: "insensitive" } },
+        ],
+      }),
+      ...(published !== undefined && { published }),
+    };
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: sortBy
+          ? { [sortBy]: sortOrder || "desc" }
+          : { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.post.count({ where }),
+    ]);
+    return { posts, total };
   }
 
   static async getPostById(id: string): Promise<PostWithAuthor> {
-    const cacheKey = PostService.cacheService.generateKey(
+    const cacheKey = CacheService.generateKey(
       `${PostService.CACHE_PREFIX}:detail`,
       { id },
     );
-    return PostService.cacheService.getOrSet(cacheKey, async () => {
+    const cached = await CacheService.getOrSet(cacheKey, async () => {
       const post = await prisma.post.findUnique({
         where: { id },
         include: {
@@ -86,6 +125,24 @@ export class PostService {
       }
       return post;
     });
+    if (cached) return cached;
+    // fallback: fetch from DB (same as cache miss logic)
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+    if (!post) {
+      throw new HttpException(HttpStatus.NOT_FOUND, "Post not found");
+    }
+    return post;
   }
 
   static async createPost(
@@ -107,7 +164,7 @@ export class PostService {
         },
       },
     });
-    await PostService.cacheService.clearByPrefix(
+    await CacheService.clearByPrefix(
       `${PostService.CACHE_PREFIX}:list`,
     );
     return post;
@@ -140,11 +197,11 @@ export class PostService {
         },
       },
     });
-    await PostService.cacheService.clearByPrefix(
+    await CacheService.clearByPrefix(
       `${PostService.CACHE_PREFIX}:list`,
     );
-    await PostService.cacheService.delete(
-      PostService.cacheService.generateKey(
+    await CacheService.delete(
+      CacheService.generateKey(
         `${PostService.CACHE_PREFIX}:detail`,
         { id },
       ),
@@ -165,11 +222,11 @@ export class PostService {
     await prisma.post.delete({
       where: { id },
     });
-    await PostService.cacheService.clearByPrefix(
+    await CacheService.clearByPrefix(
       `${PostService.CACHE_PREFIX}:list`,
     );
-    await PostService.cacheService.delete(
-      PostService.cacheService.generateKey(
+    await CacheService.delete(
+      CacheService.generateKey(
         `${PostService.CACHE_PREFIX}:detail`,
         { id },
       ),

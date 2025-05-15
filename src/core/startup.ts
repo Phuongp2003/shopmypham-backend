@@ -98,13 +98,11 @@ export class AppInitializer {
       logger.info("Prisma connected successfully", { service: "Startup" });
 
       // Initialize Redis (ensuring it's only initialized once)
-      await initializeRedis();
-      if (global.redis) {
+      const redisAvailable = await initializeRedis();
+      if (redisAvailable) {
         logger.info("Redis connected successfully", { service: "Startup" });
       } else {
-        logger.warn("Redis client could not be initialized", {
-          service: "Startup",
-        });
+        logger.error("cache services connect fail, using no-cache strategy!", { service: "Startup" });
       }
 
       // Initialize Swagger
