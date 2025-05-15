@@ -98,14 +98,32 @@ export class CacheService {
     key: string,
     fetchFn: () => Promise<T>,
     ttl: number = this.defaultTTL,
-  ): Promise<T> {
-    const cached = await this.get<T>(key);
+  ): Promise<T | null> {
+    let cached;
+    try {
+      cached = await this.get<T>(key);
+    } catch (error) {
+      logger.error(`Error fetching cache for key ${key}:`, error, {
+        service: "CacheService",
+      });
+      cached = null;
+    }
+
     if (cached) {
       return cached;
     }
 
-    const data = await fetchFn();
-    await this.set(key, data, ttl);
+    let data;
+    try {
+      data = await fetchFn();
+      await this.set(key, data, ttl);
+    } catch (error) {
+      logger.error(`Error fetching or setting cache for key ${key}:`, error, {
+        service: "CacheService",
+      });
+      return null;
+    }
+
     return data;
   }
 

@@ -74,6 +74,11 @@ export class AppInitializer {
     logger.info("Application setup completed successfully", {
       service: "Startup",
     });
+    if (process.env.NODE_ENV !== "production") {
+      logger.info("Application run on http://localhost:3000", {
+        service: "Startup",
+      });
+    }
 
     return this.app;
   }
