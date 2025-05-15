@@ -64,6 +64,18 @@ export const cosmeticSwagger = new SwaggerBuilder()
           description: "Filter by stock availability",
           schema: { type: "boolean" },
         },
+        {
+          name: "meta",
+          in: "query",
+          description: "Filter by cosmetic metadata (key-value pairs)",
+          schema: {
+            type: "object",
+            properties: {
+              color: { type: "string" },
+              size: { type: "string" },
+            },
+          },
+        },
       ],
       responses: {
         "200": {
@@ -321,7 +333,13 @@ export const cosmeticSwagger = new SwaggerBuilder()
       stock: { type: "integer" },
       type: { type: "string", enum: Object.values(CosmeticType) },
       distributorId: { type: "string" },
-      styleId: { type: "string" },
+      meta: {
+        type: "object",
+        properties: {
+          color: { type: "string" },
+          size: { type: "string" },
+        },
+      },
       inStock: { type: "boolean" },
       createdAt: { type: "string", format: "date-time" },
       updatedAt: { type: "string", format: "date-time" },
@@ -329,7 +347,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
   })
   .addSchema("CosmeticCreateInput", {
     type: "object",
-    required: ["name", "price", "stock", "type", "distributorId", "styleId"],
+    required: ["name", "price", "stock", "type", "distributorId"],
     properties: {
       name: { type: "string", minLength: 1, maxLength: 255 },
       description: { type: "string" },
@@ -337,7 +355,13 @@ export const cosmeticSwagger = new SwaggerBuilder()
       stock: { type: "integer", minimum: 0 },
       type: { type: "string", enum: Object.values(CosmeticType) },
       distributorId: { type: "string" },
-      styleId: { type: "string" },
+      meta: {
+        type: "object",
+        properties: {
+          color: { type: "string" },
+          size: { type: "string" },
+        },
+      },
     },
   })
   .addSchema("CosmeticUpdateInput", {
@@ -349,7 +373,13 @@ export const cosmeticSwagger = new SwaggerBuilder()
       stock: { type: "integer", minimum: 0 },
       type: { type: "string", enum: Object.values(CosmeticType) },
       distributorId: { type: "string" },
-      styleId: { type: "string" },
+      meta: {
+        type: "object",
+        properties: {
+          color: { type: "string" },
+          size: { type: "string" },
+        },
+      },
     },
   })
   .build();

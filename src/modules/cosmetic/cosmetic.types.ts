@@ -19,11 +19,12 @@ export type CosmeticCreateInput = {
   stock: number;
   type: CosmeticType;
   distributorId: string;
-  styleId: string;
+  meta?: Record<string, string>;
 };
 
 export type CosmeticUpdateInput = Partial<CosmeticCreateInput>;
 
 export type CosmeticResponse = Cosmetic & {
   inStock: boolean;
+  meta: Record<string, string> | null;
 };
