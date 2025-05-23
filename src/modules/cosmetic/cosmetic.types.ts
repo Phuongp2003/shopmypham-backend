@@ -1,4 +1,4 @@
-import { Cosmetic, CosmeticType } from "@prisma/client";
+import { Cosmetic, CosmeticType, CosmeticVariant, CosmeticSpec, CosmeticDistributor, CosmeticOption } from "@prisma/client";
 
 export type CosmeticQueryParams = {
   search?: string;
@@ -10,6 +10,24 @@ export type CosmeticQueryParams = {
   page?: number;
   limit?: number;
   inStock?: boolean;
+  hasVariants?: boolean;
+};
+
+export type VariantOptionInput = {
+  key: string;
+  value: string;
+};
+
+export type VariantInput = {
+  sku: string;
+  price: number;
+  stock: number;
+  options: VariantOptionInput[];
+};
+
+export type SpecificationInput = {
+  key: string;
+  value: string;
 };
 
 export type CosmeticCreateInput = {
@@ -19,12 +37,36 @@ export type CosmeticCreateInput = {
   stock: number;
   type: CosmeticType;
   distributorId: string;
-  meta?: Record<string, string>;
+  specifications?: SpecificationInput[];
+  variants?: VariantInput[];
 };
 
-export type CosmeticUpdateInput = Partial<CosmeticCreateInput>;
+export type CosmeticUpdateInput = Partial<Omit<CosmeticCreateInput, 'variants'>> & {
+  variants?: {
+    create?: VariantInput[];
+    update?: (VariantInput & { id: string })[];
+    delete?: string[];
+  };
+};
+
+export type VariantResponse = CosmeticVariant & {
+  options: CosmeticOption[];
+  displayName: string;
+  inStock: boolean;
+};
 
 export type CosmeticResponse = Cosmetic & {
+  distributor?: CosmeticDistributor;
+  specifications: CosmeticSpec[];
+  variants: VariantResponse[];
   inStock: boolean;
-  meta: Record<string, string> | null;
+  hasVariants: boolean;
+};
+
+export type PaginatedCosmeticResponse = {
+  cosmetics: CosmeticResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 };

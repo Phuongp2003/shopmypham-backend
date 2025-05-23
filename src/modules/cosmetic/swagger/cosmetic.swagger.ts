@@ -7,8 +7,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
     get: {
       tags: ["Cosmetics"],
       summary: "Get all cosmetics",
-      description:
-        "Retrieve a list of cosmetics with optional filtering, sorting, and pagination",
+      description: "Retrieve a list of cosmetics with optional filtering, sorting, and pagination",
       parameters: [
         {
           name: "search",
@@ -20,7 +19,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
           name: "type",
           in: "query",
           description: "Filter by cosmetic type",
-          schema: { type: "string", enum: Object.values(CosmeticType) },
+          schema: { type: "string", enum: ["SKINCARE", "MAKEUP", "HAIRCARE", "FRAGRANCE"] },
         },
         {
           name: "minPrice",
@@ -35,10 +34,16 @@ export const cosmeticSwagger = new SwaggerBuilder()
           schema: { type: "number", minimum: 0 },
         },
         {
+          name: "color",
+          in: "query",
+          description: "Filter by color",
+          schema: { type: "string" },
+        },
+        {
           name: "sortBy",
           in: "query",
           description: "Field to sort by",
-          schema: { type: "string", enum: ["price", "name", "createdAt"] },
+          schema: { type: "string", enum: ["basePrice", "name", "createdAt"] },
         },
         {
           name: "sortOrder",
@@ -63,18 +68,6 @@ export const cosmeticSwagger = new SwaggerBuilder()
           in: "query",
           description: "Filter by stock availability",
           schema: { type: "boolean" },
-        },
-        {
-          name: "meta",
-          in: "query",
-          description: "Filter by cosmetic metadata (key-value pairs)",
-          schema: {
-            type: "object",
-            properties: {
-              color: { type: "string" },
-              size: { type: "string" },
-            },
-          },
         },
       ],
       responses: {
@@ -104,7 +97,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
     post: {
       tags: ["Cosmetics"],
       summary: "Create a new cosmetic",
-      description: "Create a new cosmetic (requires manager or admin role)",
+      description: "Create a new cosmetic with variants (requires manager or admin role)",
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
@@ -123,6 +116,16 @@ export const cosmeticSwagger = new SwaggerBuilder()
             "application/json": {
               schema: {
                 $ref: "#/components/schemas/Cosmetic",
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Bad request",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
               },
             },
           },
@@ -147,16 +150,6 @@ export const cosmeticSwagger = new SwaggerBuilder()
             },
           },
         },
-        "404": {
-          description: "Distributor or Style not found",
-          content: {
-            "application/json": {
-              schema: {
-                $ref: "#/components/schemas/Error",
-              },
-            },
-          },
-        },
       },
     },
   })
@@ -164,7 +157,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
     get: {
       tags: ["Cosmetics"],
       summary: "Get cosmetic by ID",
-      description: "Retrieve a cosmetic by its ID",
+      description: "Retrieve a cosmetic by its ID with all variants",
       parameters: [
         {
           name: "id",
@@ -176,7 +169,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
       ],
       responses: {
         "200": {
-          description: "Cosmetic details",
+          description: "Cosmetic details with variants",
           content: {
             "application/json": {
               schema: {
@@ -232,6 +225,16 @@ export const cosmeticSwagger = new SwaggerBuilder()
             },
           },
         },
+        "400": {
+          description: "Bad request",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
         "401": {
           description: "Unauthorized",
           content: {
@@ -253,7 +256,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
           },
         },
         "404": {
-          description: "Cosmetic, Distributor or Style not found",
+          description: "Cosmetic not found",
           content: {
             "application/json": {
               schema: {
@@ -267,7 +270,7 @@ export const cosmeticSwagger = new SwaggerBuilder()
     delete: {
       tags: ["Cosmetics"],
       summary: "Delete cosmetic",
-      description: "Delete a cosmetic (requires manager or admin role)",
+      description: "Delete a cosmetic and all its variants (requires manager or admin role)",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -315,6 +318,214 @@ export const cosmeticSwagger = new SwaggerBuilder()
       },
     },
   })
+  .addPath("/cosmetics/{id}/variants", {
+    post: {
+      tags: ["Cosmetics"],
+      summary: "Add variant to cosmetic",
+      description: "Add a new variant to an existing cosmetic (requires manager or admin role)",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          description: "Cosmetic ID",
+          schema: { type: "string" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/CosmeticVariantInput",
+            },
+          },
+        },
+      },
+      responses: {
+        "201": {
+          description: "Variant added successfully",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CosmeticVariant",
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Bad request",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "404": {
+          description: "Cosmetic not found",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  .addPath("/cosmetics/variants/{variantId}", {
+    put: {
+      tags: ["Cosmetics"],
+      summary: "Update variant",
+      description: "Update a cosmetic variant (requires manager or admin role)",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: "variantId",
+          in: "path",
+          required: true,
+          description: "Variant ID",
+          schema: { type: "string" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/CosmeticVariantInput",
+            },
+          },
+        },
+      },
+      responses: {
+        "200": {
+          description: "Variant updated successfully",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CosmeticVariant",
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Bad request",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "404": {
+          description: "Variant not found",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+      },
+    },
+    delete: {
+      tags: ["Cosmetics"],
+      summary: "Delete variant",
+      description: "Delete a cosmetic variant (requires manager or admin role)",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: "variantId",
+          in: "path",
+          required: true,
+          description: "Variant ID",
+          schema: { type: "string" },
+        },
+      ],
+      responses: {
+        "204": {
+          description: "Variant deleted successfully",
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "404": {
+          description: "Variant not found",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+      },
+    },
+  })
   .addSchema("Error", {
     type: "object",
     properties: {
@@ -323,63 +534,146 @@ export const cosmeticSwagger = new SwaggerBuilder()
       error: { type: "string" },
     },
   })
-  .addSchema("Cosmetic", {
-    type: "object",
-    properties: {
-      id: { type: "string" },
-      name: { type: "string" },
-      description: { type: "string" },
-      price: { type: "number" },
-      stock: { type: "integer" },
-      type: { type: "string", enum: Object.values(CosmeticType) },
-      distributorId: { type: "string" },
-      meta: {
+
+  // Update the Cosmetic schema to include distributor information
+.addSchema("Cosmetic", {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    type: { type: "string", enum: ["SKINCARE", "MAKEUP", "HAIRCARE", "FRAGRANCE"] },
+    price: { type: "number" },  // Changed from basePrice to price to match your service
+    description: { type: "string" },
+    stock: { type: "integer" },  // Added stock field
+    distributorId: { type: "string" },  // Added distributorId
+    distributor: {  // Added distributor object
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+      }
+    },
+    specifications: {
+      type: "array",  // Changed from object to array to match your service
+      items: {
         type: "object",
         properties: {
-          color: { type: "string" },
-          size: { type: "string" },
-        },
-      },
-      inStock: { type: "boolean" },
-      createdAt: { type: "string", format: "date-time" },
-      updatedAt: { type: "string", format: "date-time" },
+          id: { type: "string" },
+          specKey: { type: "string" },
+          specValue: { type: "string" },
+        }
+      }
     },
-  })
-  .addSchema("CosmeticCreateInput", {
-    type: "object",
-    required: ["name", "price", "stock", "type", "distributorId"],
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 255 },
-      description: { type: "string" },
-      price: { type: "number", minimum: 0 },
-      stock: { type: "integer", minimum: 0 },
-      type: { type: "string", enum: Object.values(CosmeticType) },
-      distributorId: { type: "string" },
-      meta: {
+    variants: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/CosmeticVariant",
+      },
+    },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+})
+
+// Update CosmeticCreateInput to include required distributorId
+.addSchema("CosmeticCreateInput", {
+  type: "object",
+  required: ["name", "type", "price", "stock", "distributorId"],  // Added distributorId to required
+  properties: {
+    name: { type: "string", minLength: 1, maxLength: 255 },
+    type: { type: "string", enum: ["SKINCARE", "MAKEUP", "HAIRCARE", "FRAGRANCE"] },
+    price: { type: "number", minimum: 0 },  // Changed from basePrice to price
+    stock: { type: "integer", minimum: 0 },  // Added stock
+    description: { type: "string" },
+    distributorId: { type: "string" },  // Added distributorId
+    specifications: {
+      type: "array",  // Changed from object to array
+      items: {
         type: "object",
         properties: {
-          color: { type: "string" },
-          size: { type: "string" },
-        },
+          key: { type: "string" },  // Changed to match your service's input
+          value: { type: "string" },
+        }
+      }
+    },
+    variants: {
+      type: "array",
+      minItems: 1,
+      items: {
+        $ref: "#/components/schemas/CosmeticVariantInput",
       },
     },
-  })
-  .addSchema("CosmeticUpdateInput", {
-    type: "object",
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 255 },
-      description: { type: "string" },
-      price: { type: "number", minimum: 0 },
-      stock: { type: "integer", minimum: 0 },
-      type: { type: "string", enum: Object.values(CosmeticType) },
-      distributorId: { type: "string" },
-      meta: {
+  },
+})
+
+// Update CosmeticUpdateInput to include distributorId
+.addSchema("CosmeticUpdateInput", {
+  type: "object",
+  properties: {
+    name: { type: "string", minLength: 1, maxLength: 255 },
+    type: { type: "string", enum: ["SKINCARE", "MAKEUP", "HAIRCARE", "FRAGRANCE"] },
+    price: { type: "number", minimum: 0 },  // Changed from basePrice to price
+    stock: { type: "integer", minimum: 0 },  // Added stock
+    description: { type: "string" },
+    distributorId: { type: "string" },  // Added distributorId
+    specifications: {
+      type: "array",  // Changed from object to array
+      items: {
         type: "object",
         properties: {
-          color: { type: "string" },
-          size: { type: "string" },
-        },
-      },
+          key: { type: "string" },  // Changed to match your service's input
+          value: { type: "string" },
+        }
+      }
     },
-  })
+  },
+})
+
+// Update CosmeticVariant to match your service's structure
+.addSchema("CosmeticVariant", {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    sku: { type: "string" },
+    price: { type: "number" },
+    stock: { type: "integer" },
+    inStock: { type: "boolean" },  // Added inStock
+    displayName: { type: "string" },  // Added displayName
+    options: {  // Changed from attributes to options to match your service
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          optionKey: { type: "string" },
+          optionValue: { type: "string" },
+        }
+      }
+    },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+})
+
+// Update CosmeticVariantInput to match your service's input
+.addSchema("CosmeticVariantInput", {
+  type: "object",
+  required: ["sku", "price", "stock", "options"],  // Added options to required
+  properties: {
+    sku: { type: "string" },
+    price: { type: "number", minimum: 0 },
+    stock: { type: "integer", minimum: 0 },
+    options: {  // Changed from attributes to options
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          key: { type: "string" },
+          value: { type: "string" },
+        },
+        required: ["key", "value"]
+      }
+    },
+  },
+})
   .build();
