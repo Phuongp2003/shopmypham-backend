@@ -1,315 +1,381 @@
-  import { HttpStatus } from "@/common/enums/http-status.enum";
-  import { HttpException } from "@/common/exceptions/http.exception";
-  import { CacheService } from "@/common/services/cache.service";
-  import { prisma } from "@/config/prisma";
+import { HttpStatus } from "@/common/enums/http-status.enum";
+import { HttpException } from "@/common/exceptions/http.exception";
+import { CacheService } from "@/common/services/cache.service";
+import { prisma } from "@/config/prisma";
+import {
+  CosmeticCreateInput,
+  CosmeticQueryParams,
+  CosmeticResponse,
+  CosmeticUpdateInput,
+  VariantResponse,
+  PaginatedCosmeticResponse
+} from "./cosmetic.types";
 
-  import {
-    CosmeticCreateInput,
-    CosmeticQueryParams,
-    CosmeticResponse,
-    CosmeticUpdateInput,
-  } from "./cosmetic.types";
+export class CosmeticService {
+  private static readonly CACHE_PREFIX = "cosmetic";
 
-  export class CosmeticService {
-    private static readonly CACHE_PREFIX = "cosmetic";
+  static async getCosmetics(
+    params: CosmeticQueryParams,
+  ): Promise<PaginatedCosmeticResponse> {
+    const cacheService = CacheService.getInstance();
+    const cacheKey = cacheService.generateKey(
+      `${this.CACHE_PREFIX}:list`,
+      params,
+    );
 
-    static async getCosmetics(
-      params: CosmeticQueryParams,  
-    ): Promise<{ cosmetics: CosmeticResponse[]; total: number }> {
-      const cacheService = CacheService.getInstance();
-      const cacheKey = cacheService.generateKey(
-        `${this.CACHE_PREFIX}:list`,
-        params,
-      );
+    return cacheService.getOrSet(cacheKey, async () => {
+      const {
+        search,
+        type,
+        minPrice,
+        maxPrice,
+        sortBy,
+        sortOrder,
+        page = 1,
+        limit = 10,
+        inStock,
+        hasVariants,
+      } = params;
 
-      return cacheService.getOrSet(cacheKey, async () => {
-        const {
-          search,
-          type,
-          minPrice,
-          maxPrice,
-          sortBy,
-          sortOrder,
-          page = 1,
-          limit = 10,
-          inStock,
-        } = params;
+      const where = {
+        ...(search && {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }),
+        ...(type && { type }),
+        ...(minPrice && { price: { gte: minPrice } }),
+        ...(maxPrice && { price: { lte: maxPrice } }),
+        ...(inStock !== undefined && { stock: { gt: 0 } }),
+        ...(hasVariants !== undefined && {
+          variants: hasVariants ? { some: {} } : { none: {} }
+        }),
+      };
 
-        const where = {
-          ...(search && {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }),
-          ...(type && { type }),
-          ...(minPrice && { price: { gte: minPrice } }),
-          ...(maxPrice && { price: { lte: maxPrice } }),
-          ...(inStock !== undefined && { stock: { gt: 0 } }),
-        };
-
-        const [cosmetics, total] = await Promise.all([
-          prisma.cosmetic.findMany({
-            where,
-            orderBy: sortBy
-              ? { [sortBy]: sortOrder || "desc" }
-              : { createdAt: "desc" },
-            skip: (page - 1) * limit,
-            take: limit,
-            include: { meta: true },
-          }),
-          prisma.cosmetic.count({ where }),
-        ]);
-
-        const cosmeticsWithMeta = await Promise.all(
-          cosmetics.map(async (cosmetic) => {
-            const meta = await prisma.cosmeticMeta.findMany({
-              where: { cosId: cosmetic.id },
-            });
-            const metaObj = meta.length
-              ? meta.reduce((obj, item) => {
-                  obj[item.key] = item.value;
-                  return obj;
-                }, {} as Record<string, string>)
-              : null;
-
-            return {
-              ...cosmetic,
-              inStock: cosmetic.stock > 0,
-              meta: metaObj,
-            };
-          }),
-        );
-
-        return { cosmetics: cosmeticsWithMeta, total };
-      });
-    }
-
-    static async getCosmeticById(id: string): Promise<CosmeticResponse> {
-      const cacheService = CacheService.getInstance();
-      const cacheKey = cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, {
-        id,
-      });
-    
-      return cacheService.getOrSet(cacheKey, async () => {
-        const cosmetic = await prisma.cosmetic.findUnique({
-          where: { id },
-        });
-    
-        if (!cosmetic) {
-          throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
-        }
-    
-        // Lấy metadata liên quan đến cosmetic
-        const meta = await prisma.cosmeticMeta.findMany({
-          where: { cosId: cosmetic.id },
-        });
-    
-        // Chuyển đổi các metadata thành đối tượng key-value
-        const metaObj = meta.length
-          ? meta.reduce((obj, item) => {
-              obj[item.key] = item.value;
-              return obj;
-            }, {} as Record<string, string>)
-          : null;
-    
-        // Trả về kết quả bao gồm cả meta
-        return {
-          ...cosmetic,
-          inStock: cosmetic.stock > 0,
-          meta: metaObj,  // Chứa meta nếu có
-        };
-      });
-    }
-    
-
-    static async createCosmetic(
-      request: CosmeticCreateInput,
-    ): Promise<CosmeticResponse> {
-      const cacheService = CacheService.getInstance();
-      // Check if distributor and style exist
-      const [distributor] = await Promise.all([
-        prisma.cosmeticDistributor.findUnique({
-          where: { id: request.distributorId },
-        })
+      const [cosmetics, total] = await Promise.all([
+        prisma.cosmetic.findMany({
+          where,
+          orderBy: sortBy
+            ? { [sortBy]: sortOrder || "desc" }
+            : { createdAt: "desc" },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: { 
+            distributor: true,
+            specifications: true,
+            variants: {
+              include: {
+                options: true
+              }
+            }
+          },
+        }),
+        prisma.cosmetic.count({ where }),
       ]);
 
+      const formattedCosmetics = cosmetics.map(cosmetic => ({
+        ...cosmetic,
+        inStock: cosmetic.stock > 0,
+        hasVariants: cosmetic.variants.length > 0,
+        variants: cosmetic.variants.map(variant => ({
+          ...variant,
+          displayName: this.getVariantDisplayName(variant.options),
+          inStock: variant.stock > 0
+        }))
+      }));
+
+      return {
+        cosmetics: formattedCosmetics,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      };
+    });
+  }
+
+  private static getVariantDisplayName(options: { optionKey: string, optionValue: string }[]): string {
+    return options.map(opt => opt.optionValue).join('/');
+  }
+
+  static async getCosmeticById(id: string): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
+    const cacheKey = cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, {
+      id,
+    });
+  
+    return cacheService.getOrSet(cacheKey, async () => {
+      const cosmetic = await prisma.cosmetic.findUnique({
+        where: { id },
+        include: { 
+          variants: {
+            include: {
+              options: true
+            }
+          },
+          specifications: true,
+          distributor: true 
+        },
+      });
+  
+      if (!cosmetic) {
+        throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
+      }
+  
+      return {
+        ...cosmetic,
+        inStock: cosmetic.stock > 0,
+        hasVariants: cosmetic.variants.length > 0,
+        variants: cosmetic.variants.map(variant => ({
+          ...variant,
+          displayName: this.getVariantDisplayName(variant.options),
+          inStock: variant.stock > 0
+        }))
+      };
+    });
+  }
+
+  static async createCosmetic(
+    request: CosmeticCreateInput,
+  ): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
+    
+    // Check if distributor exists
+    const distributor = await prisma.cosmeticDistributor.findUnique({
+      where: { id: request.distributorId },
+    });
+
+    if (!distributor) {
+      throw new HttpException(HttpStatus.NOT_FOUND, "Distributor not found");
+    }
+
+    const cosmetic = await prisma.cosmetic.create({
+      data: {
+        name: request.name,
+        description: request.description,
+        price: request.price,
+        stock: request.stock,
+        type: request.type,
+        distributorId: request.distributorId,
+        specifications: {
+          createMany: {
+            data: request.specifications?.map(spec => ({
+              specKey: spec.key,
+              specValue: spec.value
+            })) || []
+          }
+        },
+        variants: {
+          create: request.variants?.map(variant => ({
+            sku: variant.sku,
+            price: variant.price,
+            stock: variant.stock,
+            options: {
+              create: variant.options.map(opt => ({
+                optionKey: opt.key,
+                optionValue: opt.value
+              }))
+            }
+          })) || []
+        }
+      },
+      include: {
+        variants: {
+          include: {
+            options: true
+          }
+        },
+        specifications: true,
+        distributor: true
+      }
+    });
+
+    // Clear cache
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+
+    return {
+      ...cosmetic,
+      inStock: cosmetic.stock > 0,
+      hasVariants: cosmetic.variants.length > 0,
+      variants: cosmetic.variants.map(variant => ({
+        ...variant,
+        displayName: this.getVariantDisplayName(variant.options),
+        inStock: variant.stock > 0
+      }))
+    };
+  }
+
+  static async updateCosmetic(
+    id: string,
+    data: CosmeticUpdateInput,
+  ): Promise<CosmeticResponse> {
+    const cacheService = CacheService.getInstance();
+    
+    // Check if cosmetic exists
+    const cosmetic = await prisma.cosmetic.findUnique({
+      where: { id },
+      include: {
+        variants: true,
+        specifications: true
+      }
+    });
+
+    if (!cosmetic) {
+      throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
+    }
+
+    // Check if distributor exists if updating
+    if (data.distributorId) {
+      const distributor = await prisma.cosmeticDistributor.findUnique({
+        where: { id: data.distributorId },
+      });
       if (!distributor) {
         throw new HttpException(HttpStatus.NOT_FOUND, "Distributor not found");
       }
-
-      /**
-       * prisma.cosmeticStyle.create({
-       *  data: {
-       *   name: meta.key,
-       *   value: meta.value,
-       * })
-      */ 
-      
-
-      const cosmetic = await prisma.cosmetic.create({
-        include: {
-          meta: true, // 👈 Thêm dòng này để lấy dữ liệu meta kèm theo
-        },
-        data: {
-          name: request.name,
-          description: request.description,
-          price: request.price,
-          stock: request.stock,
-          type: request.type,
-          distributorId: request.distributorId
-        },
-      });
-
-      // Tạo các metadata nếu có
-    if (request.meta) {
-      const metaEntries = Object.entries(request.meta).map(([key, value]) => ({
-        key,
-        value,
-        cosId: cosmetic.id,
-      }));
-
-      await prisma.cosmeticMeta.createMany({
-        data: metaEntries,
-      });
     }
 
-    // Gọi lại để lấy cosmetic kèm meta
-    const cosmeticWithMeta = await prisma.cosmetic.findUnique({
-      where: { id: cosmetic.id },
-      include: { meta: true },
+    // Update cosmetic
+    const updatedCosmetic = await prisma.cosmetic.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        stock: data.stock,
+        type: data.type,
+        distributorId: data.distributorId,
+        specifications: data.specifications ? {
+          deleteMany: {},
+          createMany: {
+            data: data.specifications.map(spec => ({
+              specKey: spec.key,
+              specValue: spec.value
+            }))
+          }
+        } : undefined
+      },
+      include: {
+        variants: {
+          include: {
+            options: true
+          }
+        },
+        specifications: true,
+        distributor: true
+      }
     });
 
-    if (!cosmeticWithMeta) {
-      throw new Error("Cosmetic not found after creation");
-    }
+    // Clear cache
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.delete(
+      cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
+    );
 
-    // Chuyển array meta thành object nếu có, hoặc null nếu không có
-  const metaObj = cosmeticWithMeta.meta?.length
-    ? cosmeticWithMeta.meta.reduce((obj, item) => {
-        obj[item.key] = item.value;
-        return obj;
-      }, {} as Record<string, string>)
-    : null;
+    return {
+      ...updatedCosmetic,
+      inStock: updatedCosmetic.stock > 0,
+      hasVariants: cosmetic.variants.length > 0,
+      variants: updatedCosmetic.variants.map(variant => ({
+        ...variant,
+        displayName: this.getVariantDisplayName(variant.options),
+        inStock: variant.stock > 0
+      }))
+    };
+  }
 
-      // Clear list cache since we added a new cosmetic
-      await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
-
-      return {
-    id: cosmeticWithMeta.id,
-    name: cosmeticWithMeta.name,
-    description: cosmeticWithMeta.description,
-    price: cosmeticWithMeta.price,
-    stock: cosmeticWithMeta.stock,
-    type: cosmeticWithMeta.type,
-    distributorId: cosmeticWithMeta.distributorId,
-    createdAt: cosmeticWithMeta.createdAt,
-    updatedAt: cosmeticWithMeta.updatedAt,
-    inStock: cosmeticWithMeta.stock > 0,
-    meta: metaObj, // 👈 sẽ là object nếu có hoặc null nếu không có
-  };
-    }
-
-    static async updateCosmetic(
-      id: string,
-      data: CosmeticUpdateInput,
-    ): Promise<CosmeticResponse> {
-      const cacheService = CacheService.getInstance();
-      const cosmetic = await prisma.cosmetic.findUnique({
-        where: { id },
-      });
-
-      if (!cosmetic) {
-        throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
+  static async deleteCosmetic(id: string): Promise<void> {
+    const cacheService = CacheService.getInstance();
+    
+    // Check if cosmetic exists
+    const cosmetic = await prisma.cosmetic.findUnique({
+      where: { id },
+      include: {
+        variants: true
       }
+    });
 
-      // If updating distributor or style, check if they exist
-      if (data.distributorId) {
-        const distributor = await prisma.cosmeticDistributor.findUnique({
-          where: { id: data.distributorId },
-        });
-        if (!distributor) {
-          throw new HttpException(HttpStatus.NOT_FOUND, "Distributor not found");
+    if (!cosmetic) {
+      throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
+    }
+
+    // Delete variants and their options first
+    await prisma.cosmeticOption.deleteMany({
+      where: {
+        variantId: {
+          in: cosmetic.variants.map(v => v.id)
         }
       }
+    });
 
-      const updatedCosmetic = await prisma.cosmetic.update({
-        where: { id },
-        data: {
-          ...data,
-          meta: undefined, // Prevent direct update of meta
-        },
-      });
+    await prisma.cosmeticVariant.deleteMany({
+      where: { cosmeticId: id }
+    });
 
-      if (data.meta) {
-        await prisma.cosmeticMeta.deleteMany({ where: { cosId: id } });
-        const metaEntries = Object.entries(data.meta).map(([key, value]) => ({
-          key,
-          value,
-          cosId: id,
-        }));
-        await prisma.cosmeticMeta.createMany({ data: metaEntries });
-      }
+    // Delete specifications
+    await prisma.cosmeticSpec.deleteMany({
+      where: { cosmeticId: id }
+    });
 
-      const cosmeticWithMeta = await prisma.cosmetic.findUnique({
-        where: { id },
-        include: { meta: true },
-      });
+    // Finally delete the cosmetic
+    await prisma.cosmetic.delete({
+      where: { id }
+    });
 
-      if (!cosmeticWithMeta) {
-        throw new Error("Cosmetic not found after update");
-      }
-
-      const metaObj = cosmeticWithMeta.meta?.length
-        ? cosmeticWithMeta.meta.reduce((obj, item) => {
-            obj[item.key] = item.value;
-            return obj;
-          }, {} as Record<string, string>)
-        : null;
-
-      // Clear both list and detail cache
-      await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
-      await cacheService.delete(
-        cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
-      );
-
-      return {
-        id: cosmeticWithMeta.id,
-        name: cosmeticWithMeta.name,
-        description: cosmeticWithMeta.description,
-        price: cosmeticWithMeta.price,
-        stock: cosmeticWithMeta.stock,
-        type: cosmeticWithMeta.type,
-        distributorId: cosmeticWithMeta.distributorId,
-        createdAt: cosmeticWithMeta.createdAt,
-        updatedAt: cosmeticWithMeta.updatedAt,
-        inStock: cosmeticWithMeta.stock > 0,
-        meta: metaObj,
-      };
-    }
-
-    static async deleteCosmetic(id: string): Promise<void> {
-      const cacheService = CacheService.getInstance();
-      const cosmetic = await prisma.cosmetic.findUnique({
-        where: { id },
-      });
-
-      if (!cosmetic) {
-        throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
-      }
-      
-      await prisma.cosmeticMeta.deleteMany({
-        where: { cosId: id },
-      });
-      
-      await prisma.cosmetic.delete({
-        where: { id },
-      });
-
-      // Clear both list and detail cache
-      await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
-      await cacheService.delete(
-        cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
-      );
-    }
+    // Clear cache
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.delete(
+      cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id }),
+    );
   }
+
+  // Variant specific methods
+  static async createVariant(
+    cosmeticId: string,
+    data: {
+      sku: string;
+      price: number;
+      stock: number;
+      options: { key: string; value: string }[];
+    }
+  ): Promise<VariantResponse> {
+    const cosmetic = await prisma.cosmetic.findUnique({
+      where: { id: cosmeticId }
+    });
+
+    if (!cosmetic) {
+      throw new HttpException(HttpStatus.NOT_FOUND, "Cosmetic not found");
+    }
+
+    const variant = await prisma.cosmeticVariant.create({
+      data: {
+        sku: data.sku,
+        price: data.price,
+        stock: data.stock,
+        cosmeticId,
+        options: {
+          create: data.options.map(opt => ({
+            optionKey: opt.key,
+            optionValue: opt.value
+          }))
+        }
+      },
+      include: {
+        options: true
+      }
+    });
+
+    // Clear relevant caches
+    const cacheService = CacheService.getInstance();
+    await cacheService.clearByPrefix(`${this.CACHE_PREFIX}:list`);
+    await cacheService.delete(
+      cacheService.generateKey(`${this.CACHE_PREFIX}:detail`, { id: cosmeticId }),
+    );
+
+    return {
+      ...variant,
+      displayName: this.getVariantDisplayName(variant.options),
+      inStock: variant.stock > 0
+    };
+  }
+}
