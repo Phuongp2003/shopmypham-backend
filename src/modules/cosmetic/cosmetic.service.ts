@@ -5,12 +5,14 @@ import { prisma } from "@/config/prisma";
 import {
   CosmeticCreateInput,
   CosmeticQueryParams,
-  CosmeticResponse,
   CosmeticUpdateInput,
   VariantResponse,
-  PaginatedCosmeticResponse
 } from "./cosmetic.types";
 
+import {
+  CosmeticResponse,
+  PaginatedCosmeticResponse
+} from "./cosmetic.dto";
 export class CosmeticService {
   private static readonly CACHE_PREFIX = "cosmetic";
 
@@ -63,7 +65,7 @@ export class CosmeticService {
           take: limit,
           include: { 
             distributor: true,
-            specifications: true,
+            specifications:true,
             variants: {
               include: {
                 options: true

@@ -1,8 +1,14 @@
 import { z } from "zod";
 
-import { CosmeticType } from "@prisma/client";
+import { Cosmetic,
+  CosmeticType,
+  CosmeticVariant,
+  CosmeticSpec,
+  CosmeticDistributor,
+  CosmeticOption, } from "@prisma/client";
 
 import {
+  VariantResponse,
   CosmeticCreateInput,
   CosmeticQueryParams,
   CosmeticUpdateInput,
@@ -32,3 +38,25 @@ export const cosmeticCreateSchema = z.object({
 
 export const cosmeticUpdateSchema =
   cosmeticCreateSchema.partial() satisfies z.ZodType<CosmeticUpdateInput>;
+
+  export interface CosmeticResponse  {
+    id: Cosmetic["id"];
+    name: string;
+    distributor?: CosmeticDistributor;
+    specifications: CosmeticSpec[];
+    variants: VariantResponse[];
+    inStock: boolean;
+    hasVariants: boolean;
+  };
+  
+  interface Paginated {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }
+  
+  export interface PaginatedCosmeticResponse extends Paginated {
+    cosmetics: CosmeticResponse[];
+  }
+  
