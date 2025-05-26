@@ -6,10 +6,9 @@ import {
 	CosmeticQueryParams,
 	CosmeticUpdateInput,
 	VariantResponse,
-	CosmeticResponse,
-	PaginatedCosmeticResponse,
 } from './cosmetic.types';
 
+import { CosmeticResponse, PaginatedCosmeticResponse } from './cosmetic.dto';
 export class CosmeticService {
 	static async getCosmetics(
 		params: CosmeticQueryParams
@@ -71,7 +70,9 @@ export class CosmeticService {
 			variants: cosmetic.variants.map((variant) => ({
 				...variant,
 				options: variant.option ? [variant.option] : [],
-				displayName: this.getVariantDisplayName(variant.option ? [variant.option] : []),
+				displayName: this.getVariantDisplayName(
+					variant.option ? [variant.option] : []
+				),
 				inStock: variant.stock > 0,
 			})),
 		}));
@@ -116,7 +117,9 @@ export class CosmeticService {
 			variants: cosmetic.variants.map((variant) => ({
 				...variant,
 				options: variant.option ? [variant.option] : [],
-				displayName: this.getVariantDisplayName(variant.option ? [variant.option] : []),
+				displayName: this.getVariantDisplayName(
+					variant.option ? [variant.option] : []
+				),
 				inStock: variant.stock > 0,
 			})),
 		};
@@ -209,7 +212,9 @@ export class CosmeticService {
 			variants: cosmeticWithVariants!.variants.map((variant) => ({
 				...variant,
 				options: variant.option ? [variant.option] : [],
-				displayName: this.getVariantDisplayName(variant.option ? [variant.option] : []),
+				displayName: this.getVariantDisplayName(
+					variant.option ? [variant.option] : []
+				),
 				inStock: variant.stock > 0,
 			})),
 		};
@@ -285,7 +290,9 @@ export class CosmeticService {
 			variants: updatedCosmetic.variants.map((variant) => ({
 				...variant,
 				options: variant.option ? [variant.option] : [],
-				displayName: this.getVariantDisplayName(variant.option ? [variant.option] : []),
+				displayName: this.getVariantDisplayName(
+					variant.option ? [variant.option] : []
+				),
 				inStock: variant.stock > 0,
 			})),
 		};
@@ -307,7 +314,9 @@ export class CosmeticService {
 		// Delete variants and their options first
 		for (const variant of cosmetic.variants) {
 			await prisma.cosmeticVariant.delete({ where: { id: variant.id } });
-			await prisma.cosmeticOption.delete({ where: { id: variant.optionId } });
+			await prisma.cosmeticOption.delete({
+				where: { id: variant.optionId },
+			});
 		}
 
 		// Delete specifications
@@ -363,7 +372,9 @@ export class CosmeticService {
 		return {
 			...variant,
 			options: variant.option ? [variant.option] : [],
-			displayName: this.getVariantDisplayName(variant.option ? [variant.option] : []),
+			displayName: this.getVariantDisplayName(
+				variant.option ? [variant.option] : []
+			),
 			inStock: variant.stock > 0,
 		};
 	}
