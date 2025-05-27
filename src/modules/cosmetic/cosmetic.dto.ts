@@ -1,34 +1,91 @@
-import { z } from "zod";
+import { Cosmetic, CosmeticSpec, CosmeticDistributor } from '@prisma/client';
 
-import { CosmeticType } from "@prisma/client";
+import { VariantResponse } from './cosmetic.types';
 
-import {
-  CosmeticCreateInput,
-  CosmeticQueryParams,
-  CosmeticUpdateInput,
-} from "./cosmetic.types";
+/**
+ * @swagger
+ * title: CosmeticResponse
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *     description: ID mỹ phẩm
+ *   name:
+ *     type: string
+ *     description: Tên mỹ phẩm
+ *   distributor:
+ *     $ref: '#/components/schemas/CosmeticDistributor'
+ *     description: Nhà phân phối
+ *   specifications:
+ *     type: array
+ *     items:
+ *       $ref: '#/components/schemas/CosmeticSpec'
+ *     description: Thông số kỹ thuật
+ *   variants:
+ *     type: array
+ *     items:
+ *       $ref: '#/components/schemas/VariantResponse'
+ *     description: Danh sách biến thể
+ *   inStock:
+ *     type: boolean
+ *     description: Còn hàng
+ *   hasVariants:
+ *     type: boolean
+ *     description: Có biến thể
+ */
+export interface CosmeticResponse {
+	id: Cosmetic['id'];
+	name: string;
+	distributor?: CosmeticDistributor;
+	specifications: CosmeticSpec[];
+	variants: VariantResponse[];
+	inStock: boolean;
+	hasVariants: boolean;
+}
 
-export const cosmeticQueryParamsSchema = z.object({
-  search: z.string().optional(),
-  type: z.nativeEnum(CosmeticType).optional(),
-  minPrice: z.number().positive().optional(),
-  maxPrice: z.number().positive().optional(),
-  sortBy: z.enum(["price", "name", "createdAt"]).optional(),
-  sortOrder: z.enum(["asc", "desc"]).optional(),
-  page: z.number().int().positive().optional(),
-  limit: z.number().int().positive().optional(),
-  inStock: z.boolean().optional(),
-}) satisfies z.ZodType<CosmeticQueryParams>;
+/**
+ * @swagger
+ * title: Paginated
+ * type: object
+ * properties:
+ *   total:
+ *     type: number
+ *     description: Tổng số bản ghi
+ *   page:
+ *     type: number
+ *     description: Trang hiện tại
+ *   limit:
+ *     type: number
+ *     description: Số lượng mỗi trang
+ *   totalPages:
+ *     type: number
+ *     description: Tổng số trang
+ */
+interface Paginated {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+}
 
-export const cosmeticCreateSchema = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string().optional(),
-  price: z.number().positive(),
-  stock: z.number().int().min(0),
-  type: z.nativeEnum(CosmeticType),
-  distributorId: z.string(),
-  styleId: z.string(),
-}) satisfies z.ZodType<CosmeticCreateInput>;
-
-export const cosmeticUpdateSchema =
-  cosmeticCreateSchema.partial() satisfies z.ZodType<CosmeticUpdateInput>;
+/**
+ * @swagger
+ * title: PaginatedCosmeticResponse
+ * type: object
+ * properties:
+ *   total:
+ *     type: number
+ *   page:
+ *     type: number
+ *   limit:
+ *     type: number
+ *   totalPages:
+ *     type: number
+ *   cosmetics:
+ *     type: array
+ *     items:
+ *       $ref: '#/components/schemas/CosmeticResponse'
+ */
+export interface PaginatedCosmeticResponse extends Paginated {
+	cosmetics: CosmeticResponse[];
+}

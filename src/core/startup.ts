@@ -16,6 +16,7 @@ import postRouter from "../modules/post/post.router";
 import userRouter from "../modules/user/user.router";
 import orderRouter from "../modules/order/order.router";
 import { initAdminUser } from "./init-admin";
+import { registerSwaggerAnnotations } from "../common/annotation/swagger.annotation";
 
 /**
  * AppInitializer class handles the initialization and configuration of the Express application.
@@ -104,6 +105,9 @@ export class AppInitializer {
       } else {
         logger.error("cache services connect fail, using no-cache strategy!", { service: "Startup" });
       }
+
+      // Đăng ký swagger annotation
+      registerSwaggerAnnotations();
 
       // Initialize Swagger
       swaggerConfig(this.app);

@@ -62,11 +62,11 @@ model Order {
 model OrderDetail {
     id         String   @id @default(uuid())
     orderId    String
-    cosmeticId String
+    variantId  String   // Thay cosmeticId bằng variantId
     quantity   Int
     price      Float
     order      Order    @relation(fields: [orderId], references: [id])
-    cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
+    variant    CosmeticVariant  @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 }
@@ -83,11 +83,11 @@ model Cart {
 model CartDetail {
     id         String   @id @default(uuid())
     cartId     String
-    cosmeticId String
+    variantId  String   // Thay cosmeticId bằng variantId
     quantity   Int
     price      Float
     cart       Cart     @relation(fields: [cartId], references: [id])
-    cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
+    variant    CosmeticVariant  @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 }
@@ -101,11 +101,45 @@ model Cosmetic {
     type          CosmeticType
     distributorId String
     distributor   CosmeticDistributor @relation(fields: [distributorId], references: [id])
-    cartDetails   CartDetail[]
-    orderDetails  OrderDetail[]
-    meta          CosmeticMeta[]
+    variants      CosmeticVariant[]           // Thêm quan hệ với Variant
+    specifications CosmeticSpec[]    // Thêm bảng đặc điểm sản phẩm
     createdAt     DateTime            @default(now())
     updatedAt     DateTime            @updatedAt
+}
+
+model CosmeticVariant {
+  id          String     @id @default(uuid())
+  cosmeticId  String
+  cosmetic    Cosmetic   @relation(fields: [cosmeticId], references: [id])
+  sku         String     @unique
+  price       Float
+  stock       Int        @default(0)
+  optionId String
+  option     CosmeticOption @relation(fields: [optionId], references: [id])
+  cartItems   CartDetail[]
+  orderItems  OrderDetail[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+//Bảng này dùng để mô tả các tùy chọn của từng biến thể sản phẩm
+model CosmeticOption {
+  id        String   @id @default(uuid())
+  variants CosmeticVariant[]
+  optionKey       String   // VD: "color", "size"
+  optionValue     String   // VD: "Đỏ cam", "50ml"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CosmeticSpec {
+  id         String   @id @default(uuid())
+  cosmeticId String
+  cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
+  specKey    String   // VD: "ingredients", "benefits"
+  specValue  String   // VD: "Vitamin E", "Dưỡng ẩm 24h"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model CosmeticDistributor {
@@ -128,13 +162,7 @@ model CosmeticDistributor {
 //     updatedAt   DateTime   @updatedAt
 // }
 
-model CosmeticMeta {
-  id       String   @id @default(uuid())    // 👈 Đây là khóa chính
-  key      String
-  value    String
-  cosId    String
-  cosmetic Cosmetic @relation(fields: [cosId], references: [id])
-}
+
 
 
 enum OrderStatus {
