@@ -11,7 +11,21 @@ import {
   CosmeticUpdateInput,
 } from "./cosmetic.types";
 
+import { SwaggerController, Get } from "@/common/annotation/swagger.annotation";
+
+@SwaggerController({ tag: "Cosmetic", description: "Quản lý mỹ phẩm" })
 export class CosmeticController {
+  @Get(
+    {
+      name: "get-cosmetics",
+      description: "Trả về danh sách mỹ phẩm với filter, sort, phân trang",
+      path: "/cosmetics"
+    },
+    {
+      query: "CosmeticQueryParams",
+      response: "PaginatedCosmeticResponse"
+    }
+  )
   static async getCosmetics(req: Request, res: Response): Promise<void> {
     try {
       const params: CosmeticQueryParams = req.query;

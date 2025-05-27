@@ -1,37 +1,31 @@
 import { Express, Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
-
 import { logger } from "../common/logger/logger.factory";
-import { authSwagger } from "../modules/auth/swagger/auth.controller.swagger";
-import { cartSwagger } from "../modules/cart/swagger/cart.controller.swagger";
-import { cosmeticSwagger } from "../modules/cosmetic/swagger/cosmetic.swagger";
-import { orderSwagger } from "../modules/order/swagger/order.controller.swagger";
-import { paymentSwagger } from "../modules/payment/swagger/payment.swagger";
-import { postSwagger } from "../modules/post/swagger/post.swagger";
-import { userSwagger } from "../modules/user/swagger/user.swagger";
 import { SwaggerBuilder } from "./swagger-builder";
+import { CosmeticController } from "../modules/cosmetic/cosmetic.controller";
+import fs from 'fs';
+import path from 'path';
 
-// Define common reusable components
-const commonComponents = new SwaggerBuilder()
-  .addSchema("Error", {
-    type: "object",
-    properties: {
-      statusCode: { type: "integer" },
-      message: { type: "string" },
-      error: { type: "string" },
-    },
-  })
-  .build();
+// Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
+const modulesDir = path.join(__dirname, '../modules');
+function getAllSchemaFiles(dir: string): string[] {
+  let results: string[] = [];
+  const list = fs.readdirSync(dir, { withFileTypes: true });
+  for (const file of list) {
+    const filePath = path.join(dir, file.name);
+    if (file.isDirectory()) {
+      results = results.concat(getAllSchemaFiles(filePath));
+    } else if (file.name.endsWith('.types.ts') || file.name.endsWith('.dto.ts')) {
+      results.push(filePath);
+    }
+  }
+  return results;
+}
+const schemaFiles = getAllSchemaFiles(modulesDir);
 
 const swaggerBuilder = new SwaggerBuilder()
+  .addSchemasFromComments(schemaFiles)
   .addTag("Health", "Health check endpoints")
-  .addTag("Auth", "Authentication endpoints")
-  .addTag("Orders", "Order management endpoints")
-  .addTag("Cart", "Shopping cart management endpoints")
-  .addTag("Users", "User management endpoints")
-  .addTag("Cosmetics", "Cosmetic management endpoints")
-  .addTag("Payments", "Payment management endpoints")
-  .addTag("Posts", "Post management endpoints")
   .addSecurityScheme("bearerAuth", {
     type: "http",
     scheme: "bearer",
@@ -63,9 +57,12 @@ const swaggerBuilder = new SwaggerBuilder()
         },
       },
     },
-  });
+  })
+  .addControllersFromAnnotations([
+    CosmeticController,
+    // ... các controller khác
+  ]);
 
-// Merge all swagger docs
 const swaggerOptions = {
   openapi: "3.0.0",
   info: {
@@ -92,41 +89,6 @@ const swaggerOptions = {
     },
   ],
   ...swaggerBuilder.build(),
-  paths: {
-    ...swaggerBuilder.build().paths,
-    ...authSwagger.paths,
-    ...orderSwagger.paths,
-    ...cartSwagger.paths,
-    ...userSwagger.paths,
-    ...cosmeticSwagger.paths,
-    ...paymentSwagger.paths,
-    ...postSwagger.paths,
-  },
-  components: {
-    ...swaggerBuilder.build().components,
-    ...commonComponents.components,
-    schemas: {
-      ...swaggerBuilder.build().components.schemas,
-      ...commonComponents.components.schemas,
-      ...(authSwagger.components?.schemas || {}),
-      ...(orderSwagger.components?.schemas || {}),
-      ...(cartSwagger.components?.schemas || {}),
-      ...(userSwagger.components?.schemas || {}),
-      ...(cosmeticSwagger.components?.schemas || {}),
-      ...(paymentSwagger.components?.schemas || {}),
-      ...(postSwagger.components?.schemas || {}),
-    },
-    securitySchemes: {
-      ...swaggerBuilder.build().components.securitySchemes,
-      ...(authSwagger.components?.securitySchemes || {}),
-      ...(orderSwagger.components?.securitySchemes || {}),
-      ...(cartSwagger.components?.securitySchemes || {}),
-      ...(userSwagger.components?.securitySchemes || {}),
-      ...(cosmeticSwagger.components?.securitySchemes || {}),
-      ...(paymentSwagger.components?.securitySchemes || {}),
-      ...(postSwagger.components?.securitySchemes || {}),
-    },
-  },
 };
 
 export const swaggerConfig = (app: Express) => {
