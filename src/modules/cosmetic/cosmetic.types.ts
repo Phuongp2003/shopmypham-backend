@@ -1,4 +1,11 @@
-import { Cosmetic, CosmeticType, CosmeticVariant, CosmeticSpec, CosmeticDistributor, CosmeticOption } from "@prisma/client";
+import {
+  Cosmetic,
+  CosmeticType,
+  CosmeticVariant,
+  CosmeticSpec,
+  CosmeticDistributor,
+  CosmeticOption,
+} from "@prisma/client";
 
 export type CosmeticQueryParams = {
   search?: string;
@@ -41,7 +48,9 @@ export type CosmeticCreateInput = {
   variants?: VariantInput[];
 };
 
-export type CosmeticUpdateInput = Partial<Omit<CosmeticCreateInput, 'variants'>> & {
+export type CosmeticUpdateInput = Partial<
+  Omit<CosmeticCreateInput, "variants">
+> & {
   variants?: {
     create?: VariantInput[];
     update?: (VariantInput & { id: string })[];
@@ -55,18 +64,5 @@ export type VariantResponse = CosmeticVariant & {
   inStock: boolean;
 };
 
-export type CosmeticResponse = Cosmetic & {
-  distributor?: CosmeticDistributor;
-  specifications: CosmeticSpec[];
-  variants: VariantResponse[];
-  inStock: boolean;
-  hasVariants: boolean;
-};
 
-export type PaginatedCosmeticResponse = {
-  cosmetics: CosmeticResponse[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
+
