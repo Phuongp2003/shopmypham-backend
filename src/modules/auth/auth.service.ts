@@ -137,12 +137,14 @@ export class AuthService {
 
 			if (!user) {
 				// Create new user if doesn't exist
-				user = await prisma.user.create({
+			const secretKey = crypto.randomBytes(32).toString('hex');
+      user = await prisma.user.create({
 					data: {
 						email: profile.emails?.[0]?.value || '',
 						name: profile.displayName,
 						googleId: profile.id,
 						role: 'user',
+						secretKey: secretKey,
 						password: '', // No password needed for OAuth users
 					},
 				});

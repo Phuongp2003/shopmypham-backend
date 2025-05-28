@@ -15,7 +15,7 @@ model User {
     phone     String?
     role      String    @default("user")
     googleId  String?   @unique
-    secretKey String?
+    secretKey String
     posts     Post[]
     comments  Comment[]
     orders    Order[]
@@ -121,6 +121,16 @@ model CosmeticVariant {
   orderItems  OrderDetail[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  CosmeticVariantOption CosmeticVariantOption[]
+}
+
+model CosmeticVariantOption {
+  id        String   @id @default(uuid())
+  variantId String
+  variant   CosmeticVariant @relation(fields: [variantId], references: [id])
+  optionId String
+  option   CosmeticOption @relation(fields: [optionId], references: [id])
 }
 
 //Bảng này dùng để mô tả các tùy chọn của từng biến thể sản phẩm
@@ -131,6 +141,8 @@ model CosmeticOption {
   optionValue     String   // VD: "Đỏ cam", "50ml"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  CosmeticVariantOption CosmeticVariantOption[]
 }
 
 model CosmeticSpec {
