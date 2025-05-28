@@ -137,8 +137,8 @@ export class AuthService {
 
 			if (!user) {
 				// Create new user if doesn't exist
-			const secretKey = crypto.randomBytes(32).toString('hex');
-      user = await prisma.user.create({
+				const secretKey = crypto.randomBytes(32).toString('hex');
+				user = await prisma.user.create({
 					data: {
 						email: profile.emails?.[0]?.value || '',
 						name: profile.displayName,
