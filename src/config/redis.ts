@@ -17,29 +17,25 @@ const url = REDIS_PASSWORD
 const MAX_REDIS_RETRIES = process.env.NODE_ENV === 'development' ? 0 : 5;
 let redisRetryCount = 0;
 
-const redis =
-	global.redis ||
-	createClient({
-		url,
-		socket: {
-			reconnectStrategy: (retries) => {
-				redisRetryCount = retries;
-				if (retries > MAX_REDIS_RETRIES) {
-					logger.error(
-						`Redis: exceeded max retries (${MAX_REDIS_RETRIES}), will not reconnect.`,
-						{ service: 'Redis' }
-					);
-					return new Error('Retry attempts exhausted');
-				}
-				// Exponential backoff: 1000ms, 2000ms, 4000ms, ...
-				return Math.min(1000 * 2 ** retries, 10000);
-			},
-		},
-	});
+// Helper: reconnect strategy
+function getReconnectStrategy() {
+	return (retries: number) => {
+		redisRetryCount = retries;
+		if (retries > MAX_REDIS_RETRIES) {
+			logger.error(
+				`Redis: exceeded max retries (${MAX_REDIS_RETRIES}), will not reconnect.`,
+				{ service: 'Redis' }
+			);
+			return new Error('Retry attempts exhausted');
+		}
+		// Exponential backoff: 1000ms, 2000ms, 4000ms, ...
+		return Math.min(1000 * 2 ** retries, 10000);
+	};
+}
 
-// Set up event handlers only once
-if (!global.redis) {
-	redis.on('error', (err: Error) => {
+// Helper: setup event handlers
+function setupRedisEventHandlers(client: RedisClientType) {
+	client.on('error', (err: Error) => {
 		logger.error(
 			'Redis connection error',
 			process.env.NODE_ENV === 'development' ? err : '',
@@ -47,15 +43,29 @@ if (!global.redis) {
 		);
 	});
 
-	redis.on('connect', () => {
+	client.on('connect', () => {
 		logger.info('Redis connected successfully', { service: 'Redis' });
 	});
-
-	// In non-production environments, save to global to prevent multiple connections
-	if (process.env.NODE_ENV !== 'production') {
-		global.redis = redis;
-	}
 }
+
+// Helper: create redis client
+function createRedisClient(): RedisClientType {
+	const client = createClient({
+		url,
+		socket: {
+			reconnectStrategy: getReconnectStrategy(),
+		},
+	});
+	setupRedisEventHandlers(client);
+	return client;
+}
+
+// Đảm bảo luôn dùng global.redis nếu đã có, không tạo mới client (cả production lẫn dev)
+if (!global.redis) {
+	global.redis = createRedisClient();
+}
+
+const redis = global.redis;
 
 // Initialize Redis connection
 const initializeRedis = async (): Promise<boolean> => {
