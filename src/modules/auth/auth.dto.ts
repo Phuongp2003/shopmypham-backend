@@ -1,29 +1,27 @@
-import { z } from "zod";
+export type LoginRequest = {
+	email: string;
+	password: string;
+};
 
-import { AuthResponse } from "@/modules/auth/auth.types";
+export type RegisterRequest = {
+	email: string;
+	password: string;
+	name: string;
+	role?: 'admin' | 'user';
+};
 
-export const LoginDto = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
+export type RefreshToken = {
+	refreshToken: string;
+};
 
-export const RegisterDto = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string(),
-  role: z.enum(["admin", "user"]).optional(),
-});
+export type AuthResponse = {
+	accessToken: string;
+	refreshToken: string;
+};
 
-export const RefreshTokenDto = z.object({
-  refreshToken: z.string(),
-});
-
-export const AuthResponseDto = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
-});
-
-export type LoginInput = z.infer<typeof LoginDto>;
-export type RegisterInput = z.infer<typeof RegisterDto>;
-export type RefreshTokenInput = z.infer<typeof RefreshTokenDto>;
-export type AuthResponseDto = AuthResponse;
+export type ChangePasswordRequest = {
+	email: string;
+	otp: string;
+	oldPassword: string;
+	newPassword: string;
+};

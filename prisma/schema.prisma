@@ -15,6 +15,7 @@ model User {
     phone     String?
     role      String    @default("user")
     googleId  String?   @unique
+    secretKey String?
     posts     Post[]
     comments  Comment[]
     orders    Order[]
