@@ -224,3 +224,81 @@ export type VariantResponse = CosmeticVariant & {
   displayName: string;
   inStock: boolean;
 };
+
+/**
+ * @swagger
+ * title: CosmeticOption
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *     description: ID tuỳ chọn biến thể
+ *   optionKey:
+ *     type: string
+ *     description: Tên thuộc tính (ví dụ: màu sắc, kích cỡ)
+ *   optionValue:
+ *     type: string
+ *     description: Giá trị thuộc tính (ví dụ: Đỏ cam, 50ml)
+ *   createdAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày tạo
+ *   updatedAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày cập nhật
+ */
+
+/**
+ * @swagger
+ * title: CosmeticSpec
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *     description: ID thông số kỹ thuật
+ *   specKey:
+ *     type: string
+ *     description: Tên thông số (ví dụ: ingredients, benefits)
+ *   specValue:
+ *     type: string
+ *     description: Giá trị thông số (ví dụ: Vitamin E, Dưỡng ẩm 24h)
+ *   createdAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày tạo
+ *   updatedAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày cập nhật
+ */
+
+/**
+ * @swagger
+ * title: CosmeticDistributor
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *     description: ID nhà phân phối
+ *   name:
+ *     type: string
+ *     description: Tên nhà phân phối
+ *   address:
+ *     type: string
+ *     description: Địa chỉ nhà phân phối
+ *   phone:
+ *     type: string
+ *     description: Số điện thoại nhà phân phối
+ *   email:
+ *     type: string
+ *     description: Email nhà phân phối
+ *   createdAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày tạo
+ *   updatedAt:
+ *     type: string
+ *     format: date-time
+ *     description: Ngày cập nhật
+ */

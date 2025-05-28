@@ -11,7 +11,7 @@ import {
   CosmeticUpdateInput,
 } from "./cosmetic.types";
 
-import { SwaggerController, Get } from "@/common/annotation/swagger.annotation";
+import { SwaggerController, Get, Post, Put, Delete } from "@/common/annotation/swagger.annotation";
 
 @SwaggerController({ tag: "Cosmetic", description: "Quản lý mỹ phẩm" })
 export class CosmeticController {
@@ -44,6 +44,17 @@ export class CosmeticController {
     }
   }
 
+  @Get(
+    {
+      name: "get-cosmetic-by-id",
+      description: "Lấy chi tiết mỹ phẩm theo ID",
+      path: "/cosmetics/:id"
+    },
+    {
+      params: "id",
+      response: "CosmeticResponse"
+    }
+  )
   static async getCosmeticById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -62,6 +73,17 @@ export class CosmeticController {
     }
   }
 
+  @Post(
+    {
+      name: "create-cosmetic",
+      description: "Tạo mới mỹ phẩm",
+      path: "/cosmetics"
+    },
+    {
+      body: "CosmeticCreateInput",
+      response: "CosmeticResponse"
+    }
+  )
   static async createCosmetic(req: Request, res: Response): Promise<void> {
     try {
       const data: CosmeticCreateInput = req.body;
@@ -80,6 +102,18 @@ export class CosmeticController {
     }
   }
 
+  @Put(
+    {
+      name: "update-cosmetic",
+      description: "Cập nhật thông tin mỹ phẩm",
+      path: "/cosmetics/:id"
+    },
+    {
+      params: "id",
+      body: "CosmeticUpdateInput",
+      response: "CosmeticResponse"
+    }
+  )
   static async updateCosmetic(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -99,6 +133,16 @@ export class CosmeticController {
     }
   }
 
+  @Delete(
+    {
+      name: "delete-cosmetic",
+      description: "Xoá mỹ phẩm theo ID",
+      path: "/cosmetics/:id"
+    },
+    {
+      params: "id"
+    }
+  )
   static async deleteCosmetic(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;

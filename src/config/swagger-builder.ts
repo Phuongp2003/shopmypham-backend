@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import yaml from 'js-yaml';
 import fs from 'fs';
-import path from 'path';
 
 export class SwaggerBuilder {
 	private swagger: any = {
@@ -11,12 +10,6 @@ export class SwaggerBuilder {
 		},
 		tags: [],
 	};
-	private registeredSchemas = new Set<string>();
-	// private registry: OpenAPIRegistry;
-
-	// constructor(registry: OpenAPIRegistry) {
-	//   this.registry = registry;
-	// }
 	constructor() {}
 
 	addTag(name: string, description: string): SwaggerBuilder {
@@ -56,6 +49,7 @@ export class SwaggerBuilder {
 					const doc = yaml.load(yamlText);
 					if (doc && typeof doc === 'object') {
 						this.swagger.components.schemas[typeName] = doc;
+						console.log('Added schema:', typeName);
 					}
 				} catch (e) {
 					console.warn(`Failed to parse @swagger for ${typeName} in ${file}:`, e);

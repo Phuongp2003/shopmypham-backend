@@ -1,6 +1,12 @@
 import { Cosmetic, CosmeticSpec, CosmeticDistributor } from '@prisma/client';
 
 import { VariantResponse } from './cosmetic.types';
+interface Paginated {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+}
 
 /**
  * @swagger
@@ -43,30 +49,6 @@ export interface CosmeticResponse {
 	hasVariants: boolean;
 }
 
-/**
- * @swagger
- * title: Paginated
- * type: object
- * properties:
- *   total:
- *     type: number
- *     description: Tổng số bản ghi
- *   page:
- *     type: number
- *     description: Trang hiện tại
- *   limit:
- *     type: number
- *     description: Số lượng mỗi trang
- *   totalPages:
- *     type: number
- *     description: Tổng số trang
- */
-interface Paginated {
-	total: number;
-	page: number;
-	limit: number;
-	totalPages: number;
-}
 
 /**
  * @swagger
