@@ -1,245 +1,211 @@
-import jwt, { SignOptions } from "jsonwebtoken";
-import { Profile } from "passport";
-import { z } from "zod";
-
-import { logger } from "@/common/logger/logger.factory";
-import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
-import { prisma } from "@/config/prisma";
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { Profile } from 'passport';
+import { logger } from '@/common/logger/logger.factory';
+import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
+import { prisma } from '@/config/prisma';
+import bcrypt from 'bcrypt';
 import {
-  AuthResponseDto,
-  LoginDto,
-  RefreshTokenDto,
-  RegisterDto,
-} from "@/modules/auth/auth.dto";
-import { AuthPayload } from "@/modules/auth/auth.types";
+	AuthResponse,
+	LoginRequest,
+	RefreshToken,
+	RegisterRequest,
+	type ChangePasswordRequest,
+} from '@/modules/auth/auth.dto';
+import { AuthPayload } from '@/modules/auth/auth.types';
+import { createAuthPayload, signAuthTokens } from './auth.helper';
+import { AccountRecoveryService } from '../accountRecovery/accountRecovery.service';
 
 export class AuthService {
-  static async login(
-    input: z.infer<typeof LoginDto>,
-  ): Promise<AuthResponseDto> {
-    try {
-      // Validate input
-      const validatedData = LoginDto.parse(input);
+	static async login(input: LoginRequest): Promise<AuthResponse> {
+		try {
+			// Find user
+			const user = await prisma.user.findUnique({
+				where: { email: input.email },
+			});
 
-      // Find user
-      const user = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
+			if (!user) {
+				throw new Error('Invalid credentials');
+			}
 
-      if (!user) {
-        throw new Error("Invalid credentials");
-      }
+			// Verify password (in a real app, use bcrypt or similar)
+			if (user.password !== input.password) {
+				throw new Error('Invalid credentials');
+			}
 
-      // Verify password (in a real app, use bcrypt or similar)
-      if (user.password !== validatedData.password) {
-        throw new Error("Invalid credentials");
-      }
+			// Generate tokens
+			const tokenPayload = createAuthPayload(user);
+			const { accessToken, refreshToken } = signAuthTokens(tokenPayload);
 
-      // Generate tokens
-      const tokenPayload: AuthPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        googleId: user.googleId || undefined,
-      };
-      const tokenOptions: SignOptions = {
-        expiresIn: AuthMiddleware.ACCESS_TOKEN_EXPIRES_IN,
-      };
+			return {
+				accessToken,
+				refreshToken,
+			};
+		} catch (error) {
+			logger.error('Login error:', error, { service: 'AuthService' });
+			throw error;
+		}
+	}
 
-      const accessToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.ACCESS_TOKEN_SECRET,
-        tokenOptions,
-      );
+	static async register(input: RegisterRequest): Promise<AuthResponse> {
+		try {
+			// Check if user exists
+			const existingUser = await prisma.user.findUnique({
+				where: { email: input.email },
+			});
 
-      const refreshToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.REFRESH_TOKEN_SECRET,
-        { ...tokenOptions, expiresIn: AuthMiddleware.REFRESH_TOKEN_EXPIRES_IN },
-      );
+			if (existingUser) {
+				throw new Error('User already exists');
+			}
 
-      return {
-        accessToken,
-        refreshToken,
-      };
-    } catch (error) {
-      logger.error("Login error:", error, { service: "AuthService" });
-      throw error;
-    }
-  }
+			const secretKey = crypto.randomBytes(32).toString('hex');
 
-  static async register(
-    input: z.infer<typeof RegisterDto>,
-  ): Promise<AuthResponseDto> {
-    try {
-      // Validate input
-      const validatedData = RegisterDto.parse(input);
+			const hashedPassword = await bcrypt.hash(input.password, 10);
 
-      // Check if user exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email: validatedData.email },
-      });
+			const user = await prisma.user.create({
+				data: {
+					email: input.email,
+					password: hashedPassword,
+					role: input.role || 'user',
+					name: input.name,
+					secretKey: secretKey,
+				},
+			});
 
-      if (existingUser) {
-        throw new Error("User already exists");
-      }
+			// Generate tokens
+			const tokenPayload = createAuthPayload(user);
+			const { accessToken, refreshToken } = signAuthTokens(tokenPayload);
 
-      // Create user (in a real app, hash the password)
-      const user = await prisma.user.create({
-        data: {
-          email: validatedData.email,
-          password: validatedData.password,
-          role: validatedData.role || "user",
-          name: validatedData.name,
-        },
-      });
+			return {
+				accessToken,
+				refreshToken,
+			};
+		} catch (error) {
+			logger.error('Registration error:', error, {
+				service: 'AuthService',
+			});
+			throw error;
+		}
+	}
 
-      // Generate tokens
-      const tokenPayload: AuthPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        googleId: user.googleId || undefined,
-      };
-      const tokenOptions: SignOptions = {
-        expiresIn: AuthMiddleware.ACCESS_TOKEN_EXPIRES_IN,
-      };
+	static async refreshToken(input: RefreshToken): Promise<AuthResponse> {
+		try {
+			const { refreshToken } = input;
 
-      const accessToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.ACCESS_TOKEN_SECRET,
-        tokenOptions,
-      );
+			const decoded = jwt.verify(
+				refreshToken,
+				AuthMiddleware.REFRESH_TOKEN_SECRET
+			) as AuthPayload;
 
-      const refreshToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.REFRESH_TOKEN_SECRET,
-        { ...tokenOptions, expiresIn: AuthMiddleware.REFRESH_TOKEN_EXPIRES_IN },
-      );
+			const user = await prisma.user.findUnique({
+				where: { id: decoded.id },
+			});
 
-      return {
-        accessToken,
-        refreshToken,
-      };
-    } catch (error) {
-      logger.error("Registration error:", error, { service: "AuthService" });
-      throw error;
-    }
-  }
+			if (!user) {
+				throw new Error('User not found');
+			}
 
-  static async refreshToken(
-    input: z.infer<typeof RefreshTokenDto>,
-  ): Promise<AuthResponseDto> {
-    try {
-      const { refreshToken } = RefreshTokenDto.parse(input);
+			const tokenPayload = createAuthPayload(user);
+			const {
+				accessToken: newAccessToken,
+				refreshToken: newRefreshToken,
+			} = signAuthTokens(tokenPayload);
 
-      const decoded = jwt.verify(
-        refreshToken,
-        AuthMiddleware.REFRESH_TOKEN_SECRET,
-      ) as AuthPayload;
+			return {
+				accessToken: newAccessToken,
+				refreshToken: newRefreshToken,
+			};
+		} catch (error) {
+			logger.error('Refresh token error:', error, {
+				service: 'AuthService',
+			});
+			throw error;
+		}
+	}
 
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-      });
+	static async handleGoogleOAuth(profile: Profile): Promise<AuthResponse> {
+		try {
+			// Check if user exists with this Google ID
+			let user = await prisma.user.findFirst({
+				where: {
+					OR: [
+						{ googleId: profile.id },
+						{ email: profile.emails?.[0]?.value },
+					],
+				},
+			});
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+			if (!user) {
+				// Create new user if doesn't exist
+				user = await prisma.user.create({
+					data: {
+						email: profile.emails?.[0]?.value || '',
+						name: profile.displayName,
+						googleId: profile.id,
+						role: 'user',
+						password: '', // No password needed for OAuth users
+					},
+				});
+			} else if (!user.googleId) {
+				// Update existing user with Google ID if they don't have one
+				user = await prisma.user.update({
+					where: { id: user.id },
+					data: { googleId: profile.id },
+				});
+			}
 
-      const tokenPayload: AuthPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        googleId: user.googleId || undefined,
-      };
-      const tokenOptions: SignOptions = {
-        expiresIn: AuthMiddleware.ACCESS_TOKEN_EXPIRES_IN,
-      };
+			// Generate tokens
+			const tokenPayload = createAuthPayload(user);
+			const { accessToken, refreshToken } = signAuthTokens(tokenPayload);
 
-      const newAccessToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.ACCESS_TOKEN_SECRET,
-        tokenOptions,
-      );
+			return {
+				accessToken,
+				refreshToken,
+			};
+		} catch (error) {
+			logger.error('Google OAuth error:', error, {
+				service: 'AuthService',
+			});
+			throw error;
+		}
+	}
 
-      const newRefreshToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.REFRESH_TOKEN_SECRET,
-        { ...tokenOptions, expiresIn: AuthMiddleware.REFRESH_TOKEN_EXPIRES_IN },
-      );
+	static async changePassword(input: ChangePasswordRequest): Promise<void> {
+		try {
+			const { email, otp, oldPassword, newPassword } = input;
+			const isOtpValid = await AccountRecoveryService.verifyOtp(
+				email,
+				otp
+			);
+			if (!isOtpValid) {
+				throw new Error('Invalid OTP');
+			}
+			const hashedPassword = await bcrypt.hash(oldPassword, 10);
 
-      return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      };
-    } catch (error) {
-      logger.error("Refresh token error:", error, { service: "AuthService" });
-      throw error;
-    }
-  }
+			const user = await prisma.user.findUnique({
+				where: { email },
+			});
 
-  static async handleGoogleOAuth(profile: Profile): Promise<AuthResponseDto> {
-    try {
-      // Check if user exists with this Google ID
-      let user = await prisma.user.findFirst({
-        where: {
-          OR: [{ googleId: profile.id }, { email: profile.emails?.[0]?.value }],
-        },
-      });
+			if (!user) {
+				throw new Error('User not found');
+			}
 
-      if (!user) {
-        // Create new user if doesn't exist
-        user = await prisma.user.create({
-          data: {
-            email: profile.emails?.[0]?.value || "",
-            name: profile.displayName,
-            googleId: profile.id,
-            role: "user",
-            password: "", // No password needed for OAuth users
-          },
-        });
-      } else if (!user.googleId) {
-        // Update existing user with Google ID if they don't have one
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { googleId: profile.id },
-        });
-      }
+			if (user.password !== hashedPassword) {
+				throw new Error('Invalid old password');
+			}
 
-      // Generate tokens
-      const tokenPayload: AuthPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        googleId: user.googleId || undefined,
-      };
-      const tokenOptions: SignOptions = {
-        expiresIn: AuthMiddleware.ACCESS_TOKEN_EXPIRES_IN,
-      };
+			const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-      const accessToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.ACCESS_TOKEN_SECRET,
-        tokenOptions,
-      );
-
-      const refreshToken = jwt.sign(
-        tokenPayload,
-        AuthMiddleware.REFRESH_TOKEN_SECRET,
-        { ...tokenOptions, expiresIn: AuthMiddleware.REFRESH_TOKEN_EXPIRES_IN },
-      );
-
-      return {
-        accessToken,
-        refreshToken,
-      };
-    } catch (error) {
-      logger.error("Google OAuth error:", error, { service: "AuthService" });
-      throw error;
-    }
-  }
+			// Update user password
+			await prisma.user.update({
+				where: { id: user.id },
+				data: { password: hashedNewPassword },
+			});
+		} catch (error) {
+			logger.error('Change password error:', error, {
+				service: 'AuthService',
+			});
+			throw error;
+		}
+	}
 }

@@ -19,4 +19,7 @@ router.post("/logout", AuthController.logout);
 router.get("/google", AuthController.googleAuth);
 router.get("/google/callback", AuthController.googleAuthCallback);
 
+// Password change and recovery routes
+router.post("/change-password", AuthController.changePassword);
+
 export default router;

@@ -5,17 +5,18 @@ import { logger } from "@/common/logger/logger.factory";
 import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
 import { googleOAuthConfig } from "@/config/google-oauth.config";
 import {
-  LoginDto,
-  RefreshTokenDto,
-  RegisterDto,
+  LoginRequest,
+  AuthResponse,
+  type RegisterRequest,
+  type RefreshToken,
+  type ChangePasswordRequest,
 } from "@/modules/auth/auth.dto";
 import { AuthService } from "@/modules/auth/auth.service";
-import { AuthResponse } from "@/modules/auth/auth.types";
 
 export class AuthController {
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      const payload = LoginDto.parse(req.body);
+      const payload: LoginRequest = req.body;
       const response: AuthResponse = await AuthService.login(payload);
       res.json(response);
     } catch (error: unknown) {
@@ -32,7 +33,7 @@ export class AuthController {
 
   static async register(req: Request, res: Response): Promise<void> {
     try {
-      const payload = RegisterDto.parse(req.body);
+      const payload: RegisterRequest = req.body;
       const response: AuthResponse = await AuthService.register(payload);
       res.status(201).json(response);
     } catch (error: unknown) {
@@ -61,7 +62,7 @@ export class AuthController {
 
   static async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      const payload = RefreshTokenDto.parse(req.body);
+      const payload: RefreshToken = req.body;
       const response: AuthResponse = await AuthService.refreshToken(payload);
       res.json(response);
     } catch (error: unknown) {
@@ -116,5 +117,24 @@ export class AuthController {
         res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
       }
     })(req, res);
+  }
+
+  static async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const payload: ChangePasswordRequest = req.body;
+      await AuthService.changePassword(payload);
+      res.json({ message: "Password changed successfully" });
+    } catch (error: unknown) {
+      logger.error("Lỗi thay đổi mật khẩu:", error, {
+        service: "AuthController",
+      });
+      res.status(400).json({
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Lỗi thay đổi mật khẩu. Vui lòng thử lại sau.",
+      });
+    }
   }
 }

@@ -210,4 +210,24 @@ export class CacheService {
 			global.redisAvailable = false;
 		}
 	}
+
+	static async incr(key: string): Promise<number | null> {
+		if (!global.redisAvailable) return null;
+		try {
+			if (!redis.isOpen) {
+				await redis.connect();
+				logger.info('Redis connected from CacheService', {
+					service: 'CacheService',
+				});
+			}
+			const result = await redis.incr(key);
+			return result;
+		} catch (error) {
+			logger.error(`Error incrementing cache for key ${key}:`, error, {
+				service: 'CacheService',
+			});
+			global.redisAvailable = false;
+			return null;
+		}
+	}
 }
