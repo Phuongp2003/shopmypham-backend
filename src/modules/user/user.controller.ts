@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { HttpStatus } from "@/common/enums/http-status.enum";
 import { HttpException } from "@/common/exceptions/http.exception";
-import { CreateUserDTO, UpdateUserDTO } from "./types/user.types";
+import { CreateUserDTO, UpdateUserDTO } from "./user.types";
 import { UserService } from "./user.service";
 
 export class UserController {

@@ -297,6 +297,7 @@ export type VariantResponse = CosmeticVariant & {
  *     description: Ngày cập nhật
  */
 
+
 export type Cosmetic = {
   id: string;
   name: string;

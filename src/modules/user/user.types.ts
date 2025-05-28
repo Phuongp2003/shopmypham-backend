@@ -1,5 +1,5 @@
 import type { Post } from "@/modules/post/post.types";
-import type { Comment } from "@/modules/comment/comment/types";
+import type { Comment } from "@/modules/comment/comment.types";
 import type { Order } from "@/modules/order/order.types";
 import type { Cart } from "@/modules/cart/cart.types";
 

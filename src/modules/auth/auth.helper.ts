@@ -9,7 +9,8 @@ export function createAuthPayload(user: any): AuthPayload {
     email: user.email,
     role: user.role,
     name: user.name,
-    googleId: user.googleId || undefined,
+    googleId: user.googleId || null,
+    status: user.status,
   };
 }
 

@@ -2,7 +2,8 @@ import * as bcrypt from "bcrypt";
 import { HttpStatus } from "@/common/enums/http-status.enum";
 import { HttpException } from "@/common/exceptions/http.exception";
 import { PrismaClient, User } from "@prisma/client";
-import { CreateUserDTO, UpdateUserDTO, UserResponse } from "./types/user.types";
+import { CreateUserDTO, UpdateUserDTO, UserResponse } from "./user.types";
+import crypto from "crypto";
 
 export class UserService {
   static prisma = new PrismaClient();
@@ -40,10 +41,12 @@ export class UserService {
       throw new HttpException(HttpStatus.BAD_REQUEST, "Email already exists");
     }
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    const secretKey = crypto.randomBytes(32).toString("hex");
     const user = await UserService.prisma.user.create({
       data: {
         ...data,
         password: hashedPassword,
+        secretKey,
       },
     });
     return UserService.mapToResponse(user);

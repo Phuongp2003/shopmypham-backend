@@ -25,12 +25,14 @@ export class AuthService {
 			});
 
 			if (!user) {
-				throw new Error('Invalid credentials');
+				throw new Error('Tài khoản không tồn tại!');
 			}
 
+			const hashedPassword = await bcrypt.hash(input.password, 10);
+
 			// Verify password (in a real app, use bcrypt or similar)
-			if (user.password !== input.password) {
-				throw new Error('Invalid credentials');
+			if (await bcrypt.compare(hashedPassword, user.password)) {
+				throw new Error('Thông tin đăng nhập sai!');
 			}
 
 			// Generate tokens
@@ -59,7 +61,6 @@ export class AuthService {
 			}
 
 			const secretKey = crypto.randomBytes(32).toString('hex');
-
 			const hashedPassword = await bcrypt.hash(input.password, 10);
 
 			const user = await prisma.user.create({

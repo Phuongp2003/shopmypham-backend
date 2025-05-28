@@ -26,8 +26,8 @@ export class AuthMiddleware {
     process.env.JWT_SECRET || "your-secret-key";
   static readonly REFRESH_TOKEN_SECRET: jwt.Secret =
     process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
-  static readonly ACCESS_TOKEN_EXPIRES_IN: number = 24 * 60 * 60; // 1 day in seconds
-  static readonly REFRESH_TOKEN_EXPIRES_IN: number = 7 * 24 * 60 * 60; // 7 days in seconds
+  static readonly ACCESS_TOKEN_EXPIRES_IN: number = 60 * 60 * 24; // 1 day in seconds
+  static readonly REFRESH_TOKEN_EXPIRES_IN: number = 60 * 60 * 24 * 30; // 30 days in seconds
 
   static async authenticate(req: Request, res: Response, next: NextFunction) {
     try {

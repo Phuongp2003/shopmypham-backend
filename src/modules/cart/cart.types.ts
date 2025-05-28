@@ -1,4 +1,4 @@
-import type { User } from "@/modules/user/types/user.types";
+import type { User } from "@/modules/user/user.types";
 import type { CosmeticVariant } from "@/modules/cosmetic/cosmetic.types";
 
 export type Cart = {

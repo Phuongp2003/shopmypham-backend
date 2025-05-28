@@ -10,10 +10,10 @@ export class AccountRecoveryService {
         return otp;
     }
 
-    static async regenerateOtp(email: string): Promise<void> {
+    static async regenerateOtp(email: string): Promise<string> {
         const key = `account-recovery-otp-${email}`;
         await CacheService.delete(key);
-        await this.generateOtp(email);
+        return await this.generateOtp(email);
     }
 
     static async verifyOtp(email: string, otp: string): Promise<boolean> {
@@ -57,6 +57,11 @@ export class AccountRecoveryService {
 
     static async sendOtp(email: string): Promise<void> {
         const otp = await this.generateOtp(email);
+        await EmailService.sendOtpEmail(email, otp);
+    }
+    
+    static async resendOtp(email: string): Promise<void> {
+        const otp = await this.regenerateOtp(email);
         await EmailService.sendOtpEmail(email, otp);
     }
 
