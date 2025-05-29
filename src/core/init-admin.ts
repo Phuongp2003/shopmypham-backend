@@ -1,6 +1,7 @@
 import { logger } from "../common/logger/logger.factory";
 import { prisma } from "../config/prisma";
 import { AuthService } from "../modules/auth/auth.service";
+import bcrypt from 'bcrypt'
 
 export async function initAdminUser() {
   try {
@@ -14,9 +15,11 @@ export async function initAdminUser() {
     if (!adminUser) {
       // Create admin user if not exists
       const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "Admin@123";
+			const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
       await AuthService.register({
         email: "admin@phuongy.works",
-        password: adminPassword,
+        password: hashedPassword,
         name: "System Administrator",
         role: "admin",
       });

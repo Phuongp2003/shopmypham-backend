@@ -1,8 +1,7 @@
-import { Cosmetic } from '@prisma/client';
 const nodemailer = require('nodemailer');
 
 export class EmailService {
-	static async sendEmail(to: string, subject: string, text: string) {
+	static async sendEmail(to: string, subject: string, text: string, isHtml: boolean = false) {
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
@@ -15,7 +14,8 @@ export class EmailService {
 			from: process.env.EMAIL_USER,
 			to,
 			subject,
-			text,
+			text: isHtml ? undefined : text,
+			html: isHtml ? text : undefined,
 		};
 
 		await transporter.sendMail(mailOptions);
@@ -45,12 +45,12 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, text);
+		await this.sendEmail(to, subject, text, true);
 	}
 
 	static async sendResetPasswordEmail(to: string, token: string) {
 		const subject = 'Reset your password';
-		const text = `
+		const html = `
         <style>
             body {
                 background-color: #f0f0f0;
@@ -74,7 +74,7 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, text);
+		await this.sendEmail(to, subject, html, true);
 	}
 
     static async sendEmailWithTemplate(to: string, subject: string, text: string) {
@@ -98,6 +98,6 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, finalText);
+		await this.sendEmail(to, subject, finalText, true);
 	}
 }

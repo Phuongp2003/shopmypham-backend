@@ -15,4 +15,7 @@ export type AuthPayload = {
 	role: string;
 	name: string;
 	googleId?: string;
+	status: string;
+	exp?: number;
+	iat?: number;
 };

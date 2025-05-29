@@ -15,7 +15,7 @@ import {
 import { AuthPayload } from '@/modules/auth/auth.types';
 import { createAuthPayload, signAuthTokens } from './auth.helper';
 import { AccountRecoveryService } from '../accountRecovery/accountRecovery.service';
-
+import { EmailService } from '@/common/services/email.service';
 export class AuthService {
 	static async login(input: LoginRequest): Promise<AuthResponse> {
 		try {
@@ -25,12 +25,14 @@ export class AuthService {
 			});
 
 			if (!user) {
-				throw new Error('Invalid credentials');
+				throw new Error('Tài khoản không tồn tại!');
 			}
 
+			const hashedPassword = await bcrypt.hash(input.password, 10);
+
 			// Verify password (in a real app, use bcrypt or similar)
-			if (user.password !== input.password) {
-				throw new Error('Invalid credentials');
+			if (await bcrypt.compare(hashedPassword, user.password)) {
+				throw new Error('Thông tin đăng nhập sai!');
 			}
 
 			// Generate tokens
@@ -59,7 +61,6 @@ export class AuthService {
 			}
 
 			const secretKey = crypto.randomBytes(32).toString('hex');
-
 			const hashedPassword = await bcrypt.hash(input.password, 10);
 
 			const user = await prisma.user.create({
@@ -146,8 +147,15 @@ export class AuthService {
 						role: 'user',
 						secretKey: secretKey,
 						password: '', // No password needed for OAuth users
+						googleName: profile.displayName,
+						googleEmail: profile.emails?.[0]?.value,
 					},
 				});
+				await EmailService.sendEmailWithTemplate(
+					user.email,
+					'Chào mừng bạn đến với hệ thống quản lý đơn hàng',
+					`<p>Chào mừng bạn đến với hệ thống quản lý đơn hàng ${user.name}</p>`
+				);
 			} else if (!user.googleId) {
 				// Update existing user with Google ID if they don't have one
 				user = await prisma.user.update({
@@ -209,5 +217,41 @@ export class AuthService {
 			});
 			throw error;
 		}
+	}
+
+	static async linkGoogleAccount(
+		userId: string,
+		profile: Profile
+	): Promise<void> {
+		// Kiểm tra googleId đã được liên kết với user khác chưa
+		const existing = await prisma.user.findFirst({
+			where: {
+				googleId: profile.id,
+				NOT: { id: userId },
+			},
+		});
+		if (existing) {
+			throw new Error(
+				'Tài khoản Google đã được liên kết với tài khoản khác!'
+			);
+		}
+
+		// Lấy user hiện tại
+		const user = await prisma.user.findUnique({ where: { id: userId } });
+		if (!user) throw new Error('Tài khoản không tồn tại!');
+		if (user.googleId)
+			throw new Error(
+				'Tài khoản Google đã được liên kết với tài khoản khác!'
+			);
+
+		// Cập nhật googleId cho user hiện tại
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				googleId: profile.id,
+				googleName: profile.displayName,
+				googleEmail: profile.emails?.[0]?.value,
+			},
+		});
 	}
 }

@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import type { Comment } from "@/modules/comment/comment/types";
+import type { Comment } from "@/modules/comment/comment.types";
 export type PostWithAuthor = Post & {
   author: Pick<User, "id" | "name" | "email">;
 };
