@@ -149,6 +149,8 @@ export class UserService {
 			where: { id },
 			data: {
 				googleId: null,
+				googleName: null,
+				googleEmail: null,
 			},
 		});
 		await EmailService.sendEmailWithTemplate(
