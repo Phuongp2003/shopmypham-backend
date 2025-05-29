@@ -23,165 +23,165 @@ import { registerSwaggerAnnotations } from '../common/annotation/swagger.annotat
  * It sets up middleware, services, routes, and error handling.
  */
 export class AppInitializer {
-	private static app: Express;
+    private static app: Express;
 
-	/**
-	 * Initializes the Express application with all necessary configurations.
-	 * @returns {Promise<Express>} The configured Express application
-	 */
-	static async initialize(): Promise<Express> {
-		this.app = express();
+    /**
+     * Initializes the Express application with all necessary configurations.
+     * @returns {Promise<Express>} The configured Express application
+     */
+    static async initialize(): Promise<Express> {
+        this.app = express();
 
-		// Setup middleware
-		await this.setupMiddleware();
+        // Setup middleware
+        await this.setupMiddleware();
 
-		// Initialize services
-		await this.initializeServices();
+        // Initialize services
+        await this.initializeServices();
 
-		// Register routes
-		this.registerRoutes();
+        // Register routes
+        this.registerRoutes();
 
-		// Register error handler
-		this.registerErrorHandler();
+        // Register error handler
+        this.registerErrorHandler();
 
-		// Start database health checks
-		const cleanupHealthCheck = startHealthCheck();
+        // Start database health checks
+        const cleanupHealthCheck = startHealthCheck();
 
-		// Graceful shutdown
-		process.on('SIGTERM', async () => {
-			logger.info('SIGTERM received. Shutting down gracefully...', {
-				service: 'Startup',
-			});
-			cleanupHealthCheck();
-			// Disconnect from Redis
-			await disconnectRedis();
-			// Disconnect from Prisma
-			await prisma.$disconnect();
-			process.exit(0);
-		});
+        // Graceful shutdown
+        process.on('SIGTERM', async () => {
+            logger.info('SIGTERM received. Shutting down gracefully...', {
+                service: 'Startup',
+            });
+            cleanupHealthCheck();
+            // Disconnect from Redis
+            await disconnectRedis();
+            // Disconnect from Prisma
+            await prisma.$disconnect();
+            process.exit(0);
+        });
 
-		process.on('SIGINT', async () => {
-			logger.info('SIGINT received. Shutting down gracefully...', {
-				service: 'Startup',
-			});
-			cleanupHealthCheck();
-			// Disconnect from Redis
-			await disconnectRedis();
-			// Disconnect from Prisma
-			await prisma.$disconnect();
-			process.exit(0);
-		});
+        process.on('SIGINT', async () => {
+            logger.info('SIGINT received. Shutting down gracefully...', {
+                service: 'Startup',
+            });
+            cleanupHealthCheck();
+            // Disconnect from Redis
+            await disconnectRedis();
+            // Disconnect from Prisma
+            await prisma.$disconnect();
+            process.exit(0);
+        });
 
-		logger.info('Application setup completed successfully', {
-			service: 'Startup',
-		});
-		if (process.env.NODE_ENV !== 'production') {
-			logger.info('Application run on http://localhost:3000', {
-				service: 'Startup',
-			});
-		}
+        logger.info('Application setup completed successfully', {
+            service: 'Startup',
+        });
+        if (process.env.NODE_ENV !== 'production') {
+            logger.info('Application run on http://localhost:3000', {
+                service: 'Startup',
+            });
+        }
 
-		return this.app;
-	}
+        return this.app;
+    }
 
-	private static async setupMiddleware() {
-		this.app.use(helmet());
-		this.app.use(cors());
-		this.app.use(express.json());
-		this.app.use(cookieParser());
-		this.app.use(morgan('combined'));
-	}
+    private static async setupMiddleware() {
+        this.app.use(helmet());
+        this.app.use(cors());
+        this.app.use(express.json());
+        this.app.use(cookieParser());
+        this.app.use(morgan('combined'));
+    }
 
-	private static async initializeServices() {
-		try {
-			// Initialize Prisma
-			await prisma.$connect();
-			logger.info('Prisma connected successfully', {
-				service: 'Startup',
-			});
+    private static async initializeServices() {
+        try {
+            // Initialize Prisma
+            await prisma.$connect();
+            logger.info('Prisma connected successfully', {
+                service: 'Startup',
+            });
 
-			// Initialize Redis (ensuring it's only initialized once)
-			const redisAvailable = await initializeRedis();
-			if (redisAvailable) {
-				logger.info('Redis connected successfully', {
-					service: 'Startup',
-				});
-			} else {
-				logger.error(
-					'cache services connect fail, using no-cache strategy!',
-					{ service: 'Startup' }
-				);
-			}
+            // Initialize Redis (ensuring it's only initialized once)
+            const redisAvailable = await initializeRedis();
+            if (redisAvailable) {
+                logger.info('Redis connected successfully', {
+                    service: 'Startup',
+                });
+            } else {
+                logger.error(
+                    'cache services connect fail, using no-cache strategy!',
+                    { service: 'Startup' },
+                );
+            }
 
-			// Đăng ký swagger annotation
-			if (process.env.NODE_ENV !== 'production')
-				registerSwaggerAnnotations();
+            // Đăng ký swagger annotation
+            if (process.env.NODE_ENV !== 'production')
+                registerSwaggerAnnotations();
 
-			// Initialize Swagger
-			swaggerConfig(this.app);
-			logger.info('Swagger initialized successfully', {
-				service: 'Startup',
-			});
+            // Initialize Swagger
+            swaggerConfig(this.app);
+            logger.info('Swagger initialized successfully', {
+                service: 'Startup',
+            });
 
-			// Initialize admin user
-			await initAdminUser();
-		} catch (error) {
-			logger.error('\nFailed to initialize services:', error, {
-				service: 'Startup',
-			});
-			throw error;
-		}
-	}
+            // Initialize admin user
+            await initAdminUser();
+        } catch (error) {
+            logger.error('\nFailed to initialize services:', error, {
+                service: 'Startup',
+            });
+            throw error;
+        }
+    }
 
-	/**
-	 * Registers all application routes.
-	 * This includes:
-	 * - Health check endpoint
-	 * - Authentication routes (/auth)
-	 * - Post management routes (/posts)
-	 * - Cosmetic management routes (/cosmetics)
-	 * - Cart management routes (/cart)
-	 * - User management routes (/users)
-	 */
-	private static registerRoutes() {
-		// Health check endpoint
-		this.app.get('/healthz', (req, res) => {
-			res.json({ status: 'ok' });
-		});
+    /**
+     * Registers all application routes.
+     * This includes:
+     * - Health check endpoint
+     * - Authentication routes (/auth)
+     * - Post management routes (/posts)
+     * - Cosmetic management routes (/cosmetics)
+     * - Cart management routes (/cart)
+     * - User management routes (/users)
+     */
+    private static registerRoutes() {
+        // Health check endpoint
+        this.app.get('/healthz', (req, res) => {
+            res.json({ status: 'ok' });
+        });
 
-		// Register module routes
-		this.app.use('/auth', authRouter);
-		this.app.use('/posts', postRouter);
-		this.app.use('/cosmetics', cosmeticRouter);
-		this.app.use('/cart', cartRouter);
-		this.app.use('/users', userRouter);
-		this.app.use('/orders', orderRouter);
-	}
+        // Register module routes
+        this.app.use('/auth', authRouter);
+        this.app.use('/posts', postRouter);
+        this.app.use('/cosmetics', cosmeticRouter);
+        this.app.use('/cart', cartRouter);
+        this.app.use('/users', userRouter);
+        this.app.use('/orders', orderRouter);
+    }
 
-	private static registerErrorHandler() {
-		this.app.use(
-			(
-				err: any,
-				req: express.Request,
-				res: express.Response,
-				next: express.NextFunction
-			) => {
-				logger.error('Unhandled error:', err, { service: 'Startup' });
+    private static registerErrorHandler() {
+        this.app.use(
+            (
+                err: any,
+                req: express.Request,
+                res: express.Response,
+                next: express.NextFunction,
+            ) => {
+                logger.error('Unhandled error:', err, { service: 'Startup' });
 
-				if (err.details) {
-					logger.error('Error details:', err.details, {
-						service: 'Startup',
-					});
-				}
-				res.status(500).json({
-					status: 'error',
-					message: 'Internal server error',
-					details:
-						process.env.NODE_ENV === 'development'
-							? err
-							: undefined,
-				});
-			}
-		);
-	}
+                if (err.details) {
+                    logger.error('Error details:', err.details, {
+                        service: 'Startup',
+                    });
+                }
+                res.status(500).json({
+                    status: 'error',
+                    message: 'Internal server error',
+                    details:
+                        process.env.NODE_ENV === 'development'
+                            ? err
+                            : undefined,
+                });
+            },
+        );
+    }
 }

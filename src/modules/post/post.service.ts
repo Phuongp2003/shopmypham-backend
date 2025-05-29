@@ -1,235 +1,227 @@
-import { HttpStatus } from "@/common/enums/http-status.enum";
-import { HttpException } from "@/common/exceptions/http.exception";
-import { CacheService } from "@/common/services/cache.service";
-import { prisma } from "@/config/prisma";
+import { HttpStatus } from '@/common/enums/http-status.enum';
+import { HttpException } from '@/common/exceptions/http.exception';
+import { CacheService } from '@/common/services/cache.service';
+import { prisma } from '@/config/prisma';
 
 import {
-  PostCreateInput,
-  PostQueryParams,
-  PostUpdateInput,
-  PostWithAuthor,
-} from "./post.types";
+    PostCreateInput,
+    PostQueryParams,
+    PostUpdateInput,
+    PostWithAuthor,
+} from './post.types';
 
 export class PostService {
-  static readonly CACHE_PREFIX = "post";
+    static readonly CACHE_PREFIX = 'post';
 
-  static async getPosts(
-    params: PostQueryParams,
-  ): Promise<{ posts: PostWithAuthor[]; total: number }> {
-    const cacheKey = CacheService.generateKey(
-      `${PostService.CACHE_PREFIX}:list`,
-      params,
-    );
-    const cached = await CacheService.getOrSet(cacheKey, async () => {
-      const {
-        search,
-        sortBy,
-        sortOrder,
-        page = 1,
-        limit = 10,
-        published,
-      } = params;
-      const where = {
-        ...(search && {
-          OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { content: { contains: search, mode: "insensitive" } },
-          ],
-        }),
-        ...(published !== undefined && { published }),
-      };
-      const [posts, total] = await Promise.all([
-        prisma.post.findMany({
-          where,
-          include: {
-            author: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
+    static async getPosts(
+        params: PostQueryParams,
+    ): Promise<{ posts: PostWithAuthor[]; total: number }> {
+        const cacheKey = CacheService.generateKey(
+            `${PostService.CACHE_PREFIX}:list`,
+            params,
+        );
+        const cached = await CacheService.getOrSet(cacheKey, async () => {
+            const {
+                search,
+                sortBy,
+                sortOrder,
+                page = 1,
+                limit = 10,
+                published,
+            } = params;
+            const where = {
+                ...(search && {
+                    OR: [
+                        { title: { contains: search, mode: 'insensitive' } },
+                        { content: { contains: search, mode: 'insensitive' } },
+                    ],
+                }),
+                ...(published !== undefined && { published }),
+            };
+            const [posts, total] = await Promise.all([
+                prisma.post.findMany({
+                    where,
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                    orderBy: sortBy
+                        ? { [sortBy]: sortOrder || 'desc' }
+                        : { createdAt: 'desc' },
+                    skip: (page - 1) * limit,
+                    take: limit,
+                }),
+                prisma.post.count({ where }),
+            ]);
+            return { posts, total };
+        });
+        if (cached) return cached;
+        // fallback: fetch from DB (same as cache miss logic)
+        const {
+            search,
+            sortBy,
+            sortOrder,
+            page = 1,
+            limit = 10,
+            published,
+        } = params;
+        const where = {
+            ...(search && {
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { content: { contains: search, mode: 'insensitive' } },
+                ],
+            }),
+            ...(published !== undefined && { published }),
+        };
+        const [posts, total] = await Promise.all([
+            prisma.post.findMany({
+                where,
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
+                orderBy: sortBy
+                    ? { [sortBy]: sortOrder || 'desc' }
+                    : { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.post.count({ where }),
+        ]);
+        return { posts, total };
+    }
+
+    static async getPostById(id: string): Promise<PostWithAuthor> {
+        const cacheKey = CacheService.generateKey(
+            `${PostService.CACHE_PREFIX}:detail`,
+            { id },
+        );
+        const cached = await CacheService.getOrSet(cacheKey, async () => {
+            const post = await prisma.post.findUnique({
+                where: { id },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                },
+            });
+            if (!post) {
+                throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+            }
+            return post;
+        });
+        if (cached) return cached;
+        // fallback: fetch from DB (same as cache miss logic)
+        const post = await prisma.post.findUnique({
+            where: { id },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
             },
-          },
-          orderBy: sortBy
-            ? { [sortBy]: sortOrder || "desc" }
-            : { createdAt: "desc" },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        prisma.post.count({ where }),
-      ]);
-      return { posts, total };
-    });
-    if (cached) return cached;
-    // fallback: fetch from DB (same as cache miss logic)
-    const {
-      search,
-      sortBy,
-      sortOrder,
-      page = 1,
-      limit = 10,
-      published,
-    } = params;
-    const where = {
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { content: { contains: search, mode: "insensitive" } },
-        ],
-      }),
-      ...(published !== undefined && { published }),
-    };
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+        });
+        if (!post) {
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+        }
+        return post;
+    }
+
+    static async createPost(
+        userId: string,
+        data: PostCreateInput,
+    ): Promise<PostWithAuthor> {
+        const post = await prisma.post.create({
+            data: {
+                ...data,
+                authorId: userId,
             },
-          },
-        },
-        orderBy: sortBy
-          ? { [sortBy]: sortOrder || "desc" }
-          : { createdAt: "desc" },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.post.count({ where }),
-    ]);
-    return { posts, total };
-  }
-
-  static async getPostById(id: string): Promise<PostWithAuthor> {
-    const cacheKey = CacheService.generateKey(
-      `${PostService.CACHE_PREFIX}:detail`,
-      { id },
-    );
-    const cached = await CacheService.getOrSet(cacheKey, async () => {
-      const post = await prisma.post.findUnique({
-        where: { id },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
             },
-          },
-        },
-      });
-      if (!post) {
-        throw new HttpException(HttpStatus.NOT_FOUND, "Post not found");
-      }
-      return post;
-    });
-    if (cached) return cached;
-    // fallback: fetch from DB (same as cache miss logic)
-    const post = await prisma.post.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-    if (!post) {
-      throw new HttpException(HttpStatus.NOT_FOUND, "Post not found");
+        });
+        await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+        return post;
     }
-    return post;
-  }
 
-  static async createPost(
-    userId: string,
-    data: PostCreateInput,
-  ): Promise<PostWithAuthor> {
-    const post = await prisma.post.create({
-      data: {
-        ...data,
-        authorId: userId,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-    await CacheService.clearByPrefix(
-      `${PostService.CACHE_PREFIX}:list`,
-    );
-    return post;
-  }
+    static async updatePost(
+        id: string,
+        userId: string,
+        data: PostUpdateInput,
+    ): Promise<PostWithAuthor> {
+        const post = await prisma.post.findUnique({
+            where: { id },
+        });
+        if (!post) {
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+        }
+        if (post.authorId !== userId) {
+            throw new HttpException(HttpStatus.UNAUTHORIZED, 'Unauthorized');
+        }
+        const updatedPost = await prisma.post.update({
+            where: { id },
+            data,
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+        await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+        await CacheService.delete(
+            CacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, {
+                id,
+            }),
+        );
+        return updatedPost;
+    }
 
-  static async updatePost(
-    id: string,
-    userId: string,
-    data: PostUpdateInput,
-  ): Promise<PostWithAuthor> {
-    const post = await prisma.post.findUnique({
-      where: { id },
-    });
-    if (!post) {
-      throw new HttpException(HttpStatus.NOT_FOUND, "Post not found");
+    static async deletePost(id: string, userId: string): Promise<void> {
+        const post = await prisma.post.findUnique({
+            where: { id },
+        });
+        if (!post) {
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+        }
+        if (post.authorId !== userId) {
+            throw new HttpException(HttpStatus.UNAUTHORIZED, 'Unauthorized');
+        }
+        await prisma.post.delete({
+            where: { id },
+        });
+        await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
+        await CacheService.delete(
+            CacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, {
+                id,
+            }),
+        );
     }
-    if (post.authorId !== userId) {
-      throw new HttpException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-    }
-    const updatedPost = await prisma.post.update({
-      where: { id },
-      data,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-    await CacheService.clearByPrefix(
-      `${PostService.CACHE_PREFIX}:list`,
-    );
-    await CacheService.delete(
-      CacheService.generateKey(
-        `${PostService.CACHE_PREFIX}:detail`,
-        { id },
-      ),
-    );
-    return updatedPost;
-  }
-
-  static async deletePost(id: string, userId: string): Promise<void> {
-    const post = await prisma.post.findUnique({
-      where: { id },
-    });
-    if (!post) {
-      throw new HttpException(HttpStatus.NOT_FOUND, "Post not found");
-    }
-    if (post.authorId !== userId) {
-      throw new HttpException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-    }
-    await prisma.post.delete({
-      where: { id },
-    });
-    await CacheService.clearByPrefix(
-      `${PostService.CACHE_PREFIX}:list`,
-    );
-    await CacheService.delete(
-      CacheService.generateKey(
-        `${PostService.CACHE_PREFIX}:detail`,
-        { id },
-      ),
-    );
-  }
 }

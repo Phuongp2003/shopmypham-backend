@@ -1,19 +1,19 @@
-import type { UserStatus } from "./user.types";
+import type { UserStatus } from './user.types';
 
 export interface CreateUserReq {
     email: string;
     password: string;
     name: string;
     role?: string;
-  }
-  
-  export interface UpdateUserReq {
+}
+
+export interface UpdateUserReq {
     name?: string;
     email?: string;
     phone?: string;
-  }
-  
-  export interface GetUserRes {
+}
+
+export interface GetUserRes {
     id: string;
     email: string;
     name: string;
@@ -26,11 +26,10 @@ export interface CreateUserReq {
     createdAt: Date;
     updatedAt: Date;
     isNoPassword?: boolean | false;
-  }
-  
-  export interface ChangePasswordReq {
+}
+
+export interface ChangePasswordReq {
     oldPassword: string;
     newPassword: string;
     otp: string;
-  }
-  
+}

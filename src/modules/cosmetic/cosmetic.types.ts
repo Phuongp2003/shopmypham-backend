@@ -37,16 +37,16 @@
  *     description: Chỉ lấy sản phẩm có biến thể
  */
 export type CosmeticQueryParams = {
-  search?: string;
-  type?: CosmeticType;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: "price" | "name" | "createdAt";
-  sortOrder?: "asc" | "desc";
-  page?: number;
-  limit?: number;
-  inStock?: boolean;
-  hasVariants?: boolean;
+    search?: string;
+    type?: CosmeticType;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: 'price' | 'name' | 'createdAt';
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+    inStock?: boolean;
+    hasVariants?: boolean;
 };
 
 /**
@@ -60,8 +60,8 @@ export type CosmeticQueryParams = {
  *     type: string
  */
 export type VariantOptionInput = {
-  key: string;
-  value: string;
+    key: string;
+    value: string;
 };
 
 /**
@@ -81,10 +81,10 @@ export type VariantOptionInput = {
  *       $ref: '#/components/schemas/VariantOptionInput'
  */
 export type VariantInput = {
-  sku: string;
-  price: number;
-  stock: number;
-  options: VariantOptionInput[];
+    sku: string;
+    price: number;
+    stock: number;
+    options: VariantOptionInput[];
 };
 
 /**
@@ -98,8 +98,8 @@ export type VariantInput = {
  *     type: string
  */
 export type SpecificationInput = {
-  key: string;
-  value: string;
+    key: string;
+    value: string;
 };
 
 /**
@@ -129,14 +129,14 @@ export type SpecificationInput = {
  *       $ref: '#/components/schemas/VariantInput'
  */
 export type CosmeticCreateInput = {
-  name: string;
-  description?: string;
-  price: number;
-  stock: number;
-  type: CosmeticType;
-  distributorId: string;
-  specifications?: SpecificationInput[];
-  variants?: VariantInput[];
+    name: string;
+    description?: string;
+    price: number;
+    stock: number;
+    type: CosmeticType;
+    distributorId: string;
+    specifications?: SpecificationInput[];
+    variants?: VariantInput[];
 };
 
 /**
@@ -190,13 +190,13 @@ export type CosmeticCreateInput = {
  *           type: string
  */
 export type CosmeticUpdateInput = Partial<
-  Omit<CosmeticCreateInput, "variants">
+    Omit<CosmeticCreateInput, 'variants'>
 > & {
-  variants?: {
-    create?: VariantInput[];
-    update?: (VariantInput & { id: string })[];
-    delete?: string[];
-  };
+    variants?: {
+        create?: VariantInput[];
+        update?: (VariantInput & { id: string })[];
+        delete?: string[];
+    };
 };
 
 /**
@@ -214,9 +214,9 @@ export type CosmeticUpdateInput = Partial<
  *     type: boolean
  */
 export type VariantResponse = CosmeticVariant & {
-  options: CosmeticOption[];
-  displayName: string;
-  inStock: boolean;
+    options: CosmeticOption[];
+    displayName: string;
+    inStock: boolean;
 };
 
 /**
@@ -297,70 +297,76 @@ export type VariantResponse = CosmeticVariant & {
  *     description: Ngày cập nhật
  */
 
-
 export type Cosmetic = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  type: CosmeticType;
-  distributorId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  distributor: CosmeticDistributor;
-  variants: CosmeticVariant[];
-  specifications: CosmeticSpec[];
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    stock: number;
+    type: CosmeticType;
+    distributorId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    distributor: CosmeticDistributor;
+    variants: CosmeticVariant[];
+    specifications: CosmeticSpec[];
 };
 
-export type CosmeticType = 'SKINCARE' | 'MAKEUP' | 'HAIRCARE' | 'FRAGRANCE' | 'BODYCARE' | 'NAILCARE' | 'OTHER';
+export type CosmeticType =
+    | 'SKINCARE'
+    | 'MAKEUP'
+    | 'HAIRCARE'
+    | 'FRAGRANCE'
+    | 'BODYCARE'
+    | 'NAILCARE'
+    | 'OTHER';
 
 export type CosmeticVariant = {
-  id: string;
-  cosmeticId: Cosmetic['id']
-  sku: string;
-  price: number;
-  stock: number;
-  createdAt: Date;
-  updatedAt: Date;
-  variantOptions?: CosmeticVariantOption[];
-  cosmetic?: Cosmetic;
+    id: string;
+    cosmeticId: Cosmetic['id'];
+    sku: string;
+    price: number;
+    stock: number;
+    createdAt: Date;
+    updatedAt: Date;
+    variantOptions?: CosmeticVariantOption[];
+    cosmetic?: Cosmetic;
 };
 
 export type CosmeticOption = {
-  id: string;
-  optionKey: string;
-  optionValue: string;
-  variantOptions?: CosmeticVariantOption[];
-  createdAt: Date;
-  updatedAt: Date;
+    id: string;
+    optionKey: string;
+    optionValue: string;
+    variantOptions?: CosmeticVariantOption[];
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export type CosmeticVariantOption = {
-  id: string;
-  variantId: CosmeticVariant['id'];
-  optionId: CosmeticOption['id'];
-  createdAt: Date;
-  updatedAt: Date;
+    id: string;
+    variantId: CosmeticVariant['id'];
+    optionId: CosmeticOption['id'];
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export type CosmeticSpec = {
-  id: string;
-  cosmeticId: Cosmetic['id'];
-  specKey: string;
-  specValue: string;
-  createdAt: Date;
-  updatedAt: Date;
-  cosmetic: Cosmetic;
+    id: string;
+    cosmeticId: Cosmetic['id'];
+    specKey: string;
+    specValue: string;
+    createdAt: Date;
+    updatedAt: Date;
+    cosmetic: Cosmetic;
 };
 
 export type CosmeticDistributor = {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
-  cosmetics: Cosmetic[];
+    id: string;
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    createdAt: Date;
+    updatedAt: Date;
+    cosmetics: Cosmetic[];
 };

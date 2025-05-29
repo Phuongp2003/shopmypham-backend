@@ -5,177 +5,177 @@ import { logger } from '@/common/logger/logger.factory';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
 import { googleOAuthConfig } from '@/config/google-oauth.config';
 import {
-	LoginRequest,
-	AuthResponse,
-	type RegisterRequest,
-	type RefreshToken,
-	type ChangePasswordRequest,
+    LoginRequest,
+    AuthResponse,
+    type RegisterRequest,
+    type RefreshToken,
+    type ChangePasswordRequest,
 } from '@/modules/auth/auth.dto';
 import { AuthService } from '@/modules/auth/auth.service';
 import jwt from 'jsonwebtoken';
 
 export class AuthController {
-	static async login(req: Request, res: Response): Promise<void> {
-		try {
-			const payload: LoginRequest = req.body;
-			const response: AuthResponse = await AuthService.login(payload);
-			res.json(response);
-		} catch (error: unknown) {
-			logger.error('Lỗi đăng nhập:', error, {
-				service: 'AuthController',
-			});
-			res.status(401).json({
-				status: 'error',
-				message:
-					error instanceof Error
-						? error.message
-						: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.',
-			});
-		}
-	}
+    static async login(req: Request, res: Response): Promise<void> {
+        try {
+            const payload: LoginRequest = req.body;
+            const response: AuthResponse = await AuthService.login(payload);
+            res.json(response);
+        } catch (error: unknown) {
+            logger.error('Lỗi đăng nhập:', error, {
+                service: 'AuthController',
+            });
+            res.status(401).json({
+                status: 'error',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.',
+            });
+        }
+    }
 
-	static async register(req: Request, res: Response): Promise<void> {
-		try {
-			const payload: RegisterRequest = req.body;
-			const response: AuthResponse = await AuthService.register(payload);
-			res.status(201).json(response);
-		} catch (error: unknown) {
-			logger.error('Lỗi đăng ký:', error, { service: 'AuthController' });
-			res.status(400).json({
-				status: 'error',
-				message:
-					error instanceof Error
-						? error.message
-						: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
-			});
-		}
-	}
+    static async register(req: Request, res: Response): Promise<void> {
+        try {
+            const payload: RegisterRequest = req.body;
+            const response: AuthResponse = await AuthService.register(payload);
+            res.status(201).json(response);
+        } catch (error: unknown) {
+            logger.error('Lỗi đăng ký:', error, { service: 'AuthController' });
+            res.status(400).json({
+                status: 'error',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+            });
+        }
+    }
 
-	static async logout(req: Request, res: Response) {
-		try {
-			await AuthMiddleware.logout(req, res);
-		} catch (error) {
-			logger.error('Lỗi đăng xuất:', error, {
-				service: 'AuthController',
-			});
-			return res.status(500).json({
-				status: 'error',
-				message: 'Đăng xuất thất bại. Vui lòng thử lại sau.',
-			});
-		}
-	}
+    static async logout(req: Request, res: Response) {
+        try {
+            await AuthMiddleware.logout(req, res);
+        } catch (error) {
+            logger.error('Lỗi đăng xuất:', error, {
+                service: 'AuthController',
+            });
+            return res.status(500).json({
+                status: 'error',
+                message: 'Đăng xuất thất bại. Vui lòng thử lại sau.',
+            });
+        }
+    }
 
-	static async refreshToken(req: Request, res: Response): Promise<void> {
-		try {
-			const payload: RefreshToken = req.body;
-			const response: AuthResponse =
-				await AuthService.refreshToken(payload);
-			res.json(response);
-		} catch (error: unknown) {
-			res.status(401).json({
-				status: 'error',
-				message:
-					error instanceof Error
-						? error.message
-						: 'Làm mới token thất bại. Vui lòng đăng nhập lại.',
-			});
-		}
-	}
+    static async refreshToken(req: Request, res: Response): Promise<void> {
+        try {
+            const payload: RefreshToken = req.body;
+            const response: AuthResponse =
+                await AuthService.refreshToken(payload);
+            res.json(response);
+        } catch (error: unknown) {
+            res.status(401).json({
+                status: 'error',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Làm mới token thất bại. Vui lòng đăng nhập lại.',
+            });
+        }
+    }
 
-	static async googleAuth(req: Request, res: Response): Promise<void> {
-		passport.authenticate('google', { scope: ['profile', 'email'] })(
-			req,
-			res
-		);
-	}
-	static async googleLinkAuth(req: Request, res: Response): Promise<void> {
-		passport.authenticate('google', {
-			scope: ['profile', 'email'],
-			state: 'link',
-		})(req, res);
-	}
-	static async googleAuthCallback(
-		req: Request,
-		res: Response
-	): Promise<void> {
-		passport.authenticate('google', async (err: Error, profile: any) => {
-			try {
-				if (err) {
-					throw err;
-				}
+    static async googleAuth(req: Request, res: Response): Promise<void> {
+        passport.authenticate('google', { scope: ['profile', 'email'] })(
+            req,
+            res,
+        );
+    }
+    static async googleLinkAuth(req: Request, res: Response): Promise<void> {
+        passport.authenticate('google', {
+            scope: ['profile', 'email'],
+            state: 'link',
+        })(req, res);
+    }
+    static async googleAuthCallback(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
+        passport.authenticate('google', async (err: Error, profile: any) => {
+            try {
+                if (err) {
+                    throw err;
+                }
 
-				if (!profile) {
-					throw new Error('Không nhận được thông tin từ Google');
-				}
-				const mode = req.query.state;
+                if (!profile) {
+                    throw new Error('Không nhận được thông tin từ Google');
+                }
+                const mode = req.query.state;
 
-				if (mode === 'link') {
-					// Lấy accessToken từ cookie hoặc header
-					const accessToken =
-						req.cookies.accessToken ||
-						req.headers.authorization?.split(' ')[1];
-					if (!accessToken) throw new Error('Thiếu accessToken');
+                if (mode === 'link') {
+                    // Lấy accessToken từ cookie hoặc header
+                    const accessToken =
+                        req.cookies.accessToken ||
+                        req.headers.authorization?.split(' ')[1];
+                    if (!accessToken) throw new Error('Thiếu accessToken');
 
-					// Giải mã accessToken để lấy userId
-					const decoded: any = jwt.verify(
-						accessToken,
-						process.env.ACCESS_TOKEN_SECRET!
-					);
-					const userId = decoded.id;
-					if (!userId) throw new Error('Không xác định được userId');
+                    // Giải mã accessToken để lấy userId
+                    const decoded: any = jwt.verify(
+                        accessToken,
+                        process.env.ACCESS_TOKEN_SECRET!,
+                    );
+                    const userId = decoded.id;
+                    if (!userId) throw new Error('Không xác định được userId');
 
-					// Gọi service liên kết
-					await AuthService.linkGoogleAccount(userId, profile);
+                    // Gọi service liên kết
+                    await AuthService.linkGoogleAccount(userId, profile);
 
-					// Redirect về frontend với thông báo thành công
-					return res.redirect(
-						`${googleOAuthConfig.frontendURL}/profile/me?link=success`
-					);
-				}
-				const response = await AuthService.handleGoogleOAuth(profile);
+                    // Redirect về frontend với thông báo thành công
+                    return res.redirect(
+                        `${googleOAuthConfig.frontendURL}/profile/me?link=success`,
+                    );
+                }
+                const response = await AuthService.handleGoogleOAuth(profile);
 
-				// Set tokens in cookies
-				res.cookie('accessToken', response.accessToken, {
-					httpOnly: process.env.NODE_ENV === 'production',
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'lax',
-					maxAge: 24 * 60 * 60 * 1000, // 1 day
-				});
+                // Set tokens in cookies
+                res.cookie('accessToken', response.accessToken, {
+                    httpOnly: process.env.NODE_ENV === 'production',
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    maxAge: 24 * 60 * 60 * 1000, // 1 day
+                });
 
-				res.cookie('refreshToken', response.refreshToken, {
-					httpOnly: process.env.NODE_ENV === 'production',
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'lax',
-					maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-				});
+                res.cookie('refreshToken', response.refreshToken, {
+                    httpOnly: process.env.NODE_ENV === 'production',
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                });
 
-				// Redirect to frontend with success message
-				res.redirect(`${googleOAuthConfig.frontendURL}/auth/success`);
-			} catch (error) {
-				logger.error('Lỗi xác thực Google:', error, {
-					service: 'AuthController',
-				});
-				res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
-			}
-		})(req, res);
-	}
+                // Redirect to frontend with success message
+                res.redirect(`${googleOAuthConfig.frontendURL}/auth/success`);
+            } catch (error) {
+                logger.error('Lỗi xác thực Google:', error, {
+                    service: 'AuthController',
+                });
+                res.redirect(`${googleOAuthConfig.frontendURL}/auth/error`);
+            }
+        })(req, res);
+    }
 
-	static async changePassword(req: Request, res: Response): Promise<void> {
-		try {
-			const payload: ChangePasswordRequest = req.body;
-			await AuthService.changePassword(payload);
-			res.json({ message: 'Password changed successfully' });
-		} catch (error: unknown) {
-			logger.error('Lỗi thay đổi mật khẩu:', error, {
-				service: 'AuthController',
-			});
-			res.status(400).json({
-				status: 'error',
-				message:
-					error instanceof Error
-						? error.message
-						: 'Lỗi thay đổi mật khẩu. Vui lòng thử lại sau.',
-			});
-		}
-	}
+    static async changePassword(req: Request, res: Response): Promise<void> {
+        try {
+            const payload: ChangePasswordRequest = req.body;
+            await AuthService.changePassword(payload);
+            res.json({ message: 'Password changed successfully' });
+        } catch (error: unknown) {
+            logger.error('Lỗi thay đổi mật khẩu:', error, {
+                service: 'AuthController',
+            });
+            res.status(400).json({
+                status: 'error',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Lỗi thay đổi mật khẩu. Vui lòng thử lại sau.',
+            });
+        }
+    }
 }

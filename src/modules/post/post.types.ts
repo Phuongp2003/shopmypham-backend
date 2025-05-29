@@ -1,49 +1,48 @@
-import { User } from "@prisma/client";
-import type { Comment } from "@/modules/comment/comment.types";
+import { User } from '@prisma/client';
+import type { Comment } from '@/modules/comment/comment.types';
 export type PostWithAuthor = Post & {
-  author: Pick<User, "id" | "name" | "email">;
+    author: Pick<User, 'id' | 'name' | 'email'>;
 };
 
 export type PostQueryParams = {
-  search?: string;
-  sortBy?: "createdAt" | "title";
-  sortOrder?: "asc" | "desc";
-  page?: number;
-  limit?: number;
-  published?: boolean;
+    search?: string;
+    sortBy?: 'createdAt' | 'title';
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+    published?: boolean;
 };
 
 export type PostCreateInput = {
-  title: string;
-  content: string;
-  published?: boolean;
+    title: string;
+    content: string;
+    published?: boolean;
 };
 
 export type PostUpdateInput = Partial<PostCreateInput>;
 
 export type PostResponse = {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  author: {
     id: string;
-    name: string;
-    email: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
+    title: string;
+    content: string;
+    published: boolean;
+    author: {
+        id: string;
+        name: string;
+        email: string;
+    };
+    createdAt: Date;
+    updatedAt: Date;
 };
 
-
 export type Post = {
-  id: string;
-  title: string;
-  content: string;
-  published: boolean;
-  authorId: string;
-  author: User;
-  comments: Comment[];
-  createdAt: Date;
-  updatedAt: Date;
+    id: string;
+    title: string;
+    content: string;
+    published: boolean;
+    authorId: string;
+    author: User;
+    comments: Comment[];
+    createdAt: Date;
+    updatedAt: Date;
 };

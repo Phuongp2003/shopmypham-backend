@@ -1,12 +1,7 @@
 import { Cosmetic, CosmeticSpec, CosmeticDistributor } from '@prisma/client';
 
 import { VariantResponse } from './cosmetic.types';
-interface Paginated {
-	total: number;
-	page: number;
-	limit: number;
-	totalPages: number;
-}
+import { Paginated } from '@/common/types/paginated.type';
 
 /**
  * @swagger
@@ -40,15 +35,14 @@ interface Paginated {
  *     description: Có biến thể
  */
 export interface CosmeticResponse {
-	id: Cosmetic['id'];
-	name: string;
-	distributor?: CosmeticDistributor;
-	specifications: CosmeticSpec[];
-	variants: VariantResponse[];
-	inStock: boolean;
-	hasVariants: boolean;
+    id: Cosmetic['id'];
+    name: string;
+    distributor?: CosmeticDistributor;
+    specifications: CosmeticSpec[];
+    variants: VariantResponse[];
+    inStock: boolean;
+    hasVariants: boolean;
 }
-
 
 /**
  * @swagger
@@ -69,5 +63,5 @@ export interface CosmeticResponse {
  *       $ref: '#/components/schemas/CosmeticResponse'
  */
 export interface PaginatedCosmeticResponse extends Paginated {
-	cosmetics: CosmeticResponse[];
+    cosmetics: CosmeticResponse[];
 }
