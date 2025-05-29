@@ -320,20 +320,19 @@ export type CosmeticVariant = {
   sku: string;
   price: number;
   stock: number;
-  optionId: CosmeticOption['id'];
   createdAt: Date;
   updatedAt: Date;
-  option: CosmeticOption;
-  cosmetic: Cosmetic;
+  variantOptions?: CosmeticVariantOption[];
+  cosmetic?: Cosmetic;
 };
 
 export type CosmeticOption = {
   id: string;
   optionKey: string;
   optionValue: string;
+  variantOptions?: CosmeticVariantOption[];
   createdAt: Date;
   updatedAt: Date;
-  cosmeticVariant: CosmeticVariant[];
 };
 
 export type CosmeticVariantOption = {

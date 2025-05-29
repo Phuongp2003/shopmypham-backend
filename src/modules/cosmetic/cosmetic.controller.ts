@@ -57,7 +57,14 @@ export class CosmeticController {
   )
   static async getCosmeticById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const { id } = req.params; // ✅ Lấy từ params
+      console.log("ID:", id);
+  
+      if (!id || typeof id !== "string") {
+        res.status(HttpStatus.BAD_REQUEST).json({ message: "Missing or invalid 'id' parameter" });
+        return;
+      }
+  
       const cosmetic = await CosmeticService.getCosmeticById(id);
       res.json(cosmetic);
     } catch (error: unknown) {
@@ -72,6 +79,8 @@ export class CosmeticController {
       res.status(errorResponse.status).json(errorResponse);
     }
   }
+  
+  
 
   @Post(
     {
