@@ -9,7 +9,8 @@ import { prisma } from '@/config/prisma';
 //   UpdateCartDTO,
 // } from "./types/cart.types";
 
-import { CartResponse } from "./cart.types";
+import { CartResponse, CartItemResponse } from "./cart.types";
+import { AddToCartDto } from './cart.dto';
 
 export class CartService {
   static async getCart(userId: string): Promise<CartResponse> {
@@ -61,45 +62,84 @@ const cartResponse: CartResponse = {
       };
     return cartResponse;
 }
+  static async addToCart(dto: AddToCartDto): Promise<CartItemResponse> {
+  const { userId, variantId, quantity, price } = dto;
 
-  // static async createCart(
-  //   userId: string,
-  //   dto: CreateCartDTO,
-  // ): Promise<CartResponse> {
-  //   // Check if cart already exists
-  //   const existingCart = await prisma.cart.findUnique({
-  //     where: { userId },
-  //   });
+  // Tìm cart của user
+  let cart = await prisma.cart.findUnique({
+    where: { userId },
+  });
 
-  //   if (existingCart) {
-  //     throw new HttpException(HttpStatus.BAD_REQUEST, "Cart already exists");
-  //   }
+  // Nếu chưa có thì tạo mới
+  if (!cart) {
+    cart = await prisma.cart.create({
+      data: { userId },
+    });
+  }
 
-  //   // Validate cosmetics and calculate prices
-  //   const validatedItems = await this.validateCartItems(dto.items);
+  // Kiểm tra sản phẩm đã tồn tại trong giỏ
+  let cartItem = await prisma.cartDetail.findFirst({
+    where: {
+      cartId: cart.id,
+      variantId,
+    },
+  });
 
-  //   const cart = await prisma.cart.create({
-  //     data: {
-  //       userId,
-  //       details: {
-  //         create: validatedItems.map((item) => ({
-  //           cosmeticId: item.cosmeticId,
-  //           quantity: item.quantity,
-  //           price: item.price,
-  //         })),
-  //       },
-  //     },
-  //     include: {
-  //       details: {
-  //         include: {
-  //           cosmetic: true,
-  //         },
-  //       },
-  //     },
-  //   });
+  if (cartItem) {
+    // Nếu có, cập nhật số lượng
+    cartItem = await prisma.cartDetail.update({
+      where: { id: cartItem.id },
+      data: {
+        quantity: cartItem.quantity + quantity,
+        price,
+      },
+    });
+  } else {
+    // Nếu chưa có, thêm mới
+    cartItem = await prisma.cartDetail.create({
+      data: {
+        cartId: cart.id,
+        variantId,
+        quantity,
+        price,
+      },
+    });
+  }
 
-  //   return cart;
-  // }
+  // Lấy lại thông tin chi tiết của sản phẩm vừa thêm
+  const itemDetail = await prisma.cartDetail.findUnique({
+    where: { id: cartItem.id },
+    include: {
+      variant: {
+        include: {
+          cosmetic: true,
+          CosmeticVariantOption: {
+            include: {
+              option: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Trả về đúng định dạng CartItemResponse
+  return {
+    id: cartItem.id,
+    variantId: itemDetail!.variantId,
+    quantity: cartItem.quantity,
+    price: cartItem.price,
+    totalPrice: cartItem.price * cartItem.quantity,
+
+    sku: itemDetail!.variant.sku,
+    cosmeticName: itemDetail!.variant.cosmetic.name,
+    options: itemDetail!.variant.CosmeticVariantOption.map((v) => ({
+      key: v.option.optionKey,
+      value: v.option.optionValue,
+    })),
+  };
+}
+
 
   // static async updateCart(
   //   userId: string,

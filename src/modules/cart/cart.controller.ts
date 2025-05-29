@@ -8,7 +8,7 @@ import { CartService } from "./cart.service";
 // import { CartResponse, CreateCartDTO, UpdateCartDTO } from "./types/cart.types";
 import { CartResponse } from "./cart.types";
 import { SwaggerController, Get, Post, Put, Delete } from "@/common/annotation/swagger.annotation";
-import { GetCartParams  } from "./cart.dto";
+import { GetCart, AddToCartDto  } from "./cart.dto";
 @SwaggerController({ tag: "Cart", description: "Quản lý giỏ hàng" })
 export class CartController {
   @Get(
@@ -18,7 +18,7 @@ export class CartController {
       path: "/cart",
     },
     {
-      query: "GetCartParams",
+      query: "GetCart",
       response: "CartResponse"
     }
   )
@@ -48,55 +48,55 @@ export class CartController {
     }
     
   
-  // @Post(
-  //   {
-  //     name: "create-cart",
-  //     description: "Tạo mới giỏ hàng",
-  //     path: "/cart",
-  //   },
-  //   {
-  //     body: "CreateCartDTO",
-  //     response: "CartResponse",
-  //   }
-  // )
-  // static async createCart(req: Request, res: Response): Promise<void> {
+  @Post(
+    {
+      name: "add-cart",
+      description: "Thêm sản phẩm vào giỏ hàng",
+      path: "/cart",
+    },
+    {
+      body: "AddToCartDto",
+      response: "CartResponse",
+    }
+  )
+  static async createCart(req: Request, res: Response): Promise<void> {
+    try {
+      // if (!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+      // const userId = req.user.id;
+      const dto: AddToCartDto = req.body;
+      const cart = await CartService.addToCart(dto);
+      res.status(HttpStatus.CREATED).json(cart);
+    } catch (error: unknown) {
+      const errorResponse: ErrorResponse = {
+        status: error instanceof HttpException ? error.status : HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error instanceof Error ? error.message : "Internal server error",
+      };
+      res.status(errorResponse.status).json(errorResponse);
+    }
+  }
+
+  // static createCart = async (req: Request, res: Response) => {
   //   try {
-  //     if (!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+  //     if (!req.user) {
+  //       throw new HttpException(
+  //         HttpStatus.UNAUTHORIZED,
+  //         "User not authenticated",
+  //       );
+  //     }
   //     const userId = req.user.id;
   //     const dto: CreateCartDTO = req.body;
   //     const cart = await CartService.createCart(userId, dto);
   //     res.status(HttpStatus.CREATED).json(cart);
-  //   } catch (error: unknown) {
-  //     const errorResponse: ErrorResponse = {
-  //       status: error instanceof HttpException ? error.status : HttpStatus.INTERNAL_SERVER_ERROR,
-  //       message: error instanceof Error ? error.message : "Internal server error",
-  //     };
-  //     res.status(errorResponse.status).json(errorResponse);
+  //   } catch (error) {
+  //     if (error instanceof HttpException) {
+  //       res.status(error.status).json({ message: error.message });
+  //     } else {
+  //       res
+  //         .status(HttpStatus.INTERNAL_SERVER_ERROR)
+  //         .json({ message: "Internal server error" });
+  //     }
   //   }
-  // }
-
-  // // static createCart = async (req: Request, res: Response) => {
-  // //   try {
-  // //     if (!req.user) {
-  // //       throw new HttpException(
-  // //         HttpStatus.UNAUTHORIZED,
-  // //         "User not authenticated",
-  // //       );
-  // //     }
-  // //     const userId = req.user.id;
-  // //     const dto: CreateCartDTO = req.body;
-  // //     const cart = await CartService.createCart(userId, dto);
-  // //     res.status(HttpStatus.CREATED).json(cart);
-  // //   } catch (error) {
-  // //     if (error instanceof HttpException) {
-  // //       res.status(error.status).json({ message: error.message });
-  // //     } else {
-  // //       res
-  // //         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-  // //         .json({ message: "Internal server error" });
-  // //     }
-  // //   }
-  // // };
+  // };
 
   //  @Put(
   //   {

@@ -167,4 +167,64 @@ export type CartItem = {
   }[];
 };
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     CartItemResponse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: ID của cart item
+ *         variantId:
+ *           type: string
+ *           description: ID của biến thể mỹ phẩm
+ *         quantity:
+ *           type: number
+ *           description: Số lượng sản phẩm trong giỏ hàng
+ *         price:
+ *           type: number
+ *           description: Giá của một đơn vị sản phẩm
+ *         totalPrice:
+ *           type: number
+ *           description: Tổng giá = price * quantity
+ *         sku:
+ *           type: string
+ *           description: Mã SKU của biến thể sản phẩm
+ *         cosmeticName:
+ *           type: string
+ *           description: Tên của mỹ phẩm
+ *         options:
+ *           type: array
+ *           description: Danh sách tùy chọn của biến thể (VD: màu sắc, dung tích...)
+ *           items:
+ *             type: object
+ *             properties:
+ *               key:
+ *                 type: string
+ *                 description: Tên thuộc tính (VD: color, size)
+ *               value:
+ *                 type: string
+ *                 description: Giá trị của thuộc tính (VD: đỏ cam, 50ml)
+ */
+
+
+export type CartItemResponse = {
+  id: string;
+  variantId: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+
+  sku: string;
+  cosmeticName: string;
+  options: {
+    key: string;
+    value: string;
+  }[];
+};
+
+
+
 

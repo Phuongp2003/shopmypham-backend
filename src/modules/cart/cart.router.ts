@@ -14,7 +14,7 @@ const router = Router();
 router.get("/",  CartController.getCart);
 
 // Create new cart
-// router.post("/", CartController.createCart);
+router.post("/", CartController.createCart);
 
 // // Update cart
 // router.put("/", CartController.updateCart);
