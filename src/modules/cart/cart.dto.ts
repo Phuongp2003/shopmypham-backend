@@ -1,6 +1,11 @@
 
-/**swagger
- * Lấy giỏ hàng theo userId
+/**
+ * @swagger
+ * title: GetCartParams
+ * type: object
+ * properties:
+ *   userId:
+ *     type: string
  */
 export class GetCartParams  {
   /** ID của người dùng */

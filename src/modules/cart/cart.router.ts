@@ -1,17 +1,17 @@
 import { Router } from 'express';
 
+import { UserRole } from '@/common/enums/user-role.enum';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
-
+import { roleMiddleware } from '@/common/middlewares/role.middleware';
 import { CartController } from './cart.controller';
 
 const router = Router();
 
-router.get("/:userId", CartController.getCart);
 // Apply auth middleware to all routes
-router.use(AuthMiddleware.handle);
+// router.use(AuthMiddleware.handle);
 
 // Get user's cart
-
+router.get("/",  CartController.getCart);
 
 // Create new cart
 // router.post("/", CartController.createCart);

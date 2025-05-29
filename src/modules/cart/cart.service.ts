@@ -13,9 +13,6 @@ import { CartResponse } from "./cart.types";
 
 export class CartService {
   static async getCart(userId: string): Promise<CartResponse> {
-//     const allCarts = await prisma.cart.findMany();
-// console.log(allCarts);
-
     const cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
@@ -41,27 +38,27 @@ export class CartService {
   }
 
 const cartResponse: CartResponse = {
-  id: cart.id,
-  userId: cart.userId,
-  createdAt: cart.createdAt.toISOString(),
-  updatedAt: cart.updatedAt.toISOString(),
-  items: cart.details.map((detail) => {
-    const variant = detail.variant;
-    return {
-      id: detail.id,
-      variantId: variant.id,
-      quantity: detail.quantity,
-      price: detail.price,
-      totalPrice: detail.quantity * detail.price,
-      sku: variant.sku,
-      cosmeticName: variant.cosmetic.name,
-      options: variant.CosmeticVariantOption.map((vo) => ({
-        key: vo.option.optionKey,
-        value: vo.option.optionValue,
-      })),
-    };
-  }),
-};
+        id: cart.id,
+        userId: cart.userId,
+        createdAt: cart.createdAt.toISOString(),
+        updatedAt: cart.updatedAt.toISOString(),
+        items: cart.details.map((detail) => {
+          const { variant } = detail;
+          return {
+            id: detail.id,
+            variantId: variant.id,
+            quantity: detail.quantity,
+            price: detail.price,
+            totalPrice: detail.quantity * detail.price,
+            sku: variant.sku,
+            cosmeticName: variant.cosmetic.name,
+            options: variant.CosmeticVariantOption.map((vo) => ({
+              key: vo.option.optionKey,
+              value: vo.option.optionValue,
+            })),
+          };
+        }),
+      };
     return cartResponse;
 }
 

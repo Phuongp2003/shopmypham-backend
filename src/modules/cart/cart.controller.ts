@@ -13,12 +13,12 @@ import { GetCartParams  } from "./cart.dto";
 export class CartController {
   @Get(
     {
-      name: "get-cart",
+      name: "get-cart-by-user",
       description: "Lấy giỏ hàng của người dùng",
-      path: "/cart/:userId",
+      path: "/cart",
     },
     {
-      params: "GetCartParams",
+      query: "GetCartParams",
       response: "CartResponse"
     }
   )
@@ -27,16 +27,14 @@ export class CartController {
     try {
       // if (!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       // const userId = req.user.id;
-      console.log("🧾 req.params:", req.params);
-       const userId = req.params.userId;
-       console.log("Received userId:", userId);
 
+      const userId = req.query.userId as string;
 
     if (!userId) {
       throw new HttpException(HttpStatus.BAD_REQUEST, "Missing userId parameter");
     }
       const cart: CartResponse = await CartService.getCart(userId);
-      console.log("Found cart:", cart);
+      // console.log("Found cart:", cart);
 
       res.json(cart);
     } catch (error: unknown) {
