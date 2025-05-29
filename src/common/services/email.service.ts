@@ -1,29 +1,34 @@
-import { Cosmetic } from '@prisma/client';
 const nodemailer = require('nodemailer');
 
 export class EmailService {
-	static async sendEmail(to: string, subject: string, text: string) {
-		const transporter = nodemailer.createTransport({
-			service: 'gmail',
-			auth: {
-				user: process.env.EMAIL_USER,
-				pass: process.env.EMAIL_PASSWORD,
-			},
-		});
+    static async sendEmail(
+        to: string,
+        subject: string,
+        text: string,
+        isHtml: boolean = false,
+    ) {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD,
+            },
+        });
 
-		const mailOptions = {
-			from: process.env.EMAIL_USER,
-			to,
-			subject,
-			text,
-		};
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to,
+            subject,
+            text: isHtml ? undefined : text,
+            html: isHtml ? text : undefined,
+        };
 
-		await transporter.sendMail(mailOptions);
-	}
+        await transporter.sendMail(mailOptions);
+    }
 
-	static async sendOtpEmail(to: string, otp: string) {
-		const subject = 'Your OTP for account recovery';
-		const text = `
+    static async sendOtpEmail(to: string, otp: string) {
+        const subject = 'Your OTP for account recovery';
+        const text = `
         <style>
             body {
                 background-color: #f0f0f0;
@@ -45,12 +50,12 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, text);
-	}
+        await this.sendEmail(to, subject, text, true);
+    }
 
-	static async sendResetPasswordEmail(to: string, token: string) {
-		const subject = 'Reset your password';
-		const text = `
+    static async sendResetPasswordEmail(to: string, token: string) {
+        const subject = 'Reset your password';
+        const html = `
         <style>
             body {
                 background-color: #f0f0f0;
@@ -74,11 +79,15 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, text);
-	}
+        await this.sendEmail(to, subject, html, true);
+    }
 
-    static async sendEmailWithTemplate(to: string, subject: string, text: string) {
-		const finalText = `
+    static async sendEmailWithTemplate(
+        to: string,
+        subject: string,
+        text: string,
+    ) {
+        const finalText = `
         <style>
             body {
                 background-color: #f0f0f0;
@@ -98,6 +107,6 @@ export class EmailService {
         <p>Best regards</p>
         <p>DTP cosmetic store</p>
         `;
-		await this.sendEmail(to, subject, finalText);
-	}
+        await this.sendEmail(to, subject, finalText, true);
+    }
 }

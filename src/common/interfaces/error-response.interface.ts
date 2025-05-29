@@ -1,5 +1,5 @@
 export interface ErrorResponse {
-  status: number;
-  message: string;
-  errors?: any[];
+    status: number;
+    message: string;
+    errors?: any[];
 }

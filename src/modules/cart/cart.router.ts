@@ -1,8 +1,8 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
+import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
 
-import { CartController } from "./cart.controller";
+import { CartController } from './cart.controller';
 
 const router = Router();
 

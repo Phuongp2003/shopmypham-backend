@@ -1,41 +1,43 @@
-import { logger } from "../common/logger/logger.factory";
-import { prisma } from "./prisma";
-import { redis } from "./redis";
+import { logger } from '../common/logger/logger.factory';
+import { prisma } from './prisma';
+import { redis } from './redis';
 
 export const checkDatabaseHealth = async () => {
-  const health = {
-    prisma: false,
-    redis: false,
-    timestamp: new Date().toISOString(),
-  };
+    const health = {
+        prisma: false,
+        redis: false,
+        timestamp: new Date().toISOString(),
+    };
 
-  try {
-    // Check Prisma connection
-    await prisma.$queryRaw`SELECT 1`;
-    health.prisma = true;
-    logger.info("Prisma connection is healthy", { service: "DBHealth" });
-  } catch (error) {
-    logger.error("Prisma connection check failed:", error, {
-      service: "DBHealth",
-    });
-  }
-
-  try {
-    // Check Redis connection
-    if (redis) {
-      await redis.ping();
-      health.redis = true;
-      logger.info("Redis connection is healthy", { service: "DBHealth" });
-    } else {
-      logger.warn("Redis client is not initialized", { service: "DBHealth" });
+    try {
+        // Check Prisma connection
+        await prisma.$queryRaw`SELECT 1`;
+        health.prisma = true;
+        logger.info('Prisma connection is healthy', { service: 'DBHealth' });
+    } catch (error) {
+        logger.error('Prisma connection check failed:', error, {
+            service: 'DBHealth',
+        });
     }
-  } catch (error) {
-    logger.error("Redis connection check failed:", error, {
-      service: "DBHealth",
-    });
-  }
 
-  return health;
+    try {
+        // Check Redis connection
+        if (redis) {
+            await redis.ping();
+            health.redis = true;
+            logger.info('Redis connection is healthy', { service: 'DBHealth' });
+        } else {
+            logger.warn('Redis client is not initialized', {
+                service: 'DBHealth',
+            });
+        }
+    } catch (error) {
+        logger.error('Redis connection check failed:', error, {
+            service: 'DBHealth',
+        });
+    }
+
+    return health;
 };
 
 /**
@@ -56,30 +58,30 @@ export const checkDatabaseHealth = async () => {
  * cleanup();
  */
 export const startHealthCheck = (intervalMs = 0) => {
-  const check = async () => {
-    const health = await checkDatabaseHealth();
-    logger.info("Database health check:", health, { service: "DBHealth" });
-  };
-  // Skip periodic checks if only one check is needed
-  if (intervalMs <= 0) {
-    logger.info("Health check configured for one-time execution only", {
-      service: "DBHealth",
-    });
-    return () => {
-      logger.debug("No interval to clear for one-time health check", {
-        service: "DBHealth",
-      });
+    const check = async () => {
+        const health = await checkDatabaseHealth();
+        logger.info('Database health check:', health, { service: 'DBHealth' });
     };
-  }
+    // Skip periodic checks if only one check is needed
+    if (intervalMs <= 0) {
+        logger.info('Health check configured for one-time execution only', {
+            service: 'DBHealth',
+        });
+        return () => {
+            logger.debug('No interval to clear for one-time health check', {
+                service: 'DBHealth',
+            });
+        };
+    }
 
-  // Run initial check
-  check();
+    // Run initial check
+    check();
 
-  // Set up periodic checks
-  const interval = setInterval(check, intervalMs);
+    // Set up periodic checks
+    const interval = setInterval(check, intervalMs);
 
-  // Return cleanup function
-  return () => {
-    clearInterval(interval);
-  };
+    // Return cleanup function
+    return () => {
+        clearInterval(interval);
+    };
 };
