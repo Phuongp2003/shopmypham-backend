@@ -5,6 +5,7 @@ import { SwaggerBuilder } from "./swagger-builder";
 import { CosmeticController } from "../modules/cosmetic/cosmetic.controller";
 import fs from 'fs';
 import path from 'path';
+import { CartController } from "@/modules/cart/cart.controller";
 
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
 const modulesDir = path.join(__dirname, '../modules');
@@ -60,6 +61,7 @@ const swaggerBuilder = new SwaggerBuilder()
   })
   .addControllersFromAnnotations([
     CosmeticController,
+    CartController
     // ... các controller khác
   ]);
 

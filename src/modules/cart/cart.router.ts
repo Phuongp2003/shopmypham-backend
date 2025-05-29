@@ -6,22 +6,23 @@ import { CartController } from "./cart.controller";
 
 const router = Router();
 
+router.get("/:userId", CartController.getCart);
 // Apply auth middleware to all routes
 router.use(AuthMiddleware.handle);
 
 // Get user's cart
-router.get("/", CartController.getCart);
+
 
 // Create new cart
-router.post("/", CartController.createCart);
+// router.post("/", CartController.createCart);
 
-// Update cart
-router.put("/", CartController.updateCart);
+// // Update cart
+// router.put("/", CartController.updateCart);
 
-// Clear cart
-router.delete("/", CartController.clearCart);
+// // Clear cart
+// router.delete("/", CartController.clearCart);
 
 // Get cart summary
-router.get("/summary", CartController.getCartSummary);
+// router.get("/summary", CartController.getCartSummary);
 
 export default router;
