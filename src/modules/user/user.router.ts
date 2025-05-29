@@ -16,6 +16,8 @@ router.use(AuthMiddleware.handle);
 router.get("/me", UserController.getMe);
 router.put("/me", UserController.updateMe);
 router.delete("/me", UserController.deleteMe);
+router.delete("/me/google/unlink", UserController.unlinkGoogleAccount);
+router.put("/me/password", UserController.changePassword);
 
 // Admin routes
 router.use(roleMiddleware([UserRole.ADMIN]));

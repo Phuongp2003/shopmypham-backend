@@ -7,6 +7,7 @@ export class AccountRecoveryService {
         const key = `account-recovery-otp-${email}`;
         const otpCache: AccountRecoveryOtpCache = { otp, attempts: 0 };
         await CacheService.set(key, otpCache, 10 * 60);
+        await EmailService.sendOtpEmail(email, otp);
         return otp;
     }
 
@@ -20,7 +21,7 @@ export class AccountRecoveryService {
         const key = `account-recovery-otp-${email}`;
         const otpData = await CacheService.get<AccountRecoveryOtpCache>(key);
         if (this.isBanned(otpData)) {
-            throw new Error('Too many failed attempts. Please try again after 12 hours.');
+            throw new Error('Nhập OTP sai quá nhiều lần. Tài khoản của bạn đã bị khóa trong 12 giờ.');
         }
         if (!otpData || otpData.otp !== otp) {
             await this.handleFailedAttempt(email, key, otpData);
@@ -42,10 +43,10 @@ export class AccountRecoveryService {
             await CacheService.set(key, { ...otpData, attempts, bannedUntil }, 12 * 60 * 60);
             await EmailService.sendEmailWithTemplate(
                 email,
-                'Account Recovery Locked',
-                `<p>You have entered the wrong OTP too many times. Your account recovery is locked for 12 hours to prevent abuse. If this was not you, please contact support.</p>`
+                'Tài khoản đã bị khóa',
+                `<p>Bạn đã nhập OTP sai quá nhiều lần. Tài khoản của bạn đã bị khóa trong 12 giờ để ngăn chặn việc sử dụng sai. Nếu điều này không phải do bạn, vui lòng liên hệ hỗ trợ.</p>`
             );
-            throw new Error('Too many failed attempts. You are banned for 12 hours.');
+            throw new Error('Nhập OTP sai quá nhiều lần. Tài khoản của bạn đã bị khóa trong 12 giờ.');
         } else {
             await CacheService.set(key, { ...otpData, attempts }, 10 * 60);
         }
@@ -58,8 +59,8 @@ export class AccountRecoveryService {
     static async sendOtp(email: string): Promise<void> {
         const otp = await this.generateOtp(email);
         await EmailService.sendOtpEmail(email, otp);
+        
     }
-    
     static async resendOtp(email: string): Promise<void> {
         const otp = await this.regenerateOtp(email);
         await EmailService.sendOtpEmail(email, otp);

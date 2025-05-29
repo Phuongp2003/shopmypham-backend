@@ -15,7 +15,10 @@ model User {
     phone     String?
     role      String    @default("user")
     googleId  String?   @unique
+    googleName String?
+    googleEmail String?
     secretKey String
+    status    UserStatus @default(ACTIVE)
     posts     Post[]
     comments  Comment[]
     orders    Order[]
@@ -215,4 +218,10 @@ model Payment {
     order         Order         @relation(fields: [orderId], references: [id])
 
     @@index([orderId])
+}
+
+enum UserStatus {
+    ACTIVE
+    INACTIVE
+    BANNED
 }
