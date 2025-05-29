@@ -15,20 +15,20 @@ router.get("/:id", CosmeticController.getCosmeticById);
 // Manager routes
 router.post(
   "/",
-  AuthMiddleware.handle,
-  roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+  // AuthMiddleware.handle,
+  // roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
   CosmeticController.createCosmetic,
 );
 router.put(
   "/:id",
-  AuthMiddleware.handle,
-  roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+  // AuthMiddleware.handle,
+  // roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
   CosmeticController.updateCosmetic,
 );
 router.delete(
   "/:id",
-  AuthMiddleware.handle,
-  roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
+  // AuthMiddleware.handle,
+  // roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
   CosmeticController.deleteCosmetic,
 );
 
