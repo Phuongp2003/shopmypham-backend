@@ -5,6 +5,11 @@ import { SwaggerBuilder } from './swagger-builder';
 import { CosmeticController } from '../modules/cosmetic/cosmetic.controller';
 import fs from 'fs';
 import path from 'path';
+import { CosmeticDistributorController } from '@/modules/cosmetic/submodules/distributor/cosmeticDistributor.controller';
+import { AuthController } from '@/modules/auth/auth.controller';
+import { CosmeticVariantController } from '@/modules/cosmetic/submodules/variant/cosmeticVariant.controller';
+import { CosmeticSpecificationController } from '@/modules/cosmetic/submodules/specification/cosmeticSpecification.controller';
+import { CosmeticOptionController } from '@/modules/cosmetic/submodules/option/cosmesticOptions.controller';
 import { CartController } from "@/modules/cart/cart.controller";
 
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
@@ -28,45 +33,49 @@ function getAllSchemaFiles(dir: string): string[] {
 const schemaFiles = getAllSchemaFiles(modulesDir);
 
 const swaggerBuilder = new SwaggerBuilder()
-  .addSchemasFromComments(schemaFiles)
-  .addTag("Health", "Health check endpoints")
-  .addSecurityScheme("bearerAuth", {
-    type: "http",
-    scheme: "bearer",
-    bearerFormat: "JWT",
-    description:
-      'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
-  })
-  .addPath("/healthz", {
-    get: {
-      tags: ["Health"],
-      summary: "Health check",
-      description: "Check if the API is running",
-      responses: {
-        "200": {
-          description: "API is healthy",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  status: {
-                    type: "string",
-                    enum: ["ok"],
-                  },
+    .addSchemasFromComments(schemaFiles)
+    .addTag('Health', 'Health check endpoints')
+    .addSecurityScheme('bearerAuth', {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description:
+            'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+    })
+    .addPath('/healthz', {
+        get: {
+            tags: ['Health'],
+            summary: 'Health check',
+            description: 'Check if the API is running',
+            responses: {
+                '200': {
+                    description: 'API is healthy',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    status: {
+                                        type: 'string',
+                                        enum: ['ok'],
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
-              },
             },
-          },
         },
-      },
-    },
-  })
-  .addControllersFromAnnotations([
-    CosmeticController,
-    CartController
-    // ... các controller khác
-  ]);
+    })
+    .addControllersFromAnnotations([
+        CosmeticController,
+        CosmeticDistributorController,
+        CosmeticVariantController,
+        CosmeticSpecificationController,
+        CosmeticOptionController,
+        AuthController,
+        CartController
+    ]);
 
 const swaggerOptions = {
     openapi: '3.0.0',
@@ -133,3 +142,4 @@ export const swaggerConfig = (app: Express) => {
         throw error;
     }
 };
+

@@ -6,20 +6,23 @@ import { ErrorResponse } from '@/common/interfaces/error-response.interface';
 
 import { CosmeticService } from './cosmetic.service';
 import {
-    CosmeticCreateInput,
+    CosmeticCreateReq,
     CosmeticQueryParams,
-    CosmeticUpdateInput,
-} from './cosmetic.types';
+    CosmeticUpdateReq,
+    CosmeticRes,
+    PaginatedCosmeticRes,
+} from './cosmetic.dto';
 
 import {
-    SwaggerController,
+    Controller,
     Get,
     Post,
     Put,
     Delete,
+    RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 
-@SwaggerController({ tag: 'Cosmetic', description: 'Quản lý mỹ phẩm' })
+@Controller({ tag: 'Cosmetics', description: 'Quản lý mỹ phẩm' })
 export class CosmeticController {
     @Get(
         {
@@ -30,7 +33,7 @@ export class CosmeticController {
         },
         {
             query: 'CosmeticQueryParams',
-            response: 'PaginatedCosmeticResponse',
+            response: 'PaginatedCosmeticRes',
         },
     )
     static async getCosmetics(req: Request, res: Response): Promise<void> {
@@ -60,14 +63,13 @@ export class CosmeticController {
             path: '/cosmetics/:id',
         },
         {
-            params: 'id',
-            response: 'CosmeticResponse',
+            query: 'id',
+            response: 'CosmeticRes',
         },
     )
     static async getCosmeticById(req: Request, res: Response): Promise<void> {
         try {
-            const { id } = req.params; // ✅ Lấy từ params
-            console.log('ID:', id);
+            const { id } = req.query;
 
             if (!id || typeof id !== 'string') {
                 res.status(HttpStatus.BAD_REQUEST).json({
@@ -100,13 +102,14 @@ export class CosmeticController {
             path: '/cosmetics',
         },
         {
-            body: 'CosmeticCreateInput',
-            response: 'CosmeticResponse',
+            body: 'CosmeticCreateReq',
+            response: 'CosmeticRes',
         },
     )
+    @RequireHeader()
     static async createCosmetic(req: Request, res: Response): Promise<void> {
         try {
-            const data: CosmeticCreateInput = req.body;
+            const data: CosmeticCreateReq = req.body;
             const cosmetic = await CosmeticService.createCosmetic(data);
             res.status(HttpStatus.CREATED).json(cosmetic);
         } catch (error: unknown) {
@@ -132,14 +135,15 @@ export class CosmeticController {
         },
         {
             params: 'id',
-            body: 'CosmeticUpdateInput',
-            response: 'CosmeticResponse',
+            body: 'CosmeticUpdateReq',
+            response: 'CosmeticRes',
         },
     )
+    @RequireHeader()
     static async updateCosmetic(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const data: CosmeticUpdateInput = req.body;
+            const data: CosmeticUpdateReq = req.body;
             const cosmetic = await CosmeticService.updateCosmetic(id, data);
             res.json(cosmetic);
         } catch (error: unknown) {
@@ -167,6 +171,7 @@ export class CosmeticController {
             params: 'id',
         },
     )
+    @RequireHeader()
     static async deleteCosmetic(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;

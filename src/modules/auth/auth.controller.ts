@@ -13,7 +13,12 @@ import {
 } from '@/modules/auth/auth.dto';
 import { AuthService } from '@/modules/auth/auth.service';
 import jwt from 'jsonwebtoken';
+import { Controller } from '@/common/annotation/swagger.annotation';
 
+@Controller({
+    tag: 'Auth',
+    description: 'Quản lý đăng nhập, đăng ký, đăng xuất',
+})
 export class AuthController {
     static async login(req: Request, res: Response): Promise<void> {
         try {
