@@ -52,7 +52,6 @@ export class SwaggerBuilder {
                     const doc = yaml.load(yamlText);
                     if (doc && typeof doc === 'object') {
                         this.swagger.components.schemas[typeName] = doc;
-                        console.log('Added schema:', typeName);
                     }
                 } catch (e) {
                     console.warn(
@@ -176,6 +175,17 @@ export class SwaggerBuilder {
         }
         const path =
             methodMeta.path || `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
+        // Kiểm tra requireHeader
+        let security;
+        if (
+            Reflect.getMetadata('swagger:requireHeader', target, methodName) ||
+            Reflect.getMetadata(
+                'swagger:requireHeader',
+                target.constructor || target,
+            )
+        ) {
+            security = [{ bearerAuth: [] }];
+        }
         this.addPath(path, {
             [methodMeta.method || 'get']: {
                 tags: [ctrlMeta.tag],
@@ -184,6 +194,7 @@ export class SwaggerBuilder {
                 parameters: parameters.length > 0 ? parameters : undefined,
                 requestBody,
                 responses,
+                ...(security ? { security } : {}),
             },
         });
     }

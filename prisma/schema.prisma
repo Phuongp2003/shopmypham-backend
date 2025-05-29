@@ -113,6 +113,7 @@ model Cosmetic {
 
 model CosmeticVariant {
   id          String     @id @default(uuid())
+  name        String     @unique
   cosmeticId  String
   cosmetic    Cosmetic   @relation(fields: [cosmeticId], references: [id])
   sku         String     @unique
@@ -125,6 +126,7 @@ model CosmeticVariant {
   updatedAt   DateTime   @updatedAt
 
   CosmeticVariantOption CosmeticVariantOption[]
+  CosmeticOption CosmeticOption[]
 }
 
 model CosmeticVariantOption {
@@ -144,6 +146,8 @@ model CosmeticOption {
   updatedAt DateTime @updatedAt
 
   CosmeticVariantOption CosmeticVariantOption[]
+
+  CosmeticVariant CosmeticVariant[]
 }
 
 model CosmeticSpec {

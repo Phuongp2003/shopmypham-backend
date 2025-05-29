@@ -17,7 +17,7 @@ router.post(
     '/',
     AuthMiddleware.handle,
     roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
-    ...PostController.createPost,
+    PostController.createPost,
 );
 router.put(
     '/:id',

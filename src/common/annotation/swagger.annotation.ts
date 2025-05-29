@@ -3,12 +3,30 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 // --- Annotation Decorators ---
-export function SwaggerController(options: {
-    tag: string;
-    description?: string;
-}) {
+export function Controller(options: { tag: string; description?: string }) {
     return function (target: Function) {
         Reflect.defineMetadata('swagger:controller', options, target);
+    };
+}
+
+export function RequireHeader() {
+    return function (
+        target: any,
+        propertyKey?: string,
+        descriptor?: PropertyDescriptor,
+    ) {
+        if (propertyKey) {
+            // Method decorator
+            Reflect.defineMetadata(
+                'swagger:requireHeader',
+                true,
+                target,
+                propertyKey,
+            );
+        } else {
+            // Class decorator
+            Reflect.defineMetadata('swagger:requireHeader', true, target);
+        }
     };
 }
 
@@ -24,6 +42,7 @@ function SwaggerMethod(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return function (
@@ -47,6 +66,7 @@ export function Get(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'get' }, swaggerInfo);
@@ -59,6 +79,7 @@ export function Post(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'post' }, swaggerInfo);
@@ -71,6 +92,7 @@ export function Put(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'put' }, swaggerInfo);
@@ -83,6 +105,7 @@ export function Patch(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'patch' }, swaggerInfo);
@@ -95,6 +118,7 @@ export function Delete(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'delete' }, swaggerInfo);
@@ -107,6 +131,7 @@ export function Fetch(
         params?: string;
         body?: string;
         response?: string;
+        header?: string;
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'fetch' }, swaggerInfo);

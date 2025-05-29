@@ -1,18 +1,24 @@
+import { CacheService } from '@/common/services/cache.service';
 import { HttpStatus } from '@/common/enums/http-status.enum';
 import { HttpException } from '@/common/exceptions/http.exception';
 import { prisma } from '@/config/prisma';
-import {
-    CosmeticCreateInput,
-    CosmeticQueryParams,
-    CosmeticUpdateInput,
-    VariantResponse,
-} from './cosmetic.types';
+import { VariantResponse } from './cosmetic.types';
 
-import { CosmeticResponse, PaginatedCosmeticResponse } from './cosmetic.dto';
+import {
+    CosmeticCreateReq,
+    CosmeticQueryParams,
+    CosmeticUpdateReq,
+    CosmeticRes,
+    PaginatedCosmeticRes,
+} from './cosmetic.dto';
+import { CosmeticSpecificationService } from './submodules/specification/cosmeticSpecification.service';
+import { CosmeticOptionService } from './submodules/option/cosmesticOptions.service';
+import { CosmeticVariantService } from './submodules/variant/cosmeticVariant.service';
+
 export class CosmeticService {
     static async getCosmetics(
         params: CosmeticQueryParams,
-    ): Promise<PaginatedCosmeticResponse> {
+    ): Promise<PaginatedCosmeticRes> {
         const {
             search,
             type,
@@ -25,6 +31,13 @@ export class CosmeticService {
             inStock,
             hasVariants,
         } = params;
+        const cacheKey = CacheService.generateKeyV2('cosmetics', params);
+        const isCacheExist = await CacheService.exists(cacheKey);
+        if (isCacheExist) {
+            const cachedResult = await CacheService.get(cacheKey);
+            CacheService.refreshCache(cacheKey);
+            return cachedResult as PaginatedCosmeticRes;
+        }
 
         const where = {
             ...(search && {
@@ -55,10 +68,9 @@ export class CosmeticService {
                     specifications: true,
                     variants: {
                         include: {
+                            CosmeticOption: true,
                             CosmeticVariantOption: {
-                                include: {
-                                    option: true, // lấy thông tin cặp key/value
-                                },
+                                include: { option: true },
                             },
                         },
                     },
@@ -67,331 +79,283 @@ export class CosmeticService {
             prisma.cosmetic.count({ where }),
         ]);
 
-        const formattedCosmetics = cosmetics.map((cosmetic) => ({
-            id: cosmetic.id,
-            name: cosmetic.name,
-            distributor: cosmetic.distributor,
-            specifications: cosmetic.specifications,
-            inStock: cosmetic.stock > 0,
-            hasVariants: cosmetic.variants.length > 0,
-            variants: cosmetic.variants.map((variant) => {
-                const options = variant.CosmeticVariantOption.map(
-                    (vvo) => vvo.option,
-                );
-                return {
-                    id: variant.id,
-                    cosmeticId: variant.cosmeticId,
-                    sku: variant.sku,
-                    price: variant.price,
-                    stock: variant.stock,
-                    createdAt: variant.createdAt,
-                    updatedAt: variant.updatedAt,
-                    options, // mảng CosmeticOption[]
-                    displayName: options.map((o) => o.optionValue).join('/'),
-                    inStock: variant.stock > 0,
-                };
-            }),
-        }));
-
-        return {
-            cosmetics: formattedCosmetics,
+        const result: PaginatedCosmeticRes = {
+            cosmetics: cosmetics.map(this.toCosmeticResponse),
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
         };
+        return result;
     }
 
-    private static getVariantDisplayName(
-        options: { optionKey: string; optionValue: string }[],
-    ): string {
-        return options.map((opt) => opt.optionValue).join('/');
-    }
-
-    static async getCosmeticById(id: string): Promise<CosmeticResponse> {
-        console.log('Searching cosmetic with ID:', id);
-
+    static async getCosmeticById(id: string): Promise<CosmeticRes> {
         const cosmetic = await prisma.cosmetic.findUnique({
             where: { id },
             include: {
+                distributor: true,
+                specifications: true,
                 variants: {
                     include: {
+                        CosmeticOption: true,
                         CosmeticVariantOption: {
-                            include: {
-                                option: true, // lấy thông tin cặp key/value
-                            },
+                            include: { option: true },
                         },
                     },
                 },
-                specifications: true,
-                distributor: true,
             },
         });
-        console.log('Searching cosmetic with ID:', id);
 
         if (!cosmetic) {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
         }
 
-        return {
-            ...cosmetic,
-            inStock: cosmetic.stock > 0,
-            hasVariants: cosmetic.variants.length > 0,
-            variants: cosmetic.variants.map((variant) => {
-                const options =
-                    variant.CosmeticVariantOption?.map((vo) => vo.option) || [];
-
-                return {
-                    ...variant,
-                    options,
-                    displayName: this.getVariantDisplayName(options),
-                    inStock: variant.stock > 0,
-                };
-            }),
-        };
+        return this.toCosmeticResponse(cosmetic);
     }
 
     static async createCosmetic(
-        request: CosmeticCreateInput,
-    ): Promise<CosmeticResponse> {
-        // Check if distributor exists
-        const distributor = await prisma.cosmeticDistributor.findUnique({
-            where: { id: request.distributorId },
-        });
-
-        if (!distributor) {
-            throw new HttpException(
-                HttpStatus.NOT_FOUND,
-                'Distributor not found',
-            );
-        }
-
-        // Tạo cosmetic trước
-        const cosmetic = await prisma.cosmetic.create({
-            data: {
-                name: request.name,
-                description: request.description,
-                price: request.price,
-                stock: request.stock,
-                type: request.type,
-                distributorId: request.distributorId,
-                specifications: {
-                    createMany: {
-                        data:
-                            request.specifications?.map((spec) => ({
-                                specKey: spec.key,
-                                specValue: spec.value,
-                            })) || [],
-                    },
-                },
-            },
-            include: {
-                variants: {
-                    include: {
-                        CosmeticVariantOption: {
-                            include: {
-                                option: true, // lấy thông tin cặp key/value
-                            },
-                        },
-                    },
-                },
-                specifications: true,
-                distributor: true,
-            },
-        });
-
-        // Nếu có variants, tạo từng option và variant
-        if (request.variants && request.variants.length > 0) {
-            for (const variant of request.variants) {
-                // Tạo CosmeticVariant
-                const createdVariant = await prisma.cosmeticVariant.create({
-                    data: {
-                        sku: variant.sku,
-                        price: variant.price,
-                        stock: variant.stock,
-                        cosmeticId: cosmetic.id,
-                    },
-                });
-
-                // Với mỗi option của variant (thường là 1 hoặc nhiều)
-                for (const optionInput of variant.options) {
-                    // Kiểm tra nếu option đã tồn tại (optional)
-                    const createdOption = await prisma.cosmeticOption.create({
-                        data: {
-                            optionKey: optionInput.key,
-                            optionValue: optionInput.value,
-                        },
-                    });
-
-                    // Tạo liên kết giữa variant và option
-                    await prisma.cosmeticVariantOption.create({
-                        data: {
-                            variantId: createdVariant.id,
-                            optionId: createdOption.id,
-                        },
-                    });
-                }
-            }
-        }
-
-        // Lấy lại cosmetic với variants mới tạo
-        const cosmeticWithVariants = await prisma.cosmetic.findUnique({
-            where: { id: cosmetic.id },
-            include: {
-                variants: {
-                    include: {
-                        CosmeticVariantOption: {
-                            include: {
-                                option: true,
-                            },
-                        },
-                    },
-                },
-                specifications: true,
-                distributor: true,
-            },
-        });
-
-        return {
-            ...cosmeticWithVariants!,
-            inStock: cosmeticWithVariants!.stock > 0,
-            hasVariants: cosmeticWithVariants!.variants.length > 0,
-            variants: cosmeticWithVariants!.variants.map((variant) => {
-                const options =
-                    variant.CosmeticVariantOption?.map((vo) => vo.option) || [];
-
-                return {
-                    ...variant,
-                    options,
-                    displayName: this.getVariantDisplayName(options),
-                    inStock: variant.stock > 0,
-                };
-            }),
-        };
-    }
-
-    static async updateCosmetic(
-        id: string,
-        data: CosmeticUpdateInput,
-    ): Promise<CosmeticResponse> {
-        // Kiểm tra sự tồn tại của mỹ phẩm
-        const cosmetic = await prisma.cosmetic.findUnique({
-            where: { id },
-            include: {
-                variants: true,
-                specifications: true,
-            },
-        });
-
-        if (!cosmetic) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
-        }
-
-        // Kiểm tra sự tồn tại của nhà phân phối nếu có cập nhật
-        if (data.distributorId) {
-            const distributor = await prisma.cosmeticDistributor.findUnique({
-                where: { id: data.distributorId },
+        request: CosmeticCreateReq,
+    ): Promise<CosmeticRes> {
+        return await prisma.$transaction(async (tx) => {
+            // Check if distributor exists
+            const distributor = await tx.cosmeticDistributor.findUnique({
+                where: { id: request.distributorId },
             });
             if (!distributor) {
                 throw new HttpException(
                     HttpStatus.NOT_FOUND,
-                    'Distributor not found',
+                    'Không tìm thấy nhà phân phối',
                 );
             }
-        }
-
-        // Cập nhật mỹ phẩm
-        const updatedCosmetic = await prisma.cosmetic.update({
-            where: { id },
-            data: {
-                name: data.name,
-                description: data.description,
-                price: data.price,
-                stock: data.stock,
-                type: data.type,
-                distributorId: data.distributorId,
-                specifications: data.specifications
-                    ? {
-                          deleteMany: {},
-                          createMany: {
-                              data: data.specifications.map((spec) => ({
-                                  specKey: spec.key,
-                                  specValue: spec.value,
-                              })),
-                          },
-                      }
-                    : undefined,
-            },
-            include: {
-                variants: {
-                    include: {
-                        CosmeticVariantOption: {
-                            include: {
-                                option: true, // lấy thông tin cặp key/value
+            // Tạo cosmetic
+            const cosmetic = await tx.cosmetic.create({
+                data: {
+                    name: request.name,
+                    description: request.description,
+                    price: request.price,
+                    stock: request.stock,
+                    type: request.type,
+                    distributorId: request.distributorId,
+                },
+            });
+            // Tạo specifications
+            if (request.specifications && request.specifications.length > 0) {
+                for (const spec of request.specifications) {
+                    await tx.cosmeticSpec.create({
+                        data: {
+                            cosmeticId: cosmetic.id,
+                            specKey: spec.key,
+                            specValue: spec.value,
+                        },
+                    });
+                }
+            }
+            // Tạo variants và liên kết option
+            if (request.variants && request.variants.length > 0) {
+                for (const variant of request.variants) {
+                    const createdVariant = await tx.cosmeticVariant.create({
+                        data: {
+                            cosmeticId: cosmetic.id,
+                            name: variant.name,
+                            sku: variant.sku,
+                            price: variant.price,
+                            stock: variant.stock,
+                        },
+                    });
+                    // Liên kết option-variant
+                    for (const optionId of variant.optionIds) {
+                        await tx.cosmeticVariantOption.create({
+                            data: {
+                                variantId: createdVariant.id,
+                                optionId,
+                            },
+                        });
+                    }
+                }
+            }
+            // Lấy lại cosmetic với các trường liên quan
+            const cosmeticWithVariants = await tx.cosmetic.findUnique({
+                where: { id: cosmetic.id },
+                include: {
+                    variants: {
+                        include: {
+                            CosmeticVariantOption: {
+                                include: { option: true },
                             },
                         },
                     },
+                    specifications: true,
+                    distributor: true,
                 },
-                specifications: true,
-                distributor: true,
-            },
+            });
+            return this.toCosmeticResponse(cosmeticWithVariants!);
         });
+    }
 
-        return {
-            ...updatedCosmetic,
-            inStock: updatedCosmetic.stock > 0,
-            hasVariants: updatedCosmetic.variants.length > 0,
-            variants: updatedCosmetic.variants.map((variant) => {
-                const options = variant.CosmeticVariantOption.map(
-                    (vo) => vo.option,
+    static async updateCosmetic(
+        id: string,
+        data: CosmeticUpdateReq,
+    ): Promise<CosmeticRes> {
+        return await prisma.$transaction(async (tx) => {
+            // Kiểm tra sự tồn tại của mỹ phẩm
+            const cosmetic = await tx.cosmetic.findUnique({
+                where: { id },
+                include: {
+                    variants: true,
+                    specifications: true,
+                },
+            });
+            if (!cosmetic) {
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Cosmetic not found',
                 );
-                return {
-                    ...variant,
-                    options,
-                    displayName: this.getVariantDisplayName(options),
-                    inStock: variant.stock > 0,
-                };
-            }),
-        };
+            }
+            // Kiểm tra sự tồn tại của nhà phân phối nếu có cập nhật
+            if (data.distributorId) {
+                const distributor = await tx.cosmeticDistributor.findUnique({
+                    where: { id: data.distributorId },
+                });
+                if (!distributor) {
+                    throw new HttpException(
+                        HttpStatus.NOT_FOUND,
+                        'Không tìm thấy nhà phân phối',
+                    );
+                }
+            }
+            // Cập nhật mỹ phẩm
+            const updatedCosmetic = await tx.cosmetic.update({
+                where: { id },
+                data: {
+                    name: data.name,
+                    description: data.description,
+                    price: data.price,
+                    stock: data.stock,
+                    type: data.type,
+                    distributorId: data.distributorId,
+                },
+            });
+            // Xử lý specifications
+            if (data.specifications) {
+                await tx.cosmeticSpec.deleteMany({ where: { cosmeticId: id } });
+                for (const spec of data.specifications) {
+                    await tx.cosmeticSpec.create({
+                        data: {
+                            cosmeticId: id,
+                            specKey: spec.key,
+                            specValue: spec.value,
+                        },
+                    });
+                }
+            }
+            // Xử lý variants (tạo, update, xoá)
+            if (data.variants) {
+                // Xoá các variant
+                if (data.variants.delete && data.variants.delete.length > 0) {
+                    for (const variantId of data.variants.delete) {
+                        await tx.cosmeticVariantOption.deleteMany({
+                            where: { variantId },
+                        });
+                        await tx.cosmeticVariant.delete({
+                            where: { id: variantId },
+                        });
+                    }
+                }
+                // Update các variant
+                if (data.variants.update && data.variants.update.length > 0) {
+                    for (const variant of data.variants.update) {
+                        await tx.cosmeticVariant.update({
+                            where: { id: variant.id },
+                            data: {
+                                name: variant.name,
+                                sku: variant.sku,
+                                price: variant.price,
+                                stock: variant.stock,
+                            },
+                        });
+                        if (variant.optionIds) {
+                            await tx.cosmeticVariantOption.deleteMany({
+                                where: { variantId: variant.id },
+                            });
+                            for (const optionId of variant.optionIds) {
+                                await tx.cosmeticVariantOption.create({
+                                    data: {
+                                        variantId: variant.id,
+                                        optionId,
+                                    },
+                                });
+                            }
+                        }
+                    }
+                }
+                // Tạo mới các variant
+                if (data.variants.create && data.variants.create.length > 0) {
+                    for (const variant of data.variants.create) {
+                        const createdVariant = await tx.cosmeticVariant.create({
+                            data: {
+                                cosmeticId: id,
+                                name: variant.name,
+                                sku: variant.sku,
+                                price: variant.price,
+                                stock: variant.stock,
+                            },
+                        });
+                        for (const optionId of variant.optionIds) {
+                            await tx.cosmeticVariantOption.create({
+                                data: {
+                                    variantId: createdVariant.id,
+                                    optionId,
+                                },
+                            });
+                        }
+                    }
+                }
+            }
+            // Lấy lại cosmetic với các trường liên quan
+            const cosmeticWithVariants = await tx.cosmetic.findUnique({
+                where: { id },
+                include: {
+                    variants: {
+                        include: {
+                            CosmeticVariantOption: {
+                                include: { option: true },
+                            },
+                        },
+                    },
+                    specifications: true,
+                    distributor: true,
+                },
+            });
+            return this.toCosmeticResponse(cosmeticWithVariants!);
+        });
     }
 
     static async deleteCosmetic(id: string): Promise<void> {
-        // Kiểm tra sự tồn tại của mỹ phẩm
-        const cosmetic = await prisma.cosmetic.findUnique({
-            where: { id },
-            include: {
-                variants: {
-                    include: {
-                        CosmeticVariantOption: true,
-                    },
+        return await prisma.$transaction(async (tx) => {
+            // Kiểm tra sự tồn tại của mỹ phẩm
+            const cosmetic = await tx.cosmetic.findUnique({
+                where: { id },
+                include: {
+                    variants: true,
                 },
-            },
-        });
-
-        if (!cosmetic) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
-        }
-
-        // Xoá tất cả các CosmeticVariantOption liên kết với biến thể
-        for (const variant of cosmetic.variants) {
-            await prisma.cosmeticVariantOption.deleteMany({
-                where: { variantId: variant.id },
             });
-
-            // Sau đó xoá biến thể
-            await prisma.cosmeticVariant.delete({
-                where: { id: variant.id },
-            });
-        }
-
-        // Xoá các thông số kỹ thuật
-        await prisma.cosmeticSpec.deleteMany({
-            where: { cosmeticId: id },
-        });
-
-        // Cuối cùng xoá mỹ phẩm
-        await prisma.cosmetic.delete({
-            where: { id },
+            if (!cosmetic) {
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Cosmetic not found',
+                );
+            }
+            // Xoá tất cả các CosmeticVariantOption liên kết với biến thể
+            for (const variant of cosmetic.variants) {
+                await tx.cosmeticVariantOption.deleteMany({
+                    where: { variantId: variant.id },
+                });
+                await tx.cosmeticVariant.delete({ where: { id: variant.id } });
+            }
+            // Xoá các thông số kỹ thuật
+            await tx.cosmeticSpec.deleteMany({ where: { cosmeticId: id } });
+            // Cuối cùng xoá mỹ phẩm
+            await tx.cosmetic.delete({ where: { id } });
         });
     }
 
@@ -399,6 +363,7 @@ export class CosmeticService {
     static async createVariant(
         cosmeticId: string,
         data: {
+            name: string;
             sku: string;
             price: number;
             stock: number;
@@ -415,8 +380,9 @@ export class CosmeticService {
         }
 
         // Tạo variant mới
-        const variant = await prisma.cosmeticVariant.create({
+        const createdVariant = await prisma.cosmeticVariant.create({
             data: {
+                name: data.name,
                 sku: data.sku,
                 price: data.price,
                 stock: data.stock,
@@ -453,7 +419,7 @@ export class CosmeticService {
             optionRecords.map((option) =>
                 prisma.cosmeticVariantOption.create({
                     data: {
-                        variantId: variant.id,
+                        variantId: createdVariant.id,
                         optionId: option.id,
                     },
                 }),
@@ -462,7 +428,7 @@ export class CosmeticService {
 
         // Lấy lại variant kèm options để trả về
         const variantWithOptions = await prisma.cosmeticVariant.findUnique({
-            where: { id: variant.id },
+            where: { id: createdVariant.id },
             include: {
                 CosmeticVariantOption: {
                     include: {
@@ -477,10 +443,62 @@ export class CosmeticService {
             [];
 
         return {
-            ...variant,
+            ...createdVariant,
             options,
-            displayName: this.getVariantDisplayName(options),
-            inStock: variant.stock > 0,
+            inStock: createdVariant.stock,
         };
+    }
+
+    // Helper để chuẩn hóa dữ liệu trả về đúng kiểu CosmeticResponse
+    private static toCosmeticResponse(cosmetic: any): CosmeticRes {
+        return {
+            id: cosmetic.id,
+            name: cosmetic.name,
+            distributor: this.mapDistributor(cosmetic.distributor),
+            specifications: this.mapSpecifications(cosmetic.specifications),
+            stock: cosmetic.stock,
+            variants: this.mapVariants(cosmetic.variants),
+        };
+    }
+    private static mapDistributor(distributor: any) {
+        if (!distributor) return undefined;
+        return {
+            id: distributor.id,
+            name: distributor.name,
+            address: distributor.address ?? '',
+            phone: distributor.phone ?? '',
+            email: distributor.email ?? '',
+            createdAt: distributor.createdAt,
+            updatedAt: distributor.updatedAt,
+            cosmetics: [],
+        };
+    }
+    private static mapSpecifications(specs: any[]) {
+        return (specs || []).map((s) => ({
+            id: s.id,
+            cosmeticId: s.cosmeticId,
+            specKey: s.specKey,
+            specValue: s.specValue,
+            createdAt: s.createdAt,
+            updatedAt: s.updatedAt,
+            cosmetic: s.cosmetic ?? undefined,
+        }));
+    }
+    private static mapVariants(variants: any[]) {
+        return (variants || []).map((variant) => {
+            let options = [];
+            if (variant.CosmeticOption) {
+                options = variant.CosmeticOption;
+            } else if (variant.CosmeticVariantOption) {
+                options = variant.CosmeticVariantOption.map(
+                    (vo: any) => vo.option,
+                );
+            }
+            return {
+                name: variant.name,
+                options,
+                inStock: variant.stock,
+            };
+        });
     }
 }

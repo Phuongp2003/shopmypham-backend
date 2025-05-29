@@ -5,6 +5,11 @@ import { SwaggerBuilder } from './swagger-builder';
 import { CosmeticController } from '../modules/cosmetic/cosmetic.controller';
 import fs from 'fs';
 import path from 'path';
+import { CosmeticDistributorController } from '@/modules/cosmetic/submodules/distributor/cosmeticDistributor.controller';
+import { AuthController } from '@/modules/auth/auth.controller';
+import { CosmeticVariantController } from '@/modules/cosmetic/submodules/variant/cosmeticVariant.controller';
+import { CosmeticSpecificationController } from '@/modules/cosmetic/submodules/specification/cosmeticSpecification.controller';
+import { CosmeticOptionController } from '@/modules/cosmetic/submodules/option/cosmesticOptions.controller';
 
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
 const modulesDir = path.join(__dirname, '../modules');
@@ -63,7 +68,11 @@ const swaggerBuilder = new SwaggerBuilder()
     })
     .addControllersFromAnnotations([
         CosmeticController,
-        // ... các controller khác
+        CosmeticDistributorController,
+        CosmeticVariantController,
+        CosmeticSpecificationController,
+        CosmeticOptionController,
+        AuthController,
     ]);
 
 const swaggerOptions = {

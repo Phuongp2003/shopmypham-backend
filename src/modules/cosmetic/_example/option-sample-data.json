@@ -1,0 +1,12 @@
+[
+  { "optionKey": "Loại da", "optionValue": "Da dầu", "id": "option-1" },
+  { "optionKey": "Loại da", "optionValue": "Da khô", "id": "option-2" },
+  { "optionKey": "Loại da", "optionValue": "Da hỗn hợp", "id": "option-3" },
+  { "optionKey": "Mùi hương", "optionValue": "Trà xanh", "id": "option-4" },
+  { "optionKey": "Mùi hương", "optionValue": "Hoa hồng", "id": "option-5" },
+  { "optionKey": "Mùi hương", "optionValue": "Dâu tây", "id": "option-6" },
+  { "optionKey": "Chỉ số chống nắng", "optionValue": "SPF 30", "id": "option-7" },
+  { "optionKey": "Chỉ số chống nắng", "optionValue": "SPF 50+", "id": "option-8" },
+  { "optionKey": "Dạng sản phẩm", "optionValue": "Tuýp", "id": "option-9" },
+  { "optionKey": "Dạng sản phẩm", "optionValue": "Xịt", "id": "option-10" }
+] 
