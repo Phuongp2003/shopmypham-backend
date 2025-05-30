@@ -13,13 +13,28 @@ import {
 } from '@/modules/auth/auth.dto';
 import { AuthService } from '@/modules/auth/auth.service';
 import jwt from 'jsonwebtoken';
-import { Controller } from '@/common/annotation/swagger.annotation';
+import {
+    Controller,
+    Get,
+    Post,
+    Put,
+    Delete,
+    RequireHeader,
+} from '@/common/annotation/swagger.annotation';
 
 @Controller({
     tag: 'Auth',
     description: 'Quản lý đăng nhập, đăng ký, đăng xuất',
 })
 export class AuthController {
+    @Post({
+        name: 'login',
+        description: 'Đăng nhập người dùng',
+        path: '/login',
+    }, {
+        body: 'LoginRequest',
+        response: 'AuthResponse',
+    })
     static async login(req: Request, res: Response): Promise<void> {
         try {
             const payload: LoginRequest = req.body;
@@ -39,6 +54,14 @@ export class AuthController {
         }
     }
 
+    @Post({
+        name: 'register',
+        description: 'Đăng ký người dùng',
+        path: '/register',
+    }, {
+        body: 'RegisterRequest',
+        response: 'AuthResponse',
+    })
     static async register(req: Request, res: Response): Promise<void> {
         try {
             const payload: RegisterRequest = req.body;
@@ -56,6 +79,12 @@ export class AuthController {
         }
     }
 
+    @Post({
+        name: 'logout',
+        description: 'Đăng xuất người dùng',
+        path: '/logout',
+    })
+    @RequireHeader()
     static async logout(req: Request, res: Response) {
         try {
             await AuthMiddleware.logout(req, res);
@@ -70,6 +99,14 @@ export class AuthController {
         }
     }
 
+    @Post({
+        name: 'refresh-token',
+        description: 'Làm mới access token bằng refresh token',
+        path: '/refresh-token',
+    }, {
+        body: 'RefreshToken',
+        response: 'AuthResponse',
+    })
     static async refreshToken(req: Request, res: Response): Promise<void> {
         try {
             const payload: RefreshToken = req.body;
@@ -87,18 +124,36 @@ export class AuthController {
         }
     }
 
+    @Get({
+        name: 'google-auth',
+        description: 'Xác thực Google OAuth',
+        path: '/google',
+    })
     static async googleAuth(req: Request, res: Response): Promise<void> {
         passport.authenticate('google', { scope: ['profile', 'email'] })(
             req,
             res,
         );
     }
+
+    @Get({
+        name: 'google-link-auth',
+        description: 'Liên kết tài khoản Google',
+        path: '/google/link',
+    })
+    @RequireHeader()
     static async googleLinkAuth(req: Request, res: Response): Promise<void> {
         passport.authenticate('google', {
             scope: ['profile', 'email'],
             state: 'link',
         })(req, res);
     }
+
+    @Get({
+        name: 'google-auth-callback',
+        description: 'Callback xác thực Google OAuth',
+        path: '/google/callback',
+    })
     static async googleAuthCallback(
         req: Request,
         res: Response,
@@ -165,6 +220,14 @@ export class AuthController {
         })(req, res);
     }
 
+    @Post({
+        name: 'change-password',
+        description: 'Đổi mật khẩu người dùng',
+        path: '/change-password',
+    }, {
+        body: 'ChangePasswordRequest',
+    })
+    @RequireHeader()
     static async changePassword(req: Request, res: Response): Promise<void> {
         try {
             const payload: ChangePasswordRequest = req.body;
