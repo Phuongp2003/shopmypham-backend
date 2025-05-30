@@ -7,9 +7,9 @@ import { ErrorResponse } from "@/common/interfaces/error-response.interface";
 import { CartService } from "./cart.service";
 // import { CartResponse, CreateCartDTO, UpdateCartDTO } from "./types/cart.types";
 import { CartResponse } from "./cart.types";
-import { SwaggerController, Get, Post, Put, Delete } from "@/common/annotation/swagger.annotation";
+import { Controller, Get, Post, Put, Delete } from "@/common/annotation/swagger.annotation";
 import { GetCart, AddToCartDto  } from "./cart.dto";
-@SwaggerController({ tag: "Cart", description: "Quản lý giỏ hàng" })
+@Controller({ tag: "Cart", description: "Quản lý giỏ hàng" })
 export class CartController {
   @Get(
     {

@@ -5,7 +5,7 @@
     "price": 120000,
     "stock": 100,
     "type": "SKINCARE",
-    "distributorId": "distributor-1",
+    "distributorId": "fe571efd-a40e-4dc1-97e5-b25d709c1e47",
     "specifications": [
       { "key": "Dung tích", "value": "150ml" },
       { "key": "Thành phần", "value": "Chiết xuất trà xanh" }
@@ -22,7 +22,7 @@
     "price": 250000,
     "stock": 80,
     "type": "SKINCARE",
-    "distributorId": "distributor-2",
+    "distributorId": "fe571efd-a40e-4dc1-97e5-b25d709c1e47",
     "specifications": [
       { "key": "Chỉ số chống nắng", "value": "SPF 50+" },
       { "key": "Dạng", "value": "Kem" }
@@ -39,7 +39,7 @@
     "price": 90000,
     "stock": 150,
     "type": "MAKEUP",
-    "distributorId": "distributor-3",
+    "distributorId": "fe571efd-a40e-4dc1-97e5-b25d709c1e47",
     "specifications": [
       { "key": "Màu sắc", "value": "Hồng nhạt" },
       { "key": "Hương", "value": "Dâu tây" }
