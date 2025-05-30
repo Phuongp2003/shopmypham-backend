@@ -17,19 +17,43 @@ export class GetCart  {
  * title: AddToCart
  * type: object
  * properties:
- *   userId:
- *     type: string
  *   variantId:
  *     type: string
  *   quantity:
  *     type: number
- *   price:
- *     type: number
  */
 export type AddToCartDto = {
-  userId: string;
   variantId: string;
   quantity: number;
-  price: number;
 };
+
+/**
+ * @swagger
+ * title: UpdateCartItem
+ * type: object
+ * properties:
+ *   variantId:
+ *     type: string
+ *     description: ID loại sản phẩm mới
+ *   quantity:
+ *     type: number
+ *     description: Số lượng mới
+ */
+export type UpdateCartItemDto = {
+  variantId?: string;
+  quantity?: number;
+};
+
+/**
+ * @swagger
+ * title: CartItemResponse
+ * type: object
+ * properties:
+ *   variantId:
+ *    type: string
+ */
+export type RemoveCartItemDto = {
+  variantId: string;
+};
+
 

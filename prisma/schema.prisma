@@ -89,7 +89,6 @@ model CartDetail {
     cartId     String
     variantId  String   // Thay cosmeticId bằng variantId
     quantity   Int
-    price      Float
     cart       Cart     @relation(fields: [cartId], references: [id])
     variant    CosmeticVariant  @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
     createdAt  DateTime @default(now())

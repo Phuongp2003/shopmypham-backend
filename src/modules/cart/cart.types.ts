@@ -1,5 +1,5 @@
 import type { User } from '@/modules/user/user.types';
-import type { CosmeticVariant } from '@/modules/cosmetic/cosmetic.types';
+import type { CosmeticVariant } from '@/modules/cosmetic/submodules/variant/cosmeticVariant.types';
 
 /**
  * @swagger
@@ -145,10 +145,10 @@ export type CartResponse = {
  *       properties:
  *         key:
  *           type: string
- *           description: Tên tùy chọn (ví dụ: màu sắc, dung tích)
+ *           description: Tên tùy chọn (ví dụ màu sắc, dung tích)
  *         value:
  *           type: string
- *           description: Giá trị tùy chọn (ví dụ: Đỏ cam, 50ml)
+ *           description: Giá trị tùy chọn (ví dụ Đỏ cam, 50ml)
  */
 
 export type CartItem = {
@@ -224,6 +224,25 @@ export type CartItemResponse = {
     value: string;
   }[];
 };
+
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     SuccessResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ */
+
+export type SuccessResponse = {
+  message: string;
+};
+
+
+
 
 
 
