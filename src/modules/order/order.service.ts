@@ -1,86 +1,146 @@
 import { HttpStatus } from '@/common/enums/http-status.enum';
 import { HttpException } from '@/common/exceptions/http.exception';
-import { OrderStatus, PrismaClient } from '@prisma/client';
-
+import { prisma } from '@/config/prisma';
+import { OrderResponse } from './order.dto';
 import {
     CreateOrderDto,
     OrderQueryDto,
     UpdateOrderStatusDto,
-} from './types/order.types';
+    PaginatedOrderResponse,
+} from './order.dto';
 
 export class OrderService {
-    private prisma: PrismaClient;
+    static async createOrder(
+        userId: string,
+        dto: CreateOrderDto,
+    ): Promise<OrderResponse> {
+        const { addressId, note, payment, details } = dto;
 
-    constructor() {
-        this.prisma = new PrismaClient();
-    }
-
-    async createOrder(userId: string, data: CreateOrderDto) {
-        // Check if all cosmetics exist and have sufficient stock
-        const cosmetics = await this.prisma.cosmetic.findMany({
-            where: {
-                id: {
-                    in: data.details.map((detail) => detail.cosmeticId),
-                },
-            },
+        // 1. Kiểm tra tất cả các variant có tồn tại không
+        const variantIds = details.map((d) => d.variantId);
+        const variants = await prisma.cosmeticVariant.findMany({
+            where: { id: { in: variantIds } },
+            include: { cosmetic: true },
         });
 
-        if (cosmetics.length !== data.details.length) {
+        if (variants.length !== details.length) {
             throw new HttpException(
                 HttpStatus.BAD_REQUEST,
-                'Some cosmetics not found',
+                'Một số sản phẩm không tồn tại',
             );
         }
 
-        // Check stock availability
-        for (const detail of data.details) {
-            const cosmetic = cosmetics.find((c) => c.id === detail.cosmeticId);
-            if (!cosmetic || cosmetic.stock < detail.quantity) {
+        // 2. Kiểm tra tồn kho cho từng sản phẩm
+        for (const detail of details) {
+            const variant = variants.find((v) => v.id === detail.variantId);
+            if (!variant || variant.stock < detail.quantity) {
                 throw new HttpException(
                     HttpStatus.BAD_REQUEST,
-                    `Insufficient stock for cosmetic ${cosmetic?.name}`,
+                    `Không đủ tồn kho cho sản phẩm: ${variant?.cosmetic.name || detail.variantId}`,
                 );
             }
         }
 
-        // Create order with transaction
-        return await this.prisma.$transaction(async (tx) => {
-            // Create order
-            const order = await tx.order.create({
-                data: {
-                    userId,
-                    shippingAddress: data.shippingAddress,
-                    note: data.note,
-                    status: OrderStatus.PENDING,
-                    details: {
-                        create: data.details,
-                    },
-                },
-                include: {
-                    details: true,
-                },
+        // 3. Giao dịch tạo đơn hàng + thanh toán + trừ kho
+        return await prisma.$transaction(async (tx) => {
+          if (!addressId) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, 'Địa chỉ giao hàng không được bỏ trống');
+          }
+        
+          // Tạo order
+          const order = await tx.order.create({
+            data: {
+              userId,
+              addressId,
+              note,
+              status: 'PENDING',
+              details: {
+                create: details.map((d) => ({
+                  variantId: d.variantId,
+                  quantity: d.quantity,
+                  price: d.price,
+                })),
+              },
+            },
+            include: {
+              details: true,
+              address: true,
+            },
+          });
+        
+          // Tạo payment bắt buộc luôn có
+          // Nếu không có payment input thì tạo 1 payment mặc định
+          const paymentData = payment ?? {
+            paymentMethod: 'UNKNOWN',  // hoặc mặc định bạn muốn
+            amount: details.reduce((sum, d) => sum + d.price * d.quantity, 0),
+            transactionId: null,
+            status: 'PENDING',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+        
+          const createdPayment = await tx.payment.create({
+            data: {
+              ...paymentData,
+              order: {
+                connect: { id: order.id },
+              },
+            },
+          });
+        
+          // Cập nhật tồn kho
+          for (const detail of details) {
+            await tx.cosmeticVariant.update({
+              where: { id: detail.variantId },
+              data: {
+                stock: { decrement: detail.quantity },
+              },
             });
-
-            // Update stock
-            for (const detail of data.details) {
-                await tx.cosmetic.update({
-                    where: { id: detail.cosmeticId },
-                    data: {
-                        stock: {
-                            decrement: detail.quantity,
-                        },
-                    },
-                });
-            }
-
-            return order;
+          }
+        
+          // Lấy lại order đã có payment
+          const fullOrder = await tx.order.findUnique({
+            where: { id: order.id },
+            include: {
+              details: true,
+              address: true,
+              payment: true,
+            },
+          });
+        
+          if (!fullOrder || !fullOrder.address || !fullOrder.payment) {
+            throw new Error('Không tìm thấy đơn hàng hoặc payment sau khi tạo!');
+          }
+        
+          return {
+            id: fullOrder.id,
+            userId: fullOrder.userId,
+            status: fullOrder.status,
+            note: fullOrder.note || undefined,
+            address: fullOrder.address,
+            details: fullOrder.details.map((d) => ({
+              variantId: d.variantId,
+              quantity: d.quantity,
+              price: d.price,
+            })),
+            payments: {
+              id: fullOrder.payment.id,
+              paymentMethod: fullOrder.payment.paymentMethod,
+              amount: fullOrder.payment.amount,
+              status: fullOrder.payment.status,
+              transactionId: fullOrder.payment.transactionId,
+              createdAt: fullOrder.payment.createdAt,
+              updatedAt: fullOrder.payment.updatedAt,
+            },
+          };
         });
-    }
+    }        
 
-    async getOrders(query: OrderQueryDto) {
+    static async getOrders(
+        query: OrderQueryDto,
+    ): Promise<PaginatedOrderResponse> {
         const {
             status,
-            userId,
             page = 1,
             limit = 10,
             sortBy = 'createdAt',
@@ -89,14 +149,25 @@ export class OrderService {
 
         const where = {
             ...(status && { status }),
-            ...(userId && { userId }),
+            //userId= query.userId, // Assuming userId is passed in query
         };
 
         const [orders, total] = await Promise.all([
-            this.prisma.order.findMany({
+            prisma.order.findMany({
                 where,
                 include: {
-                    details: true,
+                    address: true,
+                    details: {
+                        include: {
+                            variant: {
+                                include: {
+                                    cosmetic: true,
+                                },
+                            },
+                        },
+                    },
+                    user: true,
+                    payment: true,
                 },
                 skip: (page - 1) * limit,
                 take: limit,
@@ -104,17 +175,43 @@ export class OrderService {
                     [sortBy]: sortOrder,
                 },
             }),
-            this.prisma.order.count({ where }),
+            prisma.order.count({ where }),
         ]);
 
+        console.log('Orders:', orders);
+        // if (!orders || orders.length === 0) {
+        //   throw new HttpException(HttpStatus.NOT_FOUND, 'No orders found');
+        // }
+
+        const formattedOrders: OrderResponse[] = orders.map((order) => ({
+          id: order.id,
+          userId: order.user.id,
+          status: order.status,
+          address: order.address!,
+          note: order.note || undefined,
+          payments: order.payment ?? {
+            id: '',
+            paymentMethod: '',
+            amount: 0,
+            status: 'PENDING',
+            transactionId: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          details: order.details.map((detail) => ({
+            variantId: detail.variant.id,
+            quantity: detail.quantity,
+            price: detail.price,
+          })),
+        }));
+        
+
         return {
-            data: orders,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            },
+            orders: formattedOrders,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         };
     }
 

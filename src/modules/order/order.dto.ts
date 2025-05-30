@@ -1,29 +1,232 @@
-import { z } from 'zod';
-import { OrderStatus } from '@prisma/client';
+import { User, Order, OrderStatus } from '@prisma/client';
+import { Address, Payment } from './order.types';
+import { Paginated } from '@/common/types/paginated.type';
 
-export const CreateOrderDto = z.object({
-    shippingAddress: z.string().min(1),
-    note: z.string().optional(),
-    details: z
-        .array(
-            z.object({
-                cosmeticId: z.string().min(1),
-                quantity: z.number().int().min(1),
-                price: z.number().min(0),
-            }),
-        )
-        .min(1),
-});
+/**
+ * @swagger
+ * title: CreateOrderDto
+ * type: object
+ * properties:
+ *   addressId:
+ *     type: string
+ *     nullable: true
+ *     description: ID địa chỉ nhận hàng (có thể null nếu chưa chọn)
+ *   note:
+ *     type: string
+ *     description: Ghi chú thêm cho đơn hàng
+ *   payment:
+ *     type: object
+ *     properties:
+ *       paymentMethod:
+ *         type: string
+ *         example: 'CASH'
+ *         description: Phương thức thanh toán (CASH, CREDIT_CARD, VNPAY, ...)
+ *       amount:
+ *         type: number
+ *         format: float
+ *         example: 500000
+ *         description: Số tiền thanh toán
+ *       transactionId:
+ *         type: string
+ *         nullable: true
+ *         description: Mã giao dịch nếu có (có thể null nếu thanh toán khi nhận hàng)
+ *       createdAt:
+ *         type: string
+ *         format: date-time
+ *         description: Ngày tạo giao dịch thanh toán
+ *       updatedAt:
+ *        type: string
+ *        format: date-time
+ *        description: Ngày cập nhật giao dịch thanh toán
+ *       status:
+ *         type: string
+ *         enum: [PENDING, COMPLETED, FAILED]
+ *         description: Trạng thái thanh toán
+ *   details:
+ *     type: array
+ *     description: Danh sách sản phẩm trong đơn hàng
+ *     items:
+ *       type: object
+ *       required:
+ *         - variantId
+ *         - quantity
+ *         - price
+ *       properties:
+ *         variantId:
+ *           type: string
+ *           description: ID biến thể sản phẩm
+ *         quantity:
+ *           type: integer
+ *           example: 2
+ *           description: Số lượng sản phẩm
+ *         price:
+ *           type: number
+ *           format: float
+ *           example: 250000
+ *           description: Giá mỗi sản phẩm tại thời điểm đặt hàng
+ */
 
-export const UpdateOrderStatusDto = z.object({
-    status: z.nativeEnum(OrderStatus),
-});
+export interface CreateOrderDto {
+  // Không cần userId nếu lấy từ token
+  addressId: string | null;
+  note?: string;
 
-export const OrderQueryDto = z.object({
-    status: z.nativeEnum(OrderStatus).optional(),
-    userId: z.string().optional(),
-    page: z.coerce.number().int().positive().optional(),
-    limit: z.coerce.number().int().positive().optional(),
-    sortBy: z.string().optional(),
-    sortOrder: z.enum(['asc', 'desc']).optional(),
-});
+  // Thông tin thanh toán
+  payment?: {
+    paymentMethod: string; // Ví dụ: 'CASH', 'CREDIT_CARD', 'VNPAY', ...
+    amount: number;        // Số tiền thanh toán
+    transactionId?: string; // Mã giao dịch nếu có (có thể null nếu thanh toán khi nhận hàng)
+    createdAt?: Date; // Ngày tạo thanh toán
+    updatedAt?: Date; // Ngày cập nhật thanh toán
+    status?: 'PENDING' | 'COMPLETED' | 'FAILED'; // Trạng thái thanh toán
+  };
+
+  // Danh sách sản phẩm trong đơn hàng
+  details: {
+    variantId: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
+
+// export const UpdateOrderStatusDto = z.object({
+//     status: z.nativeEnum(OrderStatus),
+// });
+
+/**
+ * @swagger
+ * title: OrderQueryDto
+ * type: object
+ * properties:
+ *   status:
+ *     type: string
+ *     enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+ *     description: Trạng thái đơn hàng
+ *   page:
+ *     type: integer
+ *     description: Trang hiện tại (bắt đầu từ 1)
+ *   limit:
+ *     type: integer
+ *     description: Số lượng bản ghi mỗi trang
+ *   sortBy:
+ *     type: string
+ *     description: Trường cần sắp xếp (vd createdAt)
+ *   sortOrder:
+ *     type: string
+ *     enum: [asc, desc]
+ *     description: Thứ tự sắp xếp (tăng hoặc giảm)
+ */
+
+export interface OrderQueryDto {
+    status?: OrderStatus;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * @swagger
+ * title: OrderResponse
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *     description: Mã đơn hàng
+ *   userId:
+ *     type: string
+ *     description: ID người dùng
+ *   status:
+ *     type: string
+ *     enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+ *     description: Trạng thái đơn hàng
+ *   address:
+ *     $ref: '#/components/schemas/Address'
+ *     description: Địa chỉ giao hàng
+ *   note:
+ *     type: string
+ *     description: Ghi chú (nếu có)
+ *   payments:
+ *     type: string
+ *     description: Danh sách thanh toán
+ *     items:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         method:
+ *           type: string
+ *         amount:
+ *           type: number
+ *         status:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *   details:
+ *     type: array
+ *     description: Chi tiết đơn hàng
+ *     items:
+ *       type: object
+ *       properties:
+ *         variantId:
+ *           type: string
+ *           description: ID biến thể mỹ phẩm
+ *         quantity:
+ *           type: number
+ *           description: Số lượng
+ *         price:
+ *           type: number
+ *           description: Đơn giá
+ */
+
+export interface OrderResponse {
+    id: Order['id'];
+    userId: string;
+    status: OrderStatus;
+    address: Address;
+    note?: string;
+    payments: {
+        id: string;
+        paymentMethod: string;
+        amount: number;
+        status: 'PENDING' | 'COMPLETED' | 'FAILED'|'CANCELLED';
+        transactionId?: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    };
+    details: {
+        variantId: string;
+        quantity: number;
+        price: number;
+    }[];
+}
+
+/**
+ * @swagger
+ * title: PaginatedOrderResponse
+ * type: object
+ * properties:
+ *   total:
+ *     type: integer
+ *     description: Tổng số phần tử
+ *   page:
+ *     type: integer
+ *     description: Trang hiện tại
+ *   limit:
+ *     type: integer
+ *     description: Số phần tử mỗi trang
+ *   totalPages:
+ *     type: integer
+ *     description: Tổng số trang
+ *   orders:
+ *     type: array
+ *     description: Danh sách đơn hàng
+ *     items:
+ *     $ref: '#/components/schemas/OrderResponse'
+ */
+
+export interface PaginatedOrderResponse extends Paginated {
+    orders: OrderResponse[];
+}

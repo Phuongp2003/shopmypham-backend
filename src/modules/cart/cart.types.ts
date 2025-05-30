@@ -197,16 +197,16 @@ export type CartItem = {
  *           description: Tên của mỹ phẩm
  *         options:
  *           type: array
- *           description: Danh sách tùy chọn của biến thể (VD: màu sắc, dung tích...)
+ *           description: Danh sách tùy chọn của biến thể (VD màu sắc, dung tích...)
  *           items:
  *             type: object
  *             properties:
  *               key:
  *                 type: string
- *                 description: Tên thuộc tính (VD: color, size)
+ *                 description: Tên thuộc tính (VD color, size)
  *               value:
  *                 type: string
- *                 description: Giá trị của thuộc tính (VD: đỏ cam, 50ml)
+ *                 description: Giá trị của thuộc tính (VD đỏ cam, 50ml)
  */
 
 

@@ -179,7 +179,6 @@ export class AuthMiddleware {
             }
 
             const token = authHeader.split(' ')[1];
-
             if (!token) {
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
