@@ -8,7 +8,7 @@ import { CartController } from './cart.controller';
 const router = Router();
 
 // Apply auth middleware to all routes
-// router.use(AuthMiddleware.handle);
+router.use(AuthMiddleware.handle);
 
 // Get user's cart
 router.get("/",  CartController.getCart);
@@ -17,10 +17,13 @@ router.get("/",  CartController.getCart);
 router.post("/", CartController.createCart);
 
 // // Update cart
-// router.put("/", CartController.updateCart);
+router.put("/:variantId", CartController.updateCart);
 
-// // Clear cart
-// router.delete("/", CartController.clearCart);
+// Remove cart item
+router.delete("/:variantId", CartController.removeCartItem);
+
+// Clear cart
+router.delete("/", CartController.clearCart);
 
 // Get cart summary
 // router.get("/summary", CartController.getCartSummary);
