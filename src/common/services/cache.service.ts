@@ -33,7 +33,6 @@ export class CacheService {
         objectName: string,
         properties: Record<string, any>,
     ): string {
-        console.log(properties);
         const sortedKeys = Object.keys(properties).sort();
         const propsString = sortedKeys
             .map((key) => `${key}_${properties[key]}`)

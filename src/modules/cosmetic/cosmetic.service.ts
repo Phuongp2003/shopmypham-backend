@@ -75,7 +75,6 @@ export class CosmeticService {
             }),
             prisma.cosmetic.count({ where }),
         ]);
-        console.log(cosmetics);
         const result: PaginatedCosmeticRes = {
             cosmetics: cosmetics.map((cosmetic) => ({
                 id: cosmetic.id,
@@ -134,7 +133,6 @@ export class CosmeticService {
         if (!cosmetic) {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
         }
-        console.log(cosmetic);
         return this.toEnhancedCosmeticResponse(cosmetic);
     }
 
