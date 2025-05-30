@@ -93,7 +93,6 @@ export class CartController {
       if (!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       const userId = req.user.id;
       const { variantId } = req.params;
-      console.log("variantId:", variantId);
       if (!variantId) {
         throw new HttpException(HttpStatus.BAD_REQUEST, "Missing variantId parameter");
       }
