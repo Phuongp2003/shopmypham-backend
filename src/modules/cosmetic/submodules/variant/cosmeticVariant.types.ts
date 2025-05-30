@@ -24,6 +24,9 @@ import { CosmeticOption } from '../option/cosmesticOptions.types';
  *   stock:
  *     type: number
  *     description: Số lượng
+ *   image:
+ *     type: string
+ *     description: URL hình ảnh biến thể
  *   createdAt:
  *     type: string
  *     format: date-time
@@ -32,13 +35,13 @@ import { CosmeticOption } from '../option/cosmesticOptions.types';
  *     type: string
  *     format: date-time
  *     description: Ngày cập nhật
- *   variantOptions:
- *     type: array
- *     items:
- *       $ref: '#/components/schemas/CosmeticVariantOption'
  *   cosmetic:
  *     type: object
  *     $ref: '#/components/schemas/Cosmetic'
+ *   CosmeticOption:
+ *     type: array
+ *     items:
+ *       $ref: '#/components/schemas/CosmeticOption'
  */
 export type CosmeticVariant = {
     id: string;
@@ -47,16 +50,9 @@ export type CosmeticVariant = {
     sku: string;
     price: number;
     stock: number;
+    image?: string;
     createdAt: Date;
     updatedAt: Date;
-    variantOptions?: CosmeticVariantOption[];
     cosmetic?: Cosmetic;
     CosmeticOption: CosmeticOption[];
-};
-export type CosmeticVariantOption = {
-    id: string;
-    variantId: CosmeticVariant['id'];
-    optionId: CosmeticOption['id'];
-    createdAt: Date;
-    updatedAt: Date;
 };

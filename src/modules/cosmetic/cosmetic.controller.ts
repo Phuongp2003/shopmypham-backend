@@ -11,6 +11,7 @@ import {
     CosmeticUpdateReq,
     CosmeticRes,
     PaginatedCosmeticRes,
+    EnhancedCosmeticDetailRes,
 } from './cosmetic.dto';
 
 import {
@@ -63,7 +64,7 @@ export class CosmeticController {
             path: '/:id',
         },
         {
-            response: 'CosmeticRes',
+            response: 'EnhancedCosmeticDetailRes',
         },
     )
     static async getCosmeticById(req: Request, res: Response): Promise<void> {

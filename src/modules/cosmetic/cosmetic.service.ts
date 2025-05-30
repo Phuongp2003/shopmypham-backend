@@ -11,6 +11,7 @@ import {
     CosmeticRes,
     PaginatedCosmeticRes,
     GetAllCosmeticRes,
+    EnhancedCosmeticDetailRes,
 } from './cosmetic.dto';
 
 export class CosmeticService {
@@ -27,8 +28,8 @@ export class CosmeticService {
         } = params;
         const minPrice = Number(params.minPrice);
         const maxPrice = Number(params.maxPrice);
-        const page = Number(params.page);
-        const limit = Number(params.limit);
+        const page = Number(params.page) || 1;
+        const limit = Number(params.limit) || 10;
 
         const cacheKey = CacheService.generateKeyV2('cosmetics', params);
         const isCacheExist = await CacheService.exists(cacheKey);
@@ -57,6 +58,15 @@ export class CosmeticService {
         const [cosmetics, total] = await Promise.all([
             prisma.cosmetic.findMany({
                 where,
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    price: true,
+                    stock: true,
+                    image: true,
+                    averageRating: true,
+                },
                 orderBy: sortBy
                     ? { [sortBy]: sortOrder || 'desc' }
                     : { createdAt: 'desc' },
@@ -67,7 +77,15 @@ export class CosmeticService {
         ]);
         console.log(cosmetics);
         const result: PaginatedCosmeticRes = {
-            cosmetics: cosmetics.map((cosmetic) => this.toCosmeticResponse(cosmetic)) as GetAllCosmeticRes[],
+            cosmetics: cosmetics.map((cosmetic) => ({
+                id: cosmetic.id,
+                name: cosmetic.name,
+                description: cosmetic.description,
+                price: cosmetic.price,
+                stock: cosmetic.stock,
+                image: cosmetic.image,
+                averageRating: cosmetic.averageRating,
+            })) as GetAllCosmeticRes[],
             total,
             page,
             limit,
@@ -76,7 +94,7 @@ export class CosmeticService {
         return result;
     }
 
-    static async getCosmeticById(id: string): Promise<CosmeticRes> {
+    static async getCosmeticById(id: string): Promise<EnhancedCosmeticDetailRes> {
         const cosmetic = await prisma.cosmetic.findUnique({
             where: { id },
             include: {
@@ -85,8 +103,28 @@ export class CosmeticService {
                 variants: {
                     include: {
                         CosmeticOption: true,
-                        CosmeticVariantOption: {
-                            include: { option: true },
+                    },
+                },
+                benefits: {
+                    orderBy: { orderIndex: 'asc' },
+                },
+                badges: {
+                    where: { isActive: true },
+                    orderBy: { orderIndex: 'asc' },
+                },
+                reviews: {
+                    where: { isApproved: true },
+                    include: {
+                        user: {
+                            select: { name: true },
+                        },
+                    },
+                    orderBy: { createdAt: 'desc' },
+                },
+                shippingPolicy: {
+                    include: {
+                        features: {
+                            orderBy: { orderIndex: 'asc' },
                         },
                     },
                 },
@@ -96,8 +134,8 @@ export class CosmeticService {
         if (!cosmetic) {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
         }
-
-        return this.toCosmeticResponse(cosmetic);
+        console.log(cosmetic);
+        return this.toEnhancedCosmeticResponse(cosmetic);
     }
 
     static async createCosmetic(
@@ -122,6 +160,7 @@ export class CosmeticService {
                     price: request.price,
                     stock: request.stock,
                     type: request.type,
+                    image: request.image,
                     distributorId: request.distributorId,
                 },
             });
@@ -140,24 +179,19 @@ export class CosmeticService {
             // Tạo variants và liên kết option
             if (request.variants && request.variants.length > 0) {
                 for (const variant of request.variants) {
-                    const createdVariant = await tx.cosmeticVariant.create({
+                    await tx.cosmeticVariant.create({
                         data: {
                             cosmeticId: cosmetic.id,
                             name: variant.name,
                             sku: variant.sku,
                             price: variant.price,
                             stock: variant.stock,
+                            image: variant.image,
+                            CosmeticOption: {
+                                connect: variant.optionIds.map(id => ({ id }))
+                            }
                         },
                     });
-                    // Liên kết option-variant
-                    for (const optionId of variant.optionIds) {
-                        await tx.cosmeticVariantOption.create({
-                            data: {
-                                variantId: createdVariant.id,
-                                optionId,
-                            },
-                        });
-                    }
                 }
             }
             // Lấy lại cosmetic với các trường liên quan
@@ -166,9 +200,7 @@ export class CosmeticService {
                 include: {
                     variants: {
                         include: {
-                            CosmeticVariantOption: {
-                                include: { option: true },
-                            },
+                            CosmeticOption: true,
                         },
                     },
                     specifications: true,
@@ -219,6 +251,7 @@ export class CosmeticService {
                     price: data.price,
                     stock: data.stock,
                     type: data.type,
+                    image: data.image,
                     distributorId: data.distributorId,
                 },
             });
@@ -240,9 +273,6 @@ export class CosmeticService {
                 // Xoá các variant
                 if (data.variants.delete && data.variants.delete.length > 0) {
                     for (const variantId of data.variants.delete) {
-                        await tx.cosmeticVariantOption.deleteMany({
-                            where: { variantId },
-                        });
                         await tx.cosmeticVariant.delete({
                             where: { id: variantId },
                         });
@@ -258,43 +288,32 @@ export class CosmeticService {
                                 sku: variant.sku,
                                 price: variant.price,
                                 stock: variant.stock,
+                                image: variant.image,
+                                ...(variant.optionIds && {
+                                    CosmeticOption: {
+                                        set: variant.optionIds.map(id => ({ id }))
+                                    }
+                                })
                             },
                         });
-                        if (variant.optionIds) {
-                            await tx.cosmeticVariantOption.deleteMany({
-                                where: { variantId: variant.id },
-                            });
-                            for (const optionId of variant.optionIds) {
-                                await tx.cosmeticVariantOption.create({
-                                    data: {
-                                        variantId: variant.id,
-                                        optionId,
-                                    },
-                                });
-                            }
-                        }
                     }
                 }
                 // Tạo mới các variant
                 if (data.variants.create && data.variants.create.length > 0) {
                     for (const variant of data.variants.create) {
-                        const createdVariant = await tx.cosmeticVariant.create({
+                        await tx.cosmeticVariant.create({
                             data: {
                                 cosmeticId: id,
                                 name: variant.name,
                                 sku: variant.sku,
                                 price: variant.price,
                                 stock: variant.stock,
+                                image: variant.image,
+                                CosmeticOption: {
+                                    connect: variant.optionIds.map(id => ({ id }))
+                                }
                             },
                         });
-                        for (const optionId of variant.optionIds) {
-                            await tx.cosmeticVariantOption.create({
-                                data: {
-                                    variantId: createdVariant.id,
-                                    optionId,
-                                },
-                            });
-                        }
                     }
                 }
             }
@@ -304,9 +323,7 @@ export class CosmeticService {
                 include: {
                     variants: {
                         include: {
-                            CosmeticVariantOption: {
-                                include: { option: true },
-                            },
+                            CosmeticOption: true,
                         },
                     },
                     specifications: true,
@@ -332,11 +349,8 @@ export class CosmeticService {
                     'Cosmetic not found',
                 );
             }
-            // Xoá tất cả các CosmeticVariantOption liên kết với biến thể
+            // Xoá tất cả các variant (Prisma sẽ tự động xoá quan hệ trong bảng trung gian)
             for (const variant of cosmetic.variants) {
-                await tx.cosmeticVariantOption.deleteMany({
-                    where: { variantId: variant.id },
-                });
                 await tx.cosmeticVariant.delete({ where: { id: variant.id } });
             }
             // Xoá các thông số kỹ thuật
@@ -366,17 +380,6 @@ export class CosmeticService {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
         }
 
-        // Tạo variant mới
-        const createdVariant = await prisma.cosmeticVariant.create({
-            data: {
-                name: data.name,
-                sku: data.sku,
-                price: data.price,
-                stock: data.stock,
-                cosmeticId,
-            },
-        });
-
         // Với mỗi option trong data.options, tạo CosmeticOption nếu chưa tồn tại hoặc lấy option hiện có
         const optionRecords = await Promise.all(
             data.options.map(async (opt) => {
@@ -401,38 +404,28 @@ export class CosmeticService {
             }),
         );
 
-        // Tạo liên kết giữa variant và các option qua CosmeticVariantOption
-        await Promise.all(
-            optionRecords.map((option) =>
-                prisma.cosmeticVariantOption.create({
-                    data: {
-                        variantId: createdVariant.id,
-                        optionId: option.id,
-                    },
-                }),
-            ),
-        );
-
-        // Lấy lại variant kèm options để trả về
-        const variantWithOptions = await prisma.cosmeticVariant.findUnique({
-            where: { id: createdVariant.id },
+        // Tạo variant mới với liên kết options
+        const createdVariant = await prisma.cosmeticVariant.create({
+            data: {
+                name: data.name,
+                sku: data.sku,
+                price: data.price,
+                stock: data.stock,
+                cosmeticId,
+                CosmeticOption: {
+                    connect: optionRecords.map(option => ({ id: option.id }))
+                }
+            },
             include: {
-                CosmeticVariantOption: {
-                    include: {
-                        option: true,
-                    },
-                },
+                CosmeticOption: true,
             },
         });
 
-        const options =
-            variantWithOptions?.CosmeticVariantOption.map((v) => v.option) ??
-            [];
-
         return {
             ...createdVariant,
-            options,
+            options: createdVariant.CosmeticOption,
             inStock: createdVariant.stock,
+            image: createdVariant.image ?? undefined,
         };
     }
 
@@ -443,9 +436,10 @@ export class CosmeticService {
             name: cosmetic.name,
             description: cosmetic.description,
             price: cosmetic.price,
+            stock: cosmetic.stock,
+            image: cosmetic.image,
             distributor: this.mapDistributor(cosmetic.distributor),
             specifications: this.mapSpecifications(cosmetic.specifications),
-            stock: cosmetic.stock,
             variants: this.mapVariants(cosmetic.variants),
         };
     }
@@ -474,20 +468,81 @@ export class CosmeticService {
         }));
     }
     private static mapVariants(variants: any[]) {
-        return (variants || []).map((variant) => {
-            let options = [];
-            if (variant.CosmeticOption) {
-                options = variant.CosmeticOption;
-            } else if (variant.CosmeticVariantOption) {
-                options = variant.CosmeticVariantOption.map(
-                    (vo: any) => vo.option,
-                );
-            }
-            return {
-                name: variant.name,
-                options,
-                inStock: variant.stock,
-            };
-        });
+        return (variants || []).map((variant) => ({
+            name: variant.name,
+            options: variant.CosmeticOption || [],
+            inStock: variant.stock,
+            image: variant.image,
+            price: variant.price,
+        }));
+    }
+
+    private static toEnhancedCosmeticResponse(cosmetic: any): EnhancedCosmeticDetailRes {
+        return {
+            id: cosmetic.id,
+            name: cosmetic.name,
+            description: cosmetic.description,
+            price: cosmetic.price,
+            stock: cosmetic.stock,
+            image: cosmetic.image,
+            usageInstructions: cosmetic.usageInstructions,
+            averageRating: cosmetic.averageRating,
+            totalReviews: cosmetic.totalReviews,
+            distributor: this.mapDistributor(cosmetic.distributor),
+            specifications: this.mapSpecifications(cosmetic.specifications),
+            variants: this.mapVariants(cosmetic.variants),
+            benefits: cosmetic.benefits?.map((benefit: any) => ({
+                id: benefit.id,
+                cosmeticId: benefit.cosmeticId,
+                benefitKey: benefit.benefitKey,
+                benefitValue: benefit.benefitValue,
+                orderIndex: benefit.orderIndex,
+                createdAt: benefit.createdAt,
+                updatedAt: benefit.updatedAt,
+            })) || [],
+            badges: cosmetic.badges?.map((badge: any) => ({
+                id: badge.id,
+                cosmeticId: badge.cosmeticId,
+                badgeType: badge.badgeType,
+                title: badge.title,
+                icon: badge.icon,
+                color: badge.color,
+                isActive: badge.isActive,
+                orderIndex: badge.orderIndex,
+                createdAt: badge.createdAt,
+                updatedAt: badge.updatedAt,
+            })) || [],
+            reviews: cosmetic.reviews?.map((review: any) => ({
+                id: review.id,
+                cosmeticId: review.cosmeticId,
+                userId: review.userId,
+                rating: review.rating,
+                title: review.title,
+                content: review.content,
+                isVerified: review.isVerified,
+                isApproved: review.isApproved,
+                userName: review.user?.name,
+                createdAt: review.createdAt,
+                updatedAt: review.updatedAt,
+            })) || [],
+            shippingPolicy: cosmetic.shippingPolicy ? {
+                id: cosmetic.shippingPolicy.id,
+                name: cosmetic.shippingPolicy.name,
+                description: cosmetic.shippingPolicy.description,
+                deliveryTime: cosmetic.shippingPolicy.deliveryTime,
+                freeShippingThreshold: cosmetic.shippingPolicy.freeShippingThreshold,
+                isActive: cosmetic.shippingPolicy.isActive,
+                createdAt: cosmetic.shippingPolicy.createdAt,
+                updatedAt: cosmetic.shippingPolicy.updatedAt,
+                features: cosmetic.shippingPolicy.features?.map((feature: any) => ({
+                    id: feature.id,
+                    shippingPolicyId: feature.shippingPolicyId,
+                    title: feature.title,
+                    description: feature.description,
+                    icon: feature.icon,
+                    orderIndex: feature.orderIndex,
+                })) || [],
+            } : undefined,
+        };
     }
 }

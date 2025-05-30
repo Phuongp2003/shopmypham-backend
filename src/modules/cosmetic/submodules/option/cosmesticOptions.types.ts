@@ -1,5 +1,3 @@
-import { CosmeticVariantOption } from '../variant/cosmeticVariant.types';
-
 /**
  * @swagger
  * title: CosmeticOption
@@ -28,7 +26,6 @@ export type CosmeticOption = {
     id: string;
     optionKey: string;
     optionValue: string;
-    variantOptions?: CosmeticVariantOption[];
     createdAt: Date;
     updatedAt: Date;
 };
