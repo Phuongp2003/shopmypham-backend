@@ -2,6 +2,14 @@ import 'reflect-metadata';
 import yaml from 'js-yaml';
 import fs from 'fs';
 
+/**
+ * Convert Express path format to OpenAPI format
+ * Example: '/cosmetics/:id' => '/cosmetics/{id}'
+ */
+function convertExpressPathToOpenAPI(expressPath: string): string {
+    return expressPath.replace(/:([a-zA-Z_$][a-zA-Z0-9_$]*)/g, '{$1}');
+}
+
 export class SwaggerBuilder {
     private swagger: any = {
         paths: {},
@@ -137,12 +145,35 @@ export class SwaggerBuilder {
         }
         // Path params
         if (methodMeta.params && typeof methodMeta.params === 'string') {
-            parameters.push({
-                in: 'path',
-                name: methodMeta.params,
-                schema: { $ref: `#/components/schemas/${methodMeta.params}` },
-                required: true,
-            });
+            // Handle multiple params (comma-separated) or single param
+            const paramNames = methodMeta.params.includes(',') 
+                ? methodMeta.params.split(',').map((p: string) => p.trim())
+                : [methodMeta.params];
+            
+            for (const paramName of paramNames) {
+                parameters.push({
+                    in: 'path',
+                    name: paramName,
+                    schema: { 
+                        type: 'string',
+                        description: `Path parameter: ${paramName}`
+                    },
+                    required: true,
+                });
+            }
+        } else if (methodMeta.autoDetectedParams && Array.isArray(methodMeta.autoDetectedParams)) {
+            // Use auto-detected params from URL pattern
+            for (const paramName of methodMeta.autoDetectedParams) {
+                parameters.push({
+                    in: 'path',
+                    name: paramName,
+                    schema: { 
+                        type: 'string',
+                        description: `Auto-detected path parameter: ${paramName}`
+                    },
+                    required: true,
+                });
+            }
         }
         // Body
         let requestBody;
@@ -175,6 +206,30 @@ export class SwaggerBuilder {
         }
         const path =
             methodMeta.path || `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
+        
+        // Construct full path: if methodMeta.path starts with '/', combine with controller tag
+        // Otherwise use the path as-is for backward compatibility
+        let fullPath: string;
+        if (methodMeta.path) {
+            if (methodMeta.path.startsWith('/')) {
+                // Relative path - combine with controller tag
+                const basePath = `/${ctrlMeta.tag.toLowerCase()}`;
+                if (methodMeta.path === '/') {
+                    fullPath = basePath;
+                } else {
+                    fullPath = basePath + methodMeta.path;
+                }
+            } else {
+                // Absolute path - use as-is (legacy support)
+                fullPath = methodMeta.path;
+            }
+        } else {
+            // No path specified - use default
+            fullPath = `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
+        }
+        
+        // Convert Express path format (:id) to OpenAPI format ({id})
+        const openApiPath = convertExpressPathToOpenAPI(fullPath);
         // Kiểm tra requireHeader
         let security;
         if (
@@ -186,7 +241,7 @@ export class SwaggerBuilder {
         ) {
             security = [{ bearerAuth: [] }];
         }
-        this.addPath(path, {
+        this.addPath(openApiPath, {
             [methodMeta.method || 'get']: {
                 tags: [ctrlMeta.tag],
                 summary: methodMeta.name,

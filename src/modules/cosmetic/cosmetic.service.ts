@@ -20,15 +20,16 @@ export class CosmeticService {
         const {
             search,
             type,
-            minPrice,
-            maxPrice,
             sortBy,
             sortOrder,
-            page = 1,
-            limit = 10,
             inStock,
             hasVariants,
         } = params;
+        const minPrice = Number(params.minPrice);
+        const maxPrice = Number(params.maxPrice);
+        const page = Number(params.page);
+        const limit = Number(params.limit);
+
         const cacheKey = CacheService.generateKeyV2('cosmetics', params);
         const isCacheExist = await CacheService.exists(cacheKey);
         if (isCacheExist) {

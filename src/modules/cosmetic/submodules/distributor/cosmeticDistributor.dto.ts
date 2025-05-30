@@ -1,6 +1,6 @@
 import type { Paginated } from '@/common/types/paginated.type';
 import type { QueryParams } from '@/common/types/query.types';
-import type { CosmeticDistributor } from '@prisma/client';
+import type { CosmeticDistributor } from './cosmeticDistributor.types';
 
 /**
  * @swagger

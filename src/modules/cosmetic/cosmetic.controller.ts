@@ -29,7 +29,7 @@ export class CosmeticController {
             name: 'get-cosmetics',
             description:
                 'Trả về danh sách mỹ phẩm với filter, sort, phân trang',
-            path: '/cosmetics',
+            path: '/',
         },
         {
             query: 'CosmeticQueryParams',
@@ -60,16 +60,15 @@ export class CosmeticController {
         {
             name: 'get-cosmetic-by-id',
             description: 'Lấy chi tiết mỹ phẩm theo ID',
-            path: '/cosmetics/:id',
+            path: '/:id',
         },
         {
-            query: 'id',
             response: 'CosmeticRes',
         },
     )
     static async getCosmeticById(req: Request, res: Response): Promise<void> {
         try {
-            const { id } = req.query;
+            const { id } = req.params;
 
             if (!id || typeof id !== 'string') {
                 res.status(HttpStatus.BAD_REQUEST).json({
@@ -99,7 +98,7 @@ export class CosmeticController {
         {
             name: 'create-cosmetic',
             description: 'Tạo mới mỹ phẩm',
-            path: '/cosmetics',
+            path: '/',
         },
         {
             body: 'CosmeticCreateReq',
@@ -131,10 +130,9 @@ export class CosmeticController {
         {
             name: 'update-cosmetic',
             description: 'Cập nhật thông tin mỹ phẩm',
-            path: '/cosmetics/:id',
+            path: '/:id',
         },
         {
-            params: 'id',
             body: 'CosmeticUpdateReq',
             response: 'CosmeticRes',
         },
@@ -165,10 +163,10 @@ export class CosmeticController {
         {
             name: 'delete-cosmetic',
             description: 'Xoá mỹ phẩm theo ID',
-            path: '/cosmetics/:id',
+            path: '/:id',
         },
         {
-            params: 'id',
+            // params auto-detected from path - no need to specify
         },
     )
     @RequireHeader()

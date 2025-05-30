@@ -2,6 +2,23 @@ import 'reflect-metadata';
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
+// --- Utility Functions ---
+/**
+ * Extract path parameters from URL pattern
+ * Example: '/cosmetics/:id/variants/:variantId' => ['id', 'variantId']
+ */
+export function extractPathParams(path: string): string[] {
+    const paramPattern = /:([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+    const params: string[] = [];
+    let match;
+    
+    while ((match = paramPattern.exec(path)) !== null) {
+        params.push(match[1]);
+    }
+    
+    return params;
+}
+
 // --- Annotation Decorators ---
 export function Controller(options: { tag: string; description?: string }) {
     return function (target: Function) {
@@ -39,7 +56,7 @@ function SwaggerMethod(
     },
     swaggerInfo?: {
         query?: string;
-        params?: string;
+        params?: string; // This will be auto-detected if not provided
         body?: string;
         response?: string;
         header?: string;
@@ -50,9 +67,34 @@ function SwaggerMethod(
         propertyKey: string,
         descriptor: PropertyDescriptor,
     ) {
+        // Auto-detect path parameters if path is provided
+        let autoDetectedParams: string[] = [];
+        if (meta.path) {
+            autoDetectedParams = extractPathParams(meta.path);
+        }
+        
+        // Merge auto-detected params with manually specified params
+        const finalSwaggerInfo = { ...swaggerInfo };
+        
+        // If params not manually specified but we found params in path, use auto-detected
+        if (!finalSwaggerInfo.params && autoDetectedParams.length > 0) {
+            // For single param, use string. For multiple params, use array or object
+            if (autoDetectedParams.length === 1) {
+                finalSwaggerInfo.params = autoDetectedParams[0];
+            } else {
+                // For multiple params, we'll store as comma-separated string
+                // The SwaggerBuilder will need to handle this
+                finalSwaggerInfo.params = autoDetectedParams.join(',');
+            }
+        }
+        
         Reflect.defineMetadata(
             'swagger:method',
-            { ...meta, ...swaggerInfo },
+            { 
+                ...meta, 
+                ...finalSwaggerInfo,
+                autoDetectedParams // Store for SwaggerBuilder to use
+            },
             target,
             propertyKey,
         );
