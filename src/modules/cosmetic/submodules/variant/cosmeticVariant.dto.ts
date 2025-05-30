@@ -18,6 +18,9 @@
  *   stock:
  *     type: number
  *     description: Số lượng
+ *   image:
+ *     type: string
+ *     description: URL hình ảnh biến thể
  */
 export type CosmeticVariantCreateReq = {
     cosmeticId: string;
@@ -25,6 +28,7 @@ export type CosmeticVariantCreateReq = {
     sku: string;
     price: number;
     stock: number;
+    image?: string;
 };
 
 /**
@@ -34,15 +38,22 @@ export type CosmeticVariantCreateReq = {
  * properties:
  *   name:
  *     type: string
+ *     description: Tên biến thể
  *   sku:
  *     type: string
+ *     description: Mã sản phẩm
  *   price:
  *     type: number
+ *     description: Giá
  *   stock:
  *     type: number
+ *     description: Số lượng
+ *   image:
+ *     type: string
+ *     description: URL hình ảnh biến thể
  */
 export type CosmeticVariantUpdateReq = Partial<
-    Pick<CosmeticVariantCreateReq, 'name' | 'sku' | 'price' | 'stock'>
+    Pick<CosmeticVariantCreateReq, 'name' | 'sku' | 'price' | 'stock' | 'image'>
 >;
 
 /**
@@ -52,22 +63,33 @@ export type CosmeticVariantUpdateReq = Partial<
  * properties:
  *   id:
  *     type: string
+ *     description: ID biến thể
  *   cosmeticId:
  *     type: string
+ *     description: ID mỹ phẩm
  *   name:
  *     type: string
+ *     description: Tên biến thể
  *   sku:
  *     type: string
+ *     description: Mã sản phẩm
  *   price:
  *     type: number
+ *     description: Giá
  *   stock:
  *     type: number
+ *     description: Số lượng
+ *   image:
+ *     type: string
+ *     description: URL hình ảnh biến thể
  *   createdAt:
  *     type: string
  *     format: date-time
+ *     description: Ngày tạo
  *   updatedAt:
  *     type: string
  *     format: date-time
+ *     description: Ngày cập nhật
  */
 export type CosmeticVariantResponse = {
     id: string;
@@ -76,6 +98,7 @@ export type CosmeticVariantResponse = {
     sku: string;
     price: number;
     stock: number;
+    image?: string;
     createdAt: Date;
     updatedAt: Date;
 };

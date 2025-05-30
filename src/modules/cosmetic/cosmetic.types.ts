@@ -6,18 +6,23 @@ import type { CosmeticSpec } from './submodules/specification/cosmeticSpecificat
  * title: VariantResponse
  * type: object
  * properties:
+ *   name:
+ *     type: string
+ *     description: Tên biến thể
  *   options:
  *     type: array
  *     items:
  *       $ref: '#/components/schemas/CosmeticOption'
- *   displayName:
- *     type: string
+ *     description: Danh sách options của biến thể
  *   inStock:
- *     type: boolean
+ *     type: number
+ *     description: Số lượng tồn kho
  */
 export type VariantResponse = {
     name: CosmeticVariant['name'];
     options: CosmeticVariant['CosmeticOption'];
+    image?: CosmeticVariant['image'];
+    price: CosmeticVariant['price'];
     inStock: CosmeticVariant['stock'];
 };
 
@@ -52,6 +57,7 @@ export type Cosmetic = {
     price: number;
     stock: number;
     type: CosmeticType;
+    image?: string;
     distributorId: string;
     createdAt: Date;
     updatedAt: Date;
