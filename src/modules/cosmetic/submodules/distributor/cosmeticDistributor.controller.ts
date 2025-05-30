@@ -22,7 +22,7 @@ export class CosmeticDistributorController {
         },
         {
             query: 'CosmeticDistributorQueryParams',
-            response: 'PaginatedCosmeticDistributorResponse',
+            response: 'PaginatedCosmeticDistributorRes',
         },
     )
     static async getAll(req: Request, res: Response) {
@@ -41,8 +41,8 @@ export class CosmeticDistributorController {
             path: '/cosmetics/distributors/:id',
         },
         {
-            query: 'CosmeticDistributorQueryParams',
-            response: 'CosmeticDistributorResponse',
+            query: 'GetCosmeticDistributorByIdQueryParams',
+            response: 'CosmeticDistributor',
         },
     )
     static async getById(req: Request, res: Response) {

@@ -1,3 +1,4 @@
+import { QueryParams } from './../../common/types/query.types';
 import {
     VariantResponse,
     type Cosmetic,
@@ -16,6 +17,12 @@ import { Paginated } from '@/common/types/paginated.type';
  *   name:
  *     type: string
  *     description: Tên mỹ phẩm
+ *   description:
+ *     type: string
+ *     description: Mô tả mỹ phẩm
+ *   price:
+ *     type: number
+ *     description: Giá mỹ phẩm
  *   distributor:
  *     $ref: '#/components/schemas/CosmeticDistributor'
  *     description: Nhà phân phối
@@ -39,9 +46,35 @@ import { Paginated } from '@/common/types/paginated.type';
 export interface CosmeticRes {
     id: Cosmetic['id'];
     name: Cosmetic['name'];
+    description: Cosmetic['description'];
+    price: Cosmetic['price'];
     distributor?: Cosmetic['distributor'];
     specifications: Cosmetic['specifications'];
     variants: VariantResponse[];
+    stock: Cosmetic['stock'];
+}
+
+/**
+ * @swagger
+ * title: GetAllCosmeticRes
+ * type: object
+ * properties:
+ *   id:
+ *     type: string
+ *   name:
+ *     type: string
+ *   description:
+ *     type: string
+ *   price:
+ *     type: number
+ *   stock:
+ *     type: number
+ */
+export interface GetAllCosmeticRes {
+    id: Cosmetic['id'];
+    name: Cosmetic['name'];
+    description: Cosmetic['description'];
+    price: Cosmetic['price'];
     stock: Cosmetic['stock'];
 }
 
@@ -64,7 +97,7 @@ export interface CosmeticRes {
  *       $ref: '#/components/schemas/CosmeticRes'
  */
 export interface PaginatedCosmeticRes extends Paginated {
-    cosmetics: CosmeticRes[];
+    cosmetics: GetAllCosmeticRes[];
 }
 
 /**
@@ -105,15 +138,11 @@ export interface PaginatedCosmeticRes extends Paginated {
  *     type: boolean
  *     description: Chỉ lấy sản phẩm có biến thể
  */
-export type CosmeticQueryParams = {
-    search?: string;
+export type CosmeticQueryParams = QueryParams & {
     type?: CosmeticType;
     minPrice?: number;
     maxPrice?: number;
     sortBy?: 'price' | 'name' | 'createdAt';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    limit?: number;
     inStock?: boolean;
     hasVariants?: boolean;
 };

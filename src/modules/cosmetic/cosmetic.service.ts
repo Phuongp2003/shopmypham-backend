@@ -10,10 +10,8 @@ import {
     CosmeticUpdateReq,
     CosmeticRes,
     PaginatedCosmeticRes,
+    GetAllCosmeticRes,
 } from './cosmetic.dto';
-import { CosmeticSpecificationService } from './submodules/specification/cosmeticSpecification.service';
-import { CosmeticOptionService } from './submodules/option/cosmesticOptions.service';
-import { CosmeticVariantService } from './submodules/variant/cosmeticVariant.service';
 
 export class CosmeticService {
     static async getCosmetics(
@@ -63,24 +61,12 @@ export class CosmeticService {
                     : { createdAt: 'desc' },
                 skip: (page - 1) * limit,
                 take: limit,
-                include: {
-                    distributor: true,
-                    specifications: true,
-                    variants: {
-                        include: {
-                            CosmeticOption: true,
-                            CosmeticVariantOption: {
-                                include: { option: true },
-                            },
-                        },
-                    },
-                },
             }),
             prisma.cosmetic.count({ where }),
         ]);
-
+        console.log(cosmetics);
         const result: PaginatedCosmeticRes = {
-            cosmetics: cosmetics.map(this.toCosmeticResponse),
+            cosmetics: cosmetics.map((cosmetic) => this.toCosmeticResponse(cosmetic)) as GetAllCosmeticRes[],
             total,
             page,
             limit,
@@ -454,6 +440,8 @@ export class CosmeticService {
         return {
             id: cosmetic.id,
             name: cosmetic.name,
+            description: cosmetic.description,
+            price: cosmetic.price,
             distributor: this.mapDistributor(cosmetic.distributor),
             specifications: this.mapSpecifications(cosmetic.specifications),
             stock: cosmetic.stock,
@@ -470,7 +458,7 @@ export class CosmeticService {
             email: distributor.email ?? '',
             createdAt: distributor.createdAt,
             updatedAt: distributor.updatedAt,
-            cosmetics: [],
+            cosmetics: distributor.cosmetics ?? [],
         };
     }
     private static mapSpecifications(specs: any[]) {
