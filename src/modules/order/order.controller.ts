@@ -18,7 +18,6 @@ import {
     Get,
     Post,
     Put,
-    Delete,
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 
@@ -30,11 +29,11 @@ interface AuthenticatedRequest extends Request {
         role: UserRole;
     };
 }
-@Controller({ tag: 'OrderS', description: 'Quản lý đơn hàng' })
+@Controller({ tag: 'Orders', description: 'Quản lý đơn hàng' })
 export class OrderController {
     @Get(
         {
-            name: 'get-orders',
+            name: 'get-orders-by-user',
             description: 'Lấy danh sách đơn hàng',
             path: '/',
         },
@@ -45,14 +44,12 @@ export class OrderController {
     )
     @RequireHeader()
     static async getOrders(req: Request, res: Response): Promise<void> {
+        console.log('Get orders called. User:', req.user);
         try {
-            const user = req.user; // Ép kiểu tạm nếu req.user không có trong type Request chuẩn
-            if (!user) {
-                throw new HttpException(
-                    HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
-                );
+            if (!req.user) {
+                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
             }
+            const user = req.user;
             // Lấy params từ query và ép kiểu
             const params: OrderQueryDto = {
                 ...req.query,
@@ -89,6 +86,7 @@ export class OrderController {
     @RequireHeader()
     static async createOrder(req: Request, res: Response): Promise<void> {
         try {
+            //Lấy dữ liệu từ body và user từ request
             const data: CreateOrderDto = req.body;
             if (!req.user)
                 throw new HttpException(
@@ -124,123 +122,174 @@ export class OrderController {
         {
             name: 'get-order-by-id',
             description: 'Lấy chi tiết đơn hàng theo ID',
-            path: '/order',
+            path: '/:id',
         },
         {
-            query: 'id',
             response: 'OrderResponse',
         },
     )
-    static async getOrderById(req: Request, res: Response) {
+    @RequireHeader()
+    static async getOrderById(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const order = await OrderService.getOrderById(id);
-            res.status(HttpStatus.OK).json(order);
-        } catch (error: any) {
-            logger.error('Order get by id error:', error, {
-                service: 'OrderController',
-            });
-            if (error instanceof HttpException) {
-                res.status(error.status).json({
-                    status: 'error',
-                    message: error.message,
+            if (!id || typeof id !== 'string') {
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "Missing or invalid 'id' parameter",
                 });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    status: 'error',
-                    message: 'Internal server error',
-                });
+                return;
             }
+            if (!req.user)
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
+            const userId = req.user.id;
+            const order = await OrderService.getOrderById(userId,id);
+            console.log('Found order:', order);
+            res.status(HttpStatus.OK).json(order);
+        } catch (error: unknown) {
+            const errorResponse: ErrorResponse = {
+                status:
+                    error instanceof HttpException
+                        ? error.status
+                        : HttpStatus.INTERNAL_SERVER_ERROR,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            };
+            res.status(errorResponse.status).json(errorResponse);
         }
     }
 
-    @Put(
+    @Put(   
         {
             name: 'update-order-status',
             description: 'Cập nhật trạng thái đơn hàng',
-            path: '/orders',
+            path: '/:id',
         },
         {
-            query: 'id',
             body: 'UpdateOrderStatusDto',
             response: 'OrderResponse',
         },
     )
-    static async updateOrderStatus(req: Request, res: Response) {
+    @RequireHeader()
+    static async updateOrderById(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const data = req.body as UpdateOrderStatusDto;
-            if (!req.user) {
+            const data: UpdateOrderStatusDto =req.body;
+            console.log('Updating order with ID:', id, 'and data:', data);
+            if (!id || typeof id !== 'string') {
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "Missing or invalid 'id' parameter",
+                });
+                return;
+            }
+            if (!req.user)
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
                     'User not authenticated',
                 );
-            }
-            if (req.user.role !== UserRole.ADMIN) {
-                throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
-            }
-            const order = await OrderService.updateOrderStatus(id, data);
+            const userId = req.user.id;
+            const order = await OrderService.updateOrderById(
+                userId,
+                id,
+                data,
+            );
             res.status(HttpStatus.OK).json(order);
-        } catch (error: any) {
-            logger.error('Order update status error:', error, {
-                service: 'OrderController',
-            });
-            if (error instanceof HttpException) {
-                res.status(error.status).json({
-                    status: 'error',
-                    message: error.message,
-                });
-            } else if (error instanceof z.ZodError) {
-                res.status(HttpStatus.BAD_REQUEST).json({
-                    status: 'error',
-                    message: error.errors.map((e) => e.message).join(', '),
-                });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    status: 'error',
-                    message: 'Internal server error',
-                });
-            }
+        } catch (error: unknown) {
+            const errorResponse: ErrorResponse = {
+                status:
+                    error instanceof HttpException
+                        ? error.status
+                        : HttpStatus.INTERNAL_SERVER_ERROR,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            };
+            res.status(errorResponse.status).json(errorResponse);
         }
     }
 
-    @Delete(
+    @Get(
         {
-            name: 'cancel-order',
-            description: 'Hủy đơn hàng',
-            path: '/orders/:id',
+            name: 'get-all-orders',
+            description: 'Lấy danh sách đơn hàng',
+            path: '/ADMIN',
         },
         {
-            params: 'id',
-            //response: "OrderResponse",
+            query: 'OrderQueryDto',
+            response: 'PaginatedOrderResponse',
         },
     )
-    static async cancelOrder(req: Request, res: Response) {
+    @RequireHeader()
+    static async getAllOrders(req: Request, res: Response): Promise<void> {
+        console.log('Get orders called. User:', req.user);
         try {
-            const { id } = req.params;
             if (!req.user) {
-                throw new HttpException(
-                    HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
-                );
+                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
             }
-            const cancelledOrder = await OrderService.cancelOrder(id);
-            res.status(HttpStatus.OK).json(cancelledOrder);
-        } catch (error: any) {
-            logger.error('Order cancel error:', error, {
-                service: 'OrderController',
-            });
-            if (error instanceof HttpException) {
-                res.status(error.status).json({
-                    status: 'error',
-                    message: error.message,
-                });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    status: 'error',
-                    message: 'Internal server error',
-                });
-            }
+            const user = req.user;
+            // Lấy params từ query và ép kiểu
+            const params: OrderQueryDto = {
+                ...req.query,
+                userId: user.id,
+            } as OrderQueryDto;
+            const result = await OrderService.getAllOrders(params);
+            res.status(200).json(result);
+        } catch (error: unknown) {
+            const errorResponse: ErrorResponse = {
+                status:
+                    error instanceof HttpException
+                        ? error.status
+                        : HttpStatus.INTERNAL_SERVER_ERROR,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            };
+            res.status(errorResponse.status).json(errorResponse);
         }
     }
+    // @Delete(
+    //     {
+    //         name: 'cancel-order',
+    //         description: 'Hủy đơn hàng',
+    //         path: '/orders/:id',
+    //     },
+    //     {
+    //         params: 'id',
+    //         //response: "OrderResponse",
+    //     },
+    // )
+    // @RequireHeader()
+    // static async cancelOrder(req: AuthenticatedRequest, res: Response) {
+    //     try {
+    //         const { id } = req.params;
+    //         const userId = req.user.id;
+    //         const order = await OrderController.orderService.getOrderById(id);
+    //         if (req.user.role !== UserRole.ADMIN && order.userId !== userId) {
+    //             throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
+    //         }
+    //         const cancelledOrder =
+    //             await OrderController.orderService.cancelOrder(id);
+    //         res.status(HttpStatus.OK).json(cancelledOrder);
+    //     } catch (error: any) {
+    //         logger.error('Order cancel error:', error, {
+    //             service: 'OrderController',
+    //         });
+    //         if (error instanceof HttpException) {
+    //             res.status(error.status).json({
+    //                 status: 'error',
+    //                 message: error.message,
+    //             });
+    //         } else {
+    //             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+    //                 status: 'error',
+    //                 message: 'Internal server error',
+    //             });
+    //         }
+    //     }
+    // }
 }
