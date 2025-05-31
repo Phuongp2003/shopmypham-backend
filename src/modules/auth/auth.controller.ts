@@ -17,8 +17,6 @@ import {
     Controller,
     Get,
     Post,
-    Put,
-    Delete,
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 
@@ -207,6 +205,11 @@ export class AuthController {
                 res.cookie('accessToken', response.accessToken, {
                     httpOnly: process.env.NODE_ENV === 'production',
                     secure: process.env.NODE_ENV === 'production',
+                    domain:
+                        process.env.NODE_ENV === 'production' ||
+                        process.env.NODE_ENV === 'semi-production'
+                            ? process.env.DOMAIN
+                            : undefined,
                     sameSite: 'lax',
                     maxAge: 24 * 60 * 60 * 1000, // 1 day
                 });
@@ -214,6 +217,11 @@ export class AuthController {
                 res.cookie('refreshToken', response.refreshToken, {
                     httpOnly: process.env.NODE_ENV === 'production',
                     secure: process.env.NODE_ENV === 'production',
+                    domain:
+                        process.env.NODE_ENV === 'production' ||
+                        process.env.NODE_ENV === 'semi-production'
+                            ? process.env.DOMAIN
+                            : undefined,
                     sameSite: 'lax',
                     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                 });

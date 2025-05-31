@@ -17,6 +17,7 @@ import userRouter from '../modules/user/user.router';
 import orderRouter from '../modules/order/order.router';
 import { initAdminUser } from './init-admin';
 import { registerSwaggerAnnotations } from '../common/annotation/swagger.annotation';
+import paymentRouter from '@/modules/payment/payment.router';
 
 /**
  * AppInitializer class handles the initialization and configuration of the Express application.
@@ -156,6 +157,7 @@ export class AppInitializer {
         this.app.use('/cart', cartRouter);
         this.app.use('/users', userRouter);
         this.app.use('/orders', orderRouter);
+        this.app.use('/payment', paymentRouter);
     }
 
     private static registerErrorHandler() {

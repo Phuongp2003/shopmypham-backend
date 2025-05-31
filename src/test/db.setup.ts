@@ -2,7 +2,6 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 import { prisma } from '@/config/prisma';
-import { PrismaClient } from '@prisma/client';
 
 async function connectToDatabase() {
     try {

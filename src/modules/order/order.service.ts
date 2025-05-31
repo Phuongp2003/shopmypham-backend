@@ -8,7 +8,6 @@ import {
     UpdateOrderStatusDto,
     PaginatedOrderResponse,
 } from './order.dto';
-import { OrderStatus } from '@prisma/client';
 
 export class OrderService {
     prisma: any;
@@ -327,7 +326,7 @@ export class OrderService {
         }
       
         // 2. Nếu muốn thay đổi địa chỉ => chỉ được phép nếu status hiện tại là PENDING
-        if (addressId && order.status !== OrderStatus.PENDING) {
+        if (addressId && order.status !== 'PENDING') {
           throw new HttpException(
             HttpStatus.BAD_REQUEST,
             'Chỉ được phép thay đổi địa chỉ khi đơn hàng đang chờ xử lý (PENDING)',

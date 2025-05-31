@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { type User } from '@/modules/user/user.types';
 import type { Comment } from '@/modules/comment/comment.types';
 export type PostWithAuthor = Post & {
     author: Pick<User, 'id' | 'name' | 'email'>;

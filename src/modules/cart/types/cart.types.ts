@@ -1,5 +1,5 @@
-import { Cosmetic } from '@prisma/client';
-
+import { type Cosmetic } from '@/modules/cosmetic/cosmetic.types';
+    
 export interface CartItem {
     cosmeticId: string;
     quantity: number;

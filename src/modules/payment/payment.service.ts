@@ -3,20 +3,18 @@ import crypto from 'crypto';
 
 import { HttpStatus } from '@/common/enums/http-status.enum';
 import { HttpException } from '@/common/exceptions/http.exception';
-import { OrderStatus, PaymentStatus, PrismaClient } from '@prisma/client';
 
 import {
     CreatePaymentDto,
     MOMOPaymentCallback,
     MOMOPaymentRequest,
     MOMOPaymentResponse,
-} from './types/payment.types';
-
+} from './payment.types';
+import { prisma } from '@/config/prisma';
 export class PaymentService {
-    static prisma = new PrismaClient();
 
     static async createPayment(data: CreatePaymentDto) {
-        const order = await PaymentService.prisma.order.findUnique({
+        const order = await prisma.order.findUnique({
             where: { id: data.orderId },
         });
 
@@ -24,11 +22,11 @@ export class PaymentService {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Order not found');
         }
 
-        return await PaymentService.prisma.payment.create({
+        return await prisma.payment.create({
             data: {
-                orderId: data.orderId,
+                order: { connect: { id: data.orderId } },
                 amount: data.amount,
-                status: PaymentStatus.PENDING,
+                status: 'PENDING',
                 paymentMethod: data.paymentMethod,
             },
         });
@@ -58,8 +56,7 @@ export class PaymentService {
 
         const requestBody = {
             partnerCode,
-            partnerName: 'Test',
-            storeId: process.env.MOMO_STORE_ID,
+            partnerName: 'ShopMyPhamDPT',
             requestId,
             amount: data.amount,
             orderId: data.orderId,
@@ -87,8 +84,39 @@ export class PaymentService {
     }
 
     static async handleMOMOCallback(data: MOMOPaymentCallback) {
-        const payment = await PaymentService.prisma.payment.findFirst({
-            where: { orderId: data.orderId },
+        const secretKey = process.env.MOMO_SECRET_KEY;
+        if (!secretKey) {
+            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, 'MOMO secret key missing');
+        }
+
+        // Tạo rawSignature theo tài liệu MoMo
+        const rawSignature =
+            `accessKey=${process.env.MOMO_ACCESS_KEY}` +
+            `&amount=${data.amount}` +
+            `&extraData=${data.extraData}` +
+            `&message=${data.message}` +
+            `&orderId=${data.orderId}` +
+            `&orderInfo=${data.orderInfo}` +
+            `&orderType=${data.orderType}` +
+            `&partnerCode=${data.partnerCode}` +
+            `&payType=${data.payType}` +
+            `&requestId=${data.requestId}` +
+            `&responseTime=${data.responseTime}` +
+            `&resultCode=${data.resultCode}` +
+            `&transId=${data.transId}`;
+
+        const signature = crypto
+            .createHmac('sha256', secretKey)
+            .update(rawSignature)
+            .digest('hex');
+
+        if (signature !== data.signature) {
+            throw new HttpException(HttpStatus.BAD_REQUEST, 'Invalid MoMo signature');
+        }
+
+        const payment = await prisma.payment.findFirst({
+            where: { order: { id: data.orderId } },
+            include: { order: true },
         });
 
         if (!payment) {
@@ -96,34 +124,34 @@ export class PaymentService {
         }
 
         if (data.resultCode === 0) {
-            await PaymentService.prisma.payment.update({
+            await prisma.payment.update({
                 where: { id: payment.id },
                 data: {
-                    status: PaymentStatus.COMPLETED,
+                    status: 'COMPLETED',
                     transactionId: data.transId,
                 },
             });
 
-            await PaymentService.prisma.order.update({
-                where: { id: payment.orderId },
+            const orderId = payment.order?.id || data.orderId;
+            await prisma.order.update({
+                where: { id: orderId },
                 data: {
-                    status: OrderStatus.PROCESSING,
+                    status: 'PENDING',
                 },
             });
         } else {
-            await PaymentService.prisma.payment.update({
+            await prisma.payment.update({
                 where: { id: payment.id },
                 data: {
-                    status: PaymentStatus.FAILED,
+                    status: 'FAILED',
                 },
             });
         }
-
         return { message: 'Success' };
     }
 
     static async getPaymentById(id: string) {
-        const payment = await PaymentService.prisma.payment.findUnique({
+        const payment = await prisma.payment.findUnique({
             where: { id },
         });
 
