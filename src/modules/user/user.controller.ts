@@ -5,20 +5,29 @@ import {
     CreateUserReq,
     UpdateUserReq,
     type ChangePasswordReq,
+    type ChangeStatusReq,
 } from './user.dto';
 import { UserService } from './user.service';
 
 export class UserController {
     static async findAll(req: Request, res: Response) {
         try {
-            const users = await UserService.findAll();
+            const { page = 1, limit = 10 } = req.query;
+            const users = await UserService.findAll(
+                Number(page),
+                Number(limit),
+            );
             res.json(users);
         } catch (error) {
             if (error instanceof HttpException) {
-                res.status(error.status).json({ message: error.message });
+                res.status(error.status).json({
+                    message: error.message,
+                    code: error.status,
+                });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -34,7 +43,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -50,7 +60,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -67,7 +78,26 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                });
+            }
+        }
+    }
+
+    static async changeStatus(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const dto: ChangeStatusReq = req.body;
+            await UserService.changeStatus(id, dto);
+            res.status(HttpStatus.OK).send();
+        } catch (error) {
+            if (error instanceof HttpException) {
+                res.status(error.status).json({ message: error.message });
+            } else {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -83,7 +113,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -94,7 +125,7 @@ export class UserController {
             if (!req.user) {
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
+                    'Người dùng không được xác thực',
                 );
             }
             const user = await UserService.findById(req.user.id);
@@ -104,7 +135,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -115,7 +147,7 @@ export class UserController {
             if (!req.user) {
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
+                    'Người dùng không được xác thực',
                 );
             }
             const dto: UpdateUserReq = req.body;
@@ -126,7 +158,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -137,7 +170,7 @@ export class UserController {
             if (!req.user) {
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
+                    'Người dùng không được xác thực',
                 );
             }
             await UserService.delete(req.user.id);
@@ -147,7 +180,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -170,6 +204,7 @@ export class UserController {
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                     message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }
@@ -180,7 +215,7 @@ export class UserController {
             if (!req.user) {
                 throw new HttpException(
                     HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
+                    'Người dùng không được xác thực',
                 );
             }
             await UserService.unlinkGoogleAccount(req.user.id);
@@ -190,7 +225,8 @@ export class UserController {
                 res.status(error.status).json({ message: error.message });
             } else {
                 res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                    message: 'Internal server error',
+                    message: 'Lỗi máy chủ nội bộ',
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
                 });
             }
         }

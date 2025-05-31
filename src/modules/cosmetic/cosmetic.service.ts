@@ -15,6 +15,7 @@ import {
 } from './cosmetic.dto';
 
 export class CosmeticService {
+    static stackKey = 'cosmeticKey';
     static async getCosmetics(
         params: CosmeticQueryParams,
     ): Promise<PaginatedCosmeticRes> {
@@ -84,6 +85,8 @@ export class CosmeticService {
             limit,
             totalPages: Math.ceil(total / limit),
         };
+        await CacheService.set(cacheKey, result);
+        await CacheService.pushToStack(CosmeticService.stackKey, cacheKey);
         return result;
     }
 
@@ -203,6 +206,7 @@ export class CosmeticService {
                     distributor: true,
                 },
             });
+            CacheService.clearStack(CosmeticService.stackKey);
             return this.toCosmeticResponse(cosmeticWithVariants!);
         });
     }
@@ -330,6 +334,7 @@ export class CosmeticService {
                     distributor: true,
                 },
             });
+            CacheService.clearStack(CosmeticService.stackKey);
             return this.toCosmeticResponse(cosmeticWithVariants!);
         });
     }
@@ -357,6 +362,7 @@ export class CosmeticService {
             await tx.cosmeticSpec.deleteMany({ where: { cosmeticId: id } });
             // Cuối cùng xoá mỹ phẩm
             await tx.cosmetic.delete({ where: { id } });
+            CacheService.clearStack(CosmeticService.stackKey);
         });
     }
 
@@ -421,6 +427,7 @@ export class CosmeticService {
             },
         });
 
+        CacheService.clearStack(CosmeticService.stackKey);
         return {
             ...createdVariant,
             options: createdVariant.CosmeticOption,
