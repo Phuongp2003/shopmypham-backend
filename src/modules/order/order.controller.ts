@@ -127,14 +127,10 @@ export class OrderController {
             response: 'OrderResponse',
         },
     )
-    static async getOrderById(req: AuthenticatedRequest, res: Response) {
+    static async getOrderById(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const userId = req.user.id;
-            const order = await OrderController.orderService.getOrderById(id);
-            if (req.user.role !== UserRole.ADMIN && order.userId !== userId) {
-                throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
-            }
+            const order = await OrderService.getOrderById(id);
             res.status(HttpStatus.OK).json(order);
         } catch (error: any) {
             logger.error('Order get by id error:', error, {
@@ -166,14 +162,17 @@ export class OrderController {
             response: 'OrderResponse',
         },
     )
-    static async updateOrderStatus(req: AuthenticatedRequest, res: Response) {
+    static async updateOrderStatus(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const data = UpdateOrderStatusDto.parse(req.body);
+            const data = req.body as UpdateOrderStatusDto;
+            if (!req.user) {
+                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+            }
             if (req.user.role !== UserRole.ADMIN) {
                 throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
             }
-            const order = await OrderController.orderService.updateOrderStatus(
+            const order = await OrderService.updateOrderStatus(
                 id,
                 data,
             );
@@ -212,16 +211,14 @@ export class OrderController {
             //response: "OrderResponse",
         },
     )
-    static async cancelOrder(req: AuthenticatedRequest, res: Response) {
+    static async cancelOrder(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const userId = req.user.id;
-            const order = await OrderController.orderService.getOrderById(id);
-            if (req.user.role !== UserRole.ADMIN && order.userId !== userId) {
-                throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
+            if (!req.user) {
+                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
             }
             const cancelledOrder =
-                await OrderController.orderService.cancelOrder(id);
+                await OrderService.cancelOrder(id);
             res.status(HttpStatus.OK).json(cancelledOrder);
         } catch (error: any) {
             logger.error('Order cancel error:', error, {

@@ -77,6 +77,7 @@ export type CartDetail = {
     createdAt: Date;
     updatedAt: Date;
     variant: CosmeticVariant;
+    image?: string;
 };
 
 /**
@@ -161,10 +162,12 @@ export type CartItem = {
   // Dữ liệu thêm để show
   sku: string;
   cosmeticName: string;
+  stock: number;
   options: {
     key: string;
     value: string;
   }[];
+  image?: string;
 };
 
 /**
@@ -216,7 +219,8 @@ export type CartItemResponse = {
   quantity: number;
   price: number;
   totalPrice: number;
-
+  image?: string;
+  stock: number;
   sku: string;
   cosmeticName: string;
   options: {
@@ -240,10 +244,3 @@ export type CartItemResponse = {
 export type SuccessResponse = {
   message: string;
 };
-
-
-
-
-
-
-

@@ -3,6 +3,7 @@ import { UserRole } from '@/common/enums/user-role.enum';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
 import { roleMiddleware } from '@/common/middlewares/role.middleware';
 import { UserController } from './user.controller';
+import addressRouter from './submodules/address/address.router';
 
 const router = Router();
 
@@ -18,6 +19,9 @@ router.put('/me', UserController.updateMe);
 router.delete('/me', UserController.deleteMe);
 router.delete('/me/google/unlink', UserController.unlinkGoogleAccount);
 router.put('/me/password', UserController.changePassword);
+
+// Address submodule (for current user)
+router.use('/addresses', addressRouter);
 
 // Admin routes
 router.use(roleMiddleware([UserRole.ADMIN]));

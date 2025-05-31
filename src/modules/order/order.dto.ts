@@ -230,3 +230,18 @@ export interface OrderResponse {
 export interface PaginatedOrderResponse extends Paginated {
     orders: OrderResponse[];
 }
+
+/**
+ * @swagger
+ * title: UpdateOrderStatusDto
+ * type: object
+ * properties:
+ *   status:
+ *     type: string
+ *     enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
+ *     description: Trạng thái đơn hàng
+ */
+
+export interface UpdateOrderStatusDto {
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+}

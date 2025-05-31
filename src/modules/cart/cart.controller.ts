@@ -92,12 +92,8 @@ export class CartController {
     try {
       if (!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, "User not authenticated");
       const userId = req.user.id;
-      const { variantId } = req.params;
-      if (!variantId) {
-        throw new HttpException(HttpStatus.BAD_REQUEST, "Missing variantId parameter");
-      }
       const dto: UpdateCartItemDto = req.body;
-      const cart = await CartService.updateCartItem(userId, variantId, dto);
+      const cart = await CartService.updateCartItem(userId, dto);
       res.json(cart);
     } catch (error: unknown) {
       const errorResponse: ErrorResponse = {
@@ -154,7 +150,11 @@ export class CartController {
       await CartService.removeCartItem(userId, variantId);
       res.status(200).json({ message: 'Xoá sản phẩm khỏi giỏ hàng thành công' } satisfies SuccessResponse);
   } catch (error) {
-    res.status(500).json({ message: "Lỗi hệ thống" });
+    if (error instanceof HttpException) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Lỗi hệ thống" });
+    }
   }
   }
 

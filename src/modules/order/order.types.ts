@@ -1,7 +1,6 @@
 import type { User } from "@/modules/user/user.types";
 //import type { PaymentStatus } from "@/modules/payment/payment.types";
 import type { CosmeticVariant } from '@/modules/cosmetic/submodules/variant/cosmeticVariant.types';
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 
 export type Order = {
@@ -169,3 +168,16 @@ export type Payment = {
 //   sortBy?: string;
 //   sortOrder?: "asc" | "desc";
 // }
+
+/**
+ * @swagger
+ * title: OrderStatus
+ * type: string
+ * enum:
+ *   - PENDING
+ *   - PROCESSING
+ *   - SHIPPED
+ *   - DELIVERED
+ *   - CANCELLED
+ */
+export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';

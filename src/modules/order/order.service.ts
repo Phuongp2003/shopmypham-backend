@@ -5,32 +5,71 @@ import { OrderResponse } from './order.dto';
 import {
     CreateOrderDto,
     OrderQueryDto,
-    UpdateOrderStatusDto,
     PaginatedOrderResponse,
+    UpdateOrderStatusDto,
 } from './order.dto';
+import { OrderStatus } from './order.types';
+
+// Định nghĩa lại interface UpdateOrderStatusDto nếu chưa có
 
 export class OrderService {
+    // PRIVATE MAPPING HELPERS
+    private static mapOrder(order: any): OrderResponse {
+        return {
+            id: order.id,
+            userId: order.userId,
+            status: order.status,
+            note: order.note || undefined,
+            address: order.address,
+            payments: order.payment ? OrderService.mapPayment(order.payment) : {
+                id: '', paymentMethod: '', amount: 0, status: 'PENDING', transactionId: null, createdAt: new Date(), updatedAt: new Date()
+            },
+            details: (order.details || []).map(OrderService.mapOrderDetail),
+        };
+    }
+    private static mapOrderDetail(detail: any) {
+        const variant = detail.variant;
+        return {
+            variantId: variant.id,
+            quantity: detail.quantity,
+            price: detail.price,
+            sku: variant.sku,
+            image: variant.image,
+            cosmeticName: variant.cosmetic?.name,
+            options: (variant.CosmeticOption || []).map((opt: any) => ({
+                key: opt.optionKey,
+                value: opt.optionValue,
+            })),
+        };
+    }
+    private static mapPayment(payment: any) {
+        return {
+            id: payment.id,
+            paymentMethod: payment.paymentMethod,
+            amount: payment.amount,
+            status: payment.status,
+            transactionId: payment.transactionId,
+            createdAt: payment.createdAt,
+            updatedAt: payment.updatedAt,
+        };
+    }
+
     static async createOrder(
         userId: string,
         dto: CreateOrderDto,
     ): Promise<OrderResponse> {
         const { addressId, note, payment, details } = dto;
-
-        // 1. Kiểm tra tất cả các variant có tồn tại không
         const variantIds = details.map((d) => d.variantId);
         const variants = await prisma.cosmeticVariant.findMany({
             where: { id: { in: variantIds } },
             include: { cosmetic: true },
         });
-
         if (variants.length !== details.length) {
             throw new HttpException(
                 HttpStatus.BAD_REQUEST,
                 'Một số sản phẩm không tồn tại',
             );
         }
-
-        // 2. Kiểm tra tồn kho cho từng sản phẩm
         for (const detail of details) {
             const variant = variants.find((v) => v.id === detail.variantId);
             if (!variant || variant.stock < detail.quantity) {
@@ -40,101 +79,82 @@ export class OrderService {
                 );
             }
         }
-
-        // 3. Giao dịch tạo đơn hàng + thanh toán + trừ kho
         return await prisma.$transaction(async (tx) => {
-          if (!addressId) {
-            throw new HttpException(HttpStatus.BAD_REQUEST, 'Địa chỉ giao hàng không được bỏ trống');
-          }
-        
-          // Tạo order
-          const order = await tx.order.create({
-            data: {
-              userId,
-              addressId,
-              note,
-              status: 'PENDING',
-              details: {
-                create: details.map((d) => ({
-                  variantId: d.variantId,
-                  quantity: d.quantity,
-                  price: d.price,
-                })),
-              },
-            },
-            include: {
-              details: true,
-              address: true,
-            },
-          });
-        
-          // Tạo payment bắt buộc luôn có
-          // Nếu không có payment input thì tạo 1 payment mặc định
-          const paymentData = payment ?? {
-            paymentMethod: 'UNKNOWN',  // hoặc mặc định bạn muốn
-            amount: details.reduce((sum, d) => sum + d.price * d.quantity, 0),
-            transactionId: null,
-            status: 'PENDING',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-        
-          const createdPayment = await tx.payment.create({
-            data: {
-              ...paymentData,
-              order: {
-                connect: { id: order.id },
-              },
-            },
-          });
-        
-          // Cập nhật tồn kho
-          for (const detail of details) {
-            await tx.cosmeticVariant.update({
-              where: { id: detail.variantId },
-              data: {
-                stock: { decrement: detail.quantity },
-              },
+            if (!addressId) {
+                throw new HttpException(HttpStatus.BAD_REQUEST, 'Địa chỉ giao hàng không được bỏ trống');
+            }
+            const order = await tx.order.create({
+                data: {
+                    userId,
+                    addressId,
+                    note,
+                    status: 'PENDING',
+                    details: {
+                        create: details.map((d) => ({
+                            variantId: d.variantId,
+                            quantity: d.quantity,
+                            price: d.price,
+                        })),
+                    },
+                },
+                include: {
+                    details: {
+                        include: {
+                            variant: {
+                                include: {
+                                    cosmetic: true,
+                                    CosmeticOption: true,
+                                },
+                            },
+                        },
+                    },
+                    address: true,
+                    payment: true,
+                },
             });
-          }
-        
-          // Lấy lại order đã có payment
-          const fullOrder = await tx.order.findUnique({
-            where: { id: order.id },
-            include: {
-              details: true,
-              address: true,
-              payment: true,
-            },
-          });
-        
-          if (!fullOrder || !fullOrder.address || !fullOrder.payment) {
-            throw new Error('Không tìm thấy đơn hàng hoặc payment sau khi tạo!');
-          }
-        
-          return {
-            id: fullOrder.id,
-            userId: fullOrder.userId,
-            status: fullOrder.status,
-            note: fullOrder.note || undefined,
-            address: fullOrder.address,
-            details: fullOrder.details.map((d) => ({
-              variantId: d.variantId,
-              quantity: d.quantity,
-              price: d.price,
-            })),
-            payments: {
-              id: fullOrder.payment.id,
-              paymentMethod: fullOrder.payment.paymentMethod,
-              amount: fullOrder.payment.amount,
-              status: fullOrder.payment.status,
-              transactionId: fullOrder.payment.transactionId,
-              createdAt: fullOrder.payment.createdAt,
-              updatedAt: fullOrder.payment.updatedAt,
-            },
-          };
+            const paymentData = payment ?? {
+                paymentMethod: 'UNKNOWN',
+                amount: details.reduce((sum, d) => sum + d.price * d.quantity, 0),
+                transactionId: null,
+                status: 'PENDING',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+            const createdPayment = await tx.payment.create({
+                data: {
+                    ...paymentData,
+                    order: { connect: { id: order.id } },
+                },
+            });
+            for (const detail of details) {
+                await tx.cosmeticVariant.update({
+                    where: { id: detail.variantId },
+                    data: { stock: { decrement: detail.quantity } },
+                });
+            }
+            const fullOrder = await tx.order.findUnique({
+                where: { id: order.id },
+                include: {
+                    details: {
+                        include: {
+                            variant: {
+                                include: {
+                                    cosmetic: true,
+                                    CosmeticOption: true,
+                                },
+                            },
+                        },
+                    },
+                    address: true,
+                    payment: true,
+                },
+            });
+            if (!fullOrder || !fullOrder.address || !fullOrder.payment) {
+                throw new Error('Không tìm thấy đơn hàng hoặc payment sau khi tạo!');
+            }
+            return OrderService.mapOrder(fullOrder);
         });
-    }        
+    }
 
     static async getOrders(
         query: OrderQueryDto,
@@ -146,12 +166,9 @@ export class OrderService {
             sortBy = 'createdAt',
             sortOrder = 'desc',
         } = query;
-
         const where = {
             ...(status && { status }),
-            //userId= query.userId, // Assuming userId is passed in query
         };
-
         const [orders, total] = await Promise.all([
             prisma.order.findMany({
                 where,
@@ -162,6 +179,7 @@ export class OrderService {
                             variant: {
                                 include: {
                                     cosmetic: true,
+                                    CosmeticOption: true,
                                 },
                             },
                         },
@@ -177,35 +195,7 @@ export class OrderService {
             }),
             prisma.order.count({ where }),
         ]);
-
-        console.log('Orders:', orders);
-        // if (!orders || orders.length === 0) {
-        //   throw new HttpException(HttpStatus.NOT_FOUND, 'No orders found');
-        // }
-
-        const formattedOrders: OrderResponse[] = orders.map((order) => ({
-          id: order.id,
-          userId: order.user.id,
-          status: order.status,
-          address: order.address!,
-          note: order.note || undefined,
-          payments: order.payment ?? {
-            id: '',
-            paymentMethod: '',
-            amount: 0,
-            status: 'PENDING',
-            transactionId: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          details: order.details.map((detail) => ({
-            variantId: detail.variant.id,
-            quantity: detail.quantity,
-            price: detail.price,
-          })),
-        }));
-        
-
+        const formattedOrders: OrderResponse[] = orders.map(OrderService.mapOrder);
         return {
             orders: formattedOrders,
             total,
@@ -215,23 +205,32 @@ export class OrderService {
         };
     }
 
-    async getOrderById(id: string) {
-        const order = await this.prisma.order.findUnique({
+    static async getOrderById(id: string): Promise<OrderResponse> {
+        const order = await prisma.order.findUnique({
             where: { id },
             include: {
-                details: true,
+                address: true,
+                payment: true,
+                details: {
+                    include: {
+                        variant: {
+                            include: {
+                                cosmetic: true,
+                                CosmeticOption: true,
+                            },
+                        },
+                    },
+                },
             },
         });
-
         if (!order) {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Order not found');
         }
-
-        return order;
+        return OrderService.mapOrder(order);
     }
 
-    async updateOrderStatus(id: string, data: UpdateOrderStatusDto) {
-        const order = await this.prisma.order.findUnique({
+    static async updateOrderStatus(id: string, data: UpdateOrderStatusDto) {
+        const order = await prisma.order.findUnique({
             where: { id },
         });
 
@@ -239,7 +238,7 @@ export class OrderService {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Order not found');
         }
 
-        return await this.prisma.order.update({
+        return await prisma.order.update({
             where: { id },
             data: {
                 status: data.status,
@@ -250,8 +249,8 @@ export class OrderService {
         });
     }
 
-    async cancelOrder(id: string) {
-        const order = await this.prisma.order.findUnique({
+    static async cancelOrder(id: string) {
+        const order = await prisma.order.findUnique({
             where: { id },
             include: {
                 details: true,
@@ -262,7 +261,7 @@ export class OrderService {
             throw new HttpException(HttpStatus.NOT_FOUND, 'Order not found');
         }
 
-        if (order.status !== OrderStatus.PENDING) {
+        if (order.status !== 'PENDING') {
             throw new HttpException(
                 HttpStatus.BAD_REQUEST,
                 'Only pending orders can be cancelled',
@@ -270,12 +269,12 @@ export class OrderService {
         }
 
         // Return stock and update order status
-        return await this.prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: any) => {
             // Update order status
             const updatedOrder = await tx.order.update({
                 where: { id },
                 data: {
-                    status: OrderStatus.CANCELLED,
+                    status: 'CANCELLED',
                 },
                 include: {
                     details: true,
@@ -284,8 +283,8 @@ export class OrderService {
 
             // Return stock
             for (const detail of order.details) {
-                await tx.cosmetic.update({
-                    where: { id: detail.cosmeticId },
+                await tx.cosmeticVariant.update({
+                    where: { id: detail.variantId },
                     data: {
                         stock: {
                             increment: detail.quantity,

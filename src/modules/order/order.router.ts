@@ -27,23 +27,19 @@ const router = Router();
 router.get('/',AuthMiddleware.handle, OrderController.getOrders);
 router.post('/', AuthMiddleware.handle, OrderController.createOrder);
 
-// orderRouter.get("/:id", AuthMiddleware.handle, (req: Request, res: Response) =>
-//   OrderController.getOrderById(req as AuthenticatedRequest, res),
-// );
+router.get("/:id", AuthMiddleware.handle, OrderController.getOrderById);
 
-// orderRouter.patch(
-//   "/:id/status",
-//   AuthMiddleware.handle,
-//   roleMiddleware([UserRole.ADMIN]),
-//   (req: Request, res: Response) =>
-//     OrderController.updateOrderStatus(req as AuthenticatedRequest, res),
-// );
+router.patch(
+  "/:id/status",
+  AuthMiddleware.handle,
+  roleMiddleware([UserRole.ADMIN]),
+  OrderController.updateOrderStatus,
+);
 
-// orderRouter.post(
-//   "/:id/cancel",
-//   AuthMiddleware.handle,
-//   (req: Request, res: Response) =>
-//     OrderController.cancelOrder(req as AuthenticatedRequest, res),
-// );
+router.post(
+  "/:id/cancel",
+  AuthMiddleware.handle,
+  OrderController.cancelOrder,
+);
 
 export default router;

@@ -17,7 +17,7 @@ router.get("/",  CartController.getCart);
 router.post("/", CartController.createCart);
 
 // // Update cart
-router.put("/:variantId", CartController.updateCart);
+router.put("/", CartController.updateCart);
 
 // Remove cart item
 router.delete("/:variantId", CartController.removeCartItem);
