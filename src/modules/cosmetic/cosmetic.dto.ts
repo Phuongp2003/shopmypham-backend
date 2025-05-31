@@ -549,7 +549,9 @@ export type CosmeticCreateReq = {
  *         items:
  *           type: string
  */
-export type CosmeticUpdateReq = Partial<Omit<CosmeticCreateReq, 'variants' | 'benefits' | 'badges'>> & {
+export type CosmeticUpdateReq = Partial<
+    Omit<CosmeticCreateReq, 'variants' | 'benefits' | 'badges'>
+> & {
     variants?: {
         create?: CosmeticVariantInput[];
         update?: (CosmeticVariantInput & { id: string })[];

@@ -11,11 +11,11 @@ export function extractPathParams(path: string): string[] {
     const paramPattern = /:([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
     const params: string[] = [];
     let match;
-    
+
     while ((match = paramPattern.exec(path)) !== null) {
         params.push(match[1]);
     }
-    
+
     return params;
 }
 
@@ -72,10 +72,10 @@ function SwaggerMethod(
         if (meta.path) {
             autoDetectedParams = extractPathParams(meta.path);
         }
-        
+
         // Merge auto-detected params with manually specified params
         const finalSwaggerInfo = { ...swaggerInfo };
-        
+
         // If params not manually specified but we found params in path, use auto-detected
         if (!finalSwaggerInfo.params && autoDetectedParams.length > 0) {
             // For single param, use string. For multiple params, use array or object
@@ -87,13 +87,13 @@ function SwaggerMethod(
                 finalSwaggerInfo.params = autoDetectedParams.join(',');
             }
         }
-        
+
         Reflect.defineMetadata(
             'swagger:method',
-            { 
-                ...meta, 
+            {
+                ...meta,
                 ...finalSwaggerInfo,
-                autoDetectedParams // Store for SwaggerBuilder to use
+                autoDetectedParams, // Store for SwaggerBuilder to use
             },
             target,
             propertyKey,

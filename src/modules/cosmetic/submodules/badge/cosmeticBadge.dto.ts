@@ -98,4 +98,4 @@ export type CosmeticBadgeResponse = {
     orderIndex: CosmeticBadge['orderIndex'];
     createdAt: CosmeticBadge['createdAt'];
     updatedAt: CosmeticBadge['updatedAt'];
-}; 
+};

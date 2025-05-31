@@ -18,14 +18,8 @@ export class CosmeticService {
     static async getCosmetics(
         params: CosmeticQueryParams,
     ): Promise<PaginatedCosmeticRes> {
-        const {
-            search,
-            type,
-            sortBy,
-            sortOrder,
-            inStock,
-            hasVariants,
-        } = params;
+        const { search, type, sortBy, sortOrder, inStock, hasVariants } =
+            params;
         const minPrice = Number(params.minPrice);
         const maxPrice = Number(params.maxPrice);
         const page = Number(params.page) || 1;
@@ -93,7 +87,9 @@ export class CosmeticService {
         return result;
     }
 
-    static async getCosmeticById(id: string): Promise<EnhancedCosmeticDetailRes> {
+    static async getCosmeticById(
+        id: string,
+    ): Promise<EnhancedCosmeticDetailRes> {
         const cosmetic = await prisma.cosmetic.findUnique({
             where: { id },
             include: {
@@ -186,8 +182,10 @@ export class CosmeticService {
                             stock: variant.stock,
                             image: variant.image,
                             CosmeticOption: {
-                                connect: variant.optionIds.map(id => ({ id }))
-                            }
+                                connect: variant.optionIds.map((id) => ({
+                                    id,
+                                })),
+                            },
                         },
                     });
                 }
@@ -289,9 +287,11 @@ export class CosmeticService {
                                 image: variant.image,
                                 ...(variant.optionIds && {
                                     CosmeticOption: {
-                                        set: variant.optionIds.map(id => ({ id }))
-                                    }
-                                })
+                                        set: variant.optionIds.map((id) => ({
+                                            id,
+                                        })),
+                                    },
+                                }),
                             },
                         });
                     }
@@ -308,8 +308,10 @@ export class CosmeticService {
                                 stock: variant.stock,
                                 image: variant.image,
                                 CosmeticOption: {
-                                    connect: variant.optionIds.map(id => ({ id }))
-                                }
+                                    connect: variant.optionIds.map((id) => ({
+                                        id,
+                                    })),
+                                },
                             },
                         });
                     }
@@ -411,8 +413,8 @@ export class CosmeticService {
                 stock: data.stock,
                 cosmeticId,
                 CosmeticOption: {
-                    connect: optionRecords.map(option => ({ id: option.id }))
-                }
+                    connect: optionRecords.map((option) => ({ id: option.id })),
+                },
             },
             include: {
                 CosmeticOption: true,
@@ -475,7 +477,9 @@ export class CosmeticService {
         }));
     }
 
-    private static toEnhancedCosmeticResponse(cosmetic: any): EnhancedCosmeticDetailRes {
+    private static toEnhancedCosmeticResponse(
+        cosmetic: any,
+    ): EnhancedCosmeticDetailRes {
         return {
             id: cosmetic.id,
             name: cosmetic.name,
@@ -489,58 +493,67 @@ export class CosmeticService {
             distributor: this.mapDistributor(cosmetic.distributor),
             specifications: this.mapSpecifications(cosmetic.specifications),
             variants: this.mapVariants(cosmetic.variants),
-            benefits: cosmetic.benefits?.map((benefit: any) => ({
-                id: benefit.id,
-                cosmeticId: benefit.cosmeticId,
-                benefitKey: benefit.benefitKey,
-                benefitValue: benefit.benefitValue,
-                orderIndex: benefit.orderIndex,
-                createdAt: benefit.createdAt,
-                updatedAt: benefit.updatedAt,
-            })) || [],
-            badges: cosmetic.badges?.map((badge: any) => ({
-                id: badge.id,
-                cosmeticId: badge.cosmeticId,
-                badgeType: badge.badgeType,
-                title: badge.title,
-                icon: badge.icon,
-                color: badge.color,
-                isActive: badge.isActive,
-                orderIndex: badge.orderIndex,
-                createdAt: badge.createdAt,
-                updatedAt: badge.updatedAt,
-            })) || [],
-            reviews: cosmetic.reviews?.map((review: any) => ({
-                id: review.id,
-                cosmeticId: review.cosmeticId,
-                userId: review.userId,
-                rating: review.rating,
-                title: review.title,
-                content: review.content,
-                isVerified: review.isVerified,
-                isApproved: review.isApproved,
-                userName: review.user?.name,
-                createdAt: review.createdAt,
-                updatedAt: review.updatedAt,
-            })) || [],
-            shippingPolicy: cosmetic.shippingPolicy ? {
-                id: cosmetic.shippingPolicy.id,
-                name: cosmetic.shippingPolicy.name,
-                description: cosmetic.shippingPolicy.description,
-                deliveryTime: cosmetic.shippingPolicy.deliveryTime,
-                freeShippingThreshold: cosmetic.shippingPolicy.freeShippingThreshold,
-                isActive: cosmetic.shippingPolicy.isActive,
-                createdAt: cosmetic.shippingPolicy.createdAt,
-                updatedAt: cosmetic.shippingPolicy.updatedAt,
-                features: cosmetic.shippingPolicy.features?.map((feature: any) => ({
-                    id: feature.id,
-                    shippingPolicyId: feature.shippingPolicyId,
-                    title: feature.title,
-                    description: feature.description,
-                    icon: feature.icon,
-                    orderIndex: feature.orderIndex,
+            benefits:
+                cosmetic.benefits?.map((benefit: any) => ({
+                    id: benefit.id,
+                    cosmeticId: benefit.cosmeticId,
+                    benefitKey: benefit.benefitKey,
+                    benefitValue: benefit.benefitValue,
+                    orderIndex: benefit.orderIndex,
+                    createdAt: benefit.createdAt,
+                    updatedAt: benefit.updatedAt,
                 })) || [],
-            } : undefined,
+            badges:
+                cosmetic.badges?.map((badge: any) => ({
+                    id: badge.id,
+                    cosmeticId: badge.cosmeticId,
+                    badgeType: badge.badgeType,
+                    title: badge.title,
+                    icon: badge.icon,
+                    color: badge.color,
+                    isActive: badge.isActive,
+                    orderIndex: badge.orderIndex,
+                    createdAt: badge.createdAt,
+                    updatedAt: badge.updatedAt,
+                })) || [],
+            reviews:
+                cosmetic.reviews?.map((review: any) => ({
+                    id: review.id,
+                    cosmeticId: review.cosmeticId,
+                    userId: review.userId,
+                    rating: review.rating,
+                    title: review.title,
+                    content: review.content,
+                    isVerified: review.isVerified,
+                    isApproved: review.isApproved,
+                    userName: review.user?.name,
+                    createdAt: review.createdAt,
+                    updatedAt: review.updatedAt,
+                })) || [],
+            shippingPolicy: cosmetic.shippingPolicy
+                ? {
+                      id: cosmetic.shippingPolicy.id,
+                      name: cosmetic.shippingPolicy.name,
+                      description: cosmetic.shippingPolicy.description,
+                      deliveryTime: cosmetic.shippingPolicy.deliveryTime,
+                      freeShippingThreshold:
+                          cosmetic.shippingPolicy.freeShippingThreshold,
+                      isActive: cosmetic.shippingPolicy.isActive,
+                      createdAt: cosmetic.shippingPolicy.createdAt,
+                      updatedAt: cosmetic.shippingPolicy.updatedAt,
+                      features:
+                          cosmetic.shippingPolicy.features?.map(
+                              (feature: any) => ({
+                                  id: feature.id,
+                                  shippingPolicyId: feature.shippingPolicyId,
+                                  title: feature.title,
+                                  description: feature.description,
+                                  icon: feature.icon,
+                                  orderIndex: feature.orderIndex,
+                              }),
+                          ) || [],
+                  }
+                : undefined,
         };
     }
 }

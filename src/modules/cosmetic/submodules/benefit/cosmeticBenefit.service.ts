@@ -8,7 +8,9 @@ import type {
 } from './cosmeticBenefit.dto';
 
 export class CosmeticBenefitService {
-    static async getBenefitsByCosmetic(cosmeticId: string): Promise<CosmeticBenefitResponse[]> {
+    static async getBenefitsByCosmetic(
+        cosmeticId: string,
+    ): Promise<CosmeticBenefitResponse[]> {
         try {
             const benefits = await prisma.cosmeticBenefit.findMany({
                 where: { cosmeticId },
@@ -23,7 +25,9 @@ export class CosmeticBenefitService {
         }
     }
 
-    static async getBenefitById(id: string): Promise<CosmeticBenefitResponse | null> {
+    static async getBenefitById(
+        id: string,
+    ): Promise<CosmeticBenefitResponse | null> {
         try {
             const benefit = await prisma.cosmeticBenefit.findUnique({
                 where: { id },
@@ -48,7 +52,10 @@ export class CosmeticBenefitService {
             });
 
             if (!cosmetic) {
-                throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Cosmetic not found',
+                );
             }
 
             // If no orderIndex provided, use the next available index
@@ -92,7 +99,10 @@ export class CosmeticBenefitService {
             return benefit;
         } catch (error: any) {
             if (error.code === 'P2025') {
-                throw new HttpException(HttpStatus.NOT_FOUND, 'Benefit not found');
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Benefit not found',
+                );
             }
             throw new HttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -108,7 +118,10 @@ export class CosmeticBenefitService {
             });
         } catch (error: any) {
             if (error.code === 'P2025') {
-                throw new HttpException(HttpStatus.NOT_FOUND, 'Benefit not found');
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Benefit not found',
+                );
             }
             throw new HttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -117,7 +130,9 @@ export class CosmeticBenefitService {
         }
     }
 
-    static async deleteAllBenefitsByCosmetic(cosmeticId: string): Promise<void> {
+    static async deleteAllBenefitsByCosmetic(
+        cosmeticId: string,
+    ): Promise<void> {
         try {
             await prisma.cosmeticBenefit.deleteMany({
                 where: { cosmeticId },
@@ -129,4 +144,4 @@ export class CosmeticBenefitService {
             );
         }
     }
-} 
+}

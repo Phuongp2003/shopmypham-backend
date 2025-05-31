@@ -38,4 +38,4 @@ export type CosmeticBenefit = {
     createdAt: Date;
     updatedAt: Date;
     cosmetic?: Cosmetic;
-}; 
+};

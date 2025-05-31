@@ -155,4 +155,4 @@ export type CosmeticReviewResponse = {
  */
 export type PaginatedCosmeticReviewRes = Paginated & {
     reviews: CosmeticReviewResponse[];
-}; 
+};

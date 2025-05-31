@@ -21,9 +21,17 @@ export class OrderService {
             status: order.status,
             note: order.note || undefined,
             address: order.address,
-            payments: order.payment ? OrderService.mapPayment(order.payment) : {
-                id: '', paymentMethod: '', amount: 0, status: 'PENDING', transactionId: null, createdAt: new Date(), updatedAt: new Date()
-            },
+            payments: order.payment
+                ? OrderService.mapPayment(order.payment)
+                : {
+                      id: '',
+                      paymentMethod: '',
+                      amount: 0,
+                      status: 'PENDING',
+                      transactionId: null,
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                  },
             details: (order.details || []).map(OrderService.mapOrderDetail),
         };
     }
@@ -81,7 +89,10 @@ export class OrderService {
         }
         return await prisma.$transaction(async (tx) => {
             if (!addressId) {
-                throw new HttpException(HttpStatus.BAD_REQUEST, 'Địa chỉ giao hàng không được bỏ trống');
+                throw new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    'Địa chỉ giao hàng không được bỏ trống',
+                );
             }
             const order = await tx.order.create({
                 data: {
@@ -114,7 +125,10 @@ export class OrderService {
             });
             const paymentData = payment ?? {
                 paymentMethod: 'UNKNOWN',
-                amount: details.reduce((sum, d) => sum + d.price * d.quantity, 0),
+                amount: details.reduce(
+                    (sum, d) => sum + d.price * d.quantity,
+                    0,
+                ),
                 transactionId: null,
                 status: 'PENDING',
                 createdAt: new Date(),
@@ -150,7 +164,9 @@ export class OrderService {
                 },
             });
             if (!fullOrder || !fullOrder.address || !fullOrder.payment) {
-                throw new Error('Không tìm thấy đơn hàng hoặc payment sau khi tạo!');
+                throw new Error(
+                    'Không tìm thấy đơn hàng hoặc payment sau khi tạo!',
+                );
             }
             return OrderService.mapOrder(fullOrder);
         });
@@ -195,7 +211,9 @@ export class OrderService {
             }),
             prisma.order.count({ where }),
         ]);
-        const formattedOrders: OrderResponse[] = orders.map(OrderService.mapOrder);
+        const formattedOrders: OrderResponse[] = orders.map(
+            OrderService.mapOrder,
+        );
         return {
             orders: formattedOrders,
             total,

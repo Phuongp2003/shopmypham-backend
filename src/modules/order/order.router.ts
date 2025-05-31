@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { UserRole } from "@/common/enums/user-role.enum";
-import { AuthMiddleware } from "@/common/middlewares/auth.middleware";
-import { roleMiddleware } from "@/common/middlewares/role.middleware";
-import { OrderController } from "./order.controller";
+import { Router } from 'express';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
+import { roleMiddleware } from '@/common/middlewares/role.middleware';
+import { OrderController } from './order.controller';
 
 // interface AuthenticatedRequest extends Request {
 //   user: {
@@ -24,22 +24,18 @@ const router = Router();
 //   OrderController.getOrders(req as AuthenticatedRequest, res),
 // );
 
-router.get('/',AuthMiddleware.handle, OrderController.getOrders);
+router.get('/', AuthMiddleware.handle, OrderController.getOrders);
 router.post('/', AuthMiddleware.handle, OrderController.createOrder);
 
-router.get("/:id", AuthMiddleware.handle, OrderController.getOrderById);
+router.get('/:id', AuthMiddleware.handle, OrderController.getOrderById);
 
 router.patch(
-  "/:id/status",
-  AuthMiddleware.handle,
-  roleMiddleware([UserRole.ADMIN]),
-  OrderController.updateOrderStatus,
+    '/:id/status',
+    AuthMiddleware.handle,
+    roleMiddleware([UserRole.ADMIN]),
+    OrderController.updateOrderStatus,
 );
 
-router.post(
-  "/:id/cancel",
-  AuthMiddleware.handle,
-  OrderController.cancelOrder,
-);
+router.post('/:id/cancel', AuthMiddleware.handle, OrderController.cancelOrder);
 
 export default router;

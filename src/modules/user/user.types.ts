@@ -4,7 +4,6 @@ import type { Address, Order } from '@/modules/order/order.types';
 import type { Cart } from '@/modules/cart/cart.types';
 import type { CosmeticReview } from '@prisma/client';
 
-
 export type User = {
     id: string;
     email: string;

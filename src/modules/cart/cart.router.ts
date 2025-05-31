@@ -11,19 +11,19 @@ const router = Router();
 router.use(AuthMiddleware.handle);
 
 // Get user's cart
-router.get("/",  CartController.getCart);
+router.get('/', CartController.getCart);
 
 // Create new cart
-router.post("/", CartController.createCart);
+router.post('/', CartController.createCart);
 
 // // Update cart
-router.put("/", CartController.updateCart);
+router.put('/', CartController.updateCart);
 
 // Remove cart item
-router.delete("/:variantId", CartController.removeCartItem);
+router.delete('/:variantId', CartController.removeCartItem);
 
 // Clear cart
-router.delete("/", CartController.clearCart);
+router.delete('/', CartController.clearCart);
 
 // Get cart summary
 // router.get("/summary", CartController.getCartSummary);

@@ -81,4 +81,4 @@ export type ShippingPolicy = {
     updatedAt: Date;
     features: ShippingFeature[];
     cosmetics?: Cosmetic[];
-}; 
+};

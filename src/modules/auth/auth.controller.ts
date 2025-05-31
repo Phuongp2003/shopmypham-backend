@@ -27,14 +27,17 @@ import {
     description: 'Quản lý đăng nhập, đăng ký, đăng xuất',
 })
 export class AuthController {
-    @Post({
-        name: 'login',
-        description: 'Đăng nhập người dùng',
-        path: '/login',
-    }, {
-        body: 'LoginRequest',
-        response: 'AuthResponse',
-    })
+    @Post(
+        {
+            name: 'login',
+            description: 'Đăng nhập người dùng',
+            path: '/login',
+        },
+        {
+            body: 'LoginRequest',
+            response: 'AuthResponse',
+        },
+    )
     static async login(req: Request, res: Response): Promise<void> {
         try {
             const payload: LoginRequest = req.body;
@@ -54,14 +57,17 @@ export class AuthController {
         }
     }
 
-    @Post({
-        name: 'register',
-        description: 'Đăng ký người dùng',
-        path: '/register',
-    }, {
-        body: 'RegisterRequest',
-        response: 'AuthResponse',
-    })
+    @Post(
+        {
+            name: 'register',
+            description: 'Đăng ký người dùng',
+            path: '/register',
+        },
+        {
+            body: 'RegisterRequest',
+            response: 'AuthResponse',
+        },
+    )
     static async register(req: Request, res: Response): Promise<void> {
         try {
             const payload: RegisterRequest = req.body;
@@ -99,14 +105,17 @@ export class AuthController {
         }
     }
 
-    @Post({
-        name: 'refresh-token',
-        description: 'Làm mới access token bằng refresh token',
-        path: '/refresh-token',
-    }, {
-        body: 'RefreshToken',
-        response: 'AuthResponse',
-    })
+    @Post(
+        {
+            name: 'refresh-token',
+            description: 'Làm mới access token bằng refresh token',
+            path: '/refresh-token',
+        },
+        {
+            body: 'RefreshToken',
+            response: 'AuthResponse',
+        },
+    )
     static async refreshToken(req: Request, res: Response): Promise<void> {
         try {
             const payload: RefreshToken = req.body;
@@ -220,13 +229,16 @@ export class AuthController {
         })(req, res);
     }
 
-    @Post({
-        name: 'change-password',
-        description: 'Đổi mật khẩu người dùng',
-        path: '/change-password',
-    }, {
-        body: 'ChangePasswordRequest',
-    })
+    @Post(
+        {
+            name: 'change-password',
+            description: 'Đổi mật khẩu người dùng',
+            path: '/change-password',
+        },
+        {
+            body: 'ChangePasswordRequest',
+        },
+    )
     @RequireHeader()
     static async changePassword(req: Request, res: Response): Promise<void> {
         try {

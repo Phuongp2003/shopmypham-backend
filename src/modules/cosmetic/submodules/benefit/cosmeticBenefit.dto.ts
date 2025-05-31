@@ -68,4 +68,4 @@ export type CosmeticBenefitResponse = {
     orderIndex: CosmeticBenefit['orderIndex'];
     createdAt: CosmeticBenefit['createdAt'];
     updatedAt: CosmeticBenefit['updatedAt'];
-}; 
+};

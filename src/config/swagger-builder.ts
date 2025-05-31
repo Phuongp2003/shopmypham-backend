@@ -146,30 +146,33 @@ export class SwaggerBuilder {
         // Path params
         if (methodMeta.params && typeof methodMeta.params === 'string') {
             // Handle multiple params (comma-separated) or single param
-            const paramNames = methodMeta.params.includes(',') 
+            const paramNames = methodMeta.params.includes(',')
                 ? methodMeta.params.split(',').map((p: string) => p.trim())
                 : [methodMeta.params];
-            
+
             for (const paramName of paramNames) {
                 parameters.push({
                     in: 'path',
                     name: paramName,
-                    schema: { 
+                    schema: {
                         type: 'string',
-                        description: `Path parameter: ${paramName}`
+                        description: `Path parameter: ${paramName}`,
                     },
                     required: true,
                 });
             }
-        } else if (methodMeta.autoDetectedParams && Array.isArray(methodMeta.autoDetectedParams)) {
+        } else if (
+            methodMeta.autoDetectedParams &&
+            Array.isArray(methodMeta.autoDetectedParams)
+        ) {
             // Use auto-detected params from URL pattern
             for (const paramName of methodMeta.autoDetectedParams) {
                 parameters.push({
                     in: 'path',
                     name: paramName,
-                    schema: { 
+                    schema: {
                         type: 'string',
-                        description: `Auto-detected path parameter: ${paramName}`
+                        description: `Auto-detected path parameter: ${paramName}`,
                     },
                     required: true,
                 });
@@ -206,7 +209,7 @@ export class SwaggerBuilder {
         }
         const path =
             methodMeta.path || `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
-        
+
         // Construct full path: if methodMeta.path starts with '/', combine with controller tag
         // Otherwise use the path as-is for backward compatibility
         let fullPath: string;
@@ -227,7 +230,7 @@ export class SwaggerBuilder {
             // No path specified - use default
             fullPath = `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
         }
-        
+
         // Convert Express path format (:id) to OpenAPI format ({id})
         const openApiPath = convertExpressPathToOpenAPI(fullPath);
         // Kiểm tra requireHeader

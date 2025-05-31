@@ -52,4 +52,4 @@ export type CosmeticReview = {
     updatedAt: Date;
     cosmetic?: Cosmetic;
     user?: User;
-}; 
+};

@@ -105,7 +105,9 @@ export type ShippingPolicyCreateReq = {
  *           type: string
  *         description: Xóa tính năng (danh sách ID)
  */
-export type ShippingPolicyUpdateReq = Partial<Omit<ShippingPolicyCreateReq, 'features'>> & {
+export type ShippingPolicyUpdateReq = Partial<
+    Omit<ShippingPolicyCreateReq, 'features'>
+> & {
     isActive?: boolean;
     features?: {
         create?: ShippingFeatureInput[];
@@ -210,4 +212,4 @@ export type ShippingPolicyResponse = {
  */
 export type PaginatedShippingPolicyRes = Paginated & {
     shippingPolicies: ShippingPolicyResponse[];
-}; 
+};

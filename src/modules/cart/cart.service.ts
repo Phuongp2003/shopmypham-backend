@@ -284,7 +284,8 @@ export class CartService {
         const variant = await prisma.cosmeticVariant.findUnique({
             where: { id: variantId },
         });
-        if (!variant) throw new HttpException(HttpStatus.NOT_FOUND, 'Variant not found');
+        if (!variant)
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Variant not found');
 
         const cart = await prisma.cart.findUnique({ where: { userId } });
         if (!cart) return;

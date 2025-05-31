@@ -106,11 +106,11 @@ export type CartDetail = {
  */
 
 export type CartResponse = {
-  id: string;
-  userId: string;
-  items: CartItem[];
-  createdAt: string;
-  updatedAt: string;
+    id: string;
+    userId: string;
+    items: CartItem[];
+    createdAt: string;
+    updatedAt: string;
 };
 
 /**
@@ -153,21 +153,21 @@ export type CartResponse = {
  */
 
 export type CartItem = {
-  id: string;
-  variantId: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
+    id: string;
+    variantId: string;
+    quantity: number;
+    price: number;
+    totalPrice: number;
 
-  // Dữ liệu thêm để show
-  sku: string;
-  cosmeticName: string;
-  stock: number;
-  options: {
-    key: string;
-    value: string;
-  }[];
-  image?: string;
+    // Dữ liệu thêm để show
+    sku: string;
+    cosmeticName: string;
+    stock: number;
+    options: {
+        key: string;
+        value: string;
+    }[];
+    image?: string;
 };
 
 /**
@@ -212,23 +212,21 @@ export type CartItem = {
  *                 description: Giá trị của thuộc tính (VD đỏ cam, 50ml)
  */
 
-
 export type CartItemResponse = {
-  id: string;
-  variantId: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
-  image?: string;
-  stock: number;
-  sku: string;
-  cosmeticName: string;
-  options: {
-    key: string;
-    value: string;
-  }[];
+    id: string;
+    variantId: string;
+    quantity: number;
+    price: number;
+    totalPrice: number;
+    image?: string;
+    stock: number;
+    sku: string;
+    cosmeticName: string;
+    options: {
+        key: string;
+        value: string;
+    }[];
 };
-
 
 /**
  * @swagger
@@ -242,5 +240,5 @@ export type CartItemResponse = {
  */
 
 export type SuccessResponse = {
-  message: string;
+    message: string;
 };

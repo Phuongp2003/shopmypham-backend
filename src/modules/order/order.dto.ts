@@ -67,28 +67,27 @@ import { Paginated } from '@/common/types/paginated.type';
  */
 
 export interface CreateOrderDto {
-  // Không cần userId nếu lấy từ token
-  addressId: string | null;
-  note?: string;
+    // Không cần userId nếu lấy từ token
+    addressId: string | null;
+    note?: string;
 
-  // Thông tin thanh toán
-  payment?: {
-    paymentMethod: string; // Ví dụ: 'CASH', 'CREDIT_CARD', 'VNPAY', ...
-    amount: number;        // Số tiền thanh toán
-    transactionId?: string; // Mã giao dịch nếu có (có thể null nếu thanh toán khi nhận hàng)
-    createdAt?: Date; // Ngày tạo thanh toán
-    updatedAt?: Date; // Ngày cập nhật thanh toán
-    status?: 'PENDING' | 'COMPLETED' | 'FAILED'; // Trạng thái thanh toán
-  };
+    // Thông tin thanh toán
+    payment?: {
+        paymentMethod: string; // Ví dụ: 'CASH', 'CREDIT_CARD', 'VNPAY', ...
+        amount: number; // Số tiền thanh toán
+        transactionId?: string; // Mã giao dịch nếu có (có thể null nếu thanh toán khi nhận hàng)
+        createdAt?: Date; // Ngày tạo thanh toán
+        updatedAt?: Date; // Ngày cập nhật thanh toán
+        status?: 'PENDING' | 'COMPLETED' | 'FAILED'; // Trạng thái thanh toán
+    };
 
-  // Danh sách sản phẩm trong đơn hàng
-  details: {
-    variantId: string;
-    quantity: number;
-    price: number;
-  }[];
+    // Danh sách sản phẩm trong đơn hàng
+    details: {
+        variantId: string;
+        quantity: number;
+        price: number;
+    }[];
 }
-
 
 // export const UpdateOrderStatusDto = z.object({
 //     status: z.nativeEnum(OrderStatus),
@@ -191,7 +190,7 @@ export interface OrderResponse {
         id: string;
         paymentMethod: string;
         amount: number;
-        status: 'PENDING' | 'COMPLETED' | 'FAILED'|'CANCELLED';
+        status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
         transactionId?: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -243,5 +242,5 @@ export interface PaginatedOrderResponse extends Paginated {
  */
 
 export interface UpdateOrderStatusDto {
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 }

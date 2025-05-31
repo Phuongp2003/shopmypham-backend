@@ -1,4 +1,4 @@
-import type { CosmeticVariant } from "../cosmetic/submodules/variant/cosmeticVariant.types";
+import type { CosmeticVariant } from '../cosmetic/submodules/variant/cosmeticVariant.types';
 
 /**
  * @swagger
@@ -8,9 +8,9 @@ import type { CosmeticVariant } from "../cosmetic/submodules/variant/cosmeticVar
  *   userId:
  *     type: string
  */
-export class GetCart  {
-  /** ID của người dùng */
-  userId!: string;
+export class GetCart {
+    /** ID của người dùng */
+    userId!: string;
 }
 
 /**
@@ -24,8 +24,8 @@ export class GetCart  {
  *     type: number
  */
 export type AddToCartDto = {
-  variantId: string;
-  quantity: number;
+    variantId: string;
+    quantity: number;
 };
 
 /**
@@ -41,8 +41,8 @@ export type AddToCartDto = {
  *     description: Số lượng mới
  */
 export type UpdateCartItemDto = {
-  variantId?: string;
-  quantity?: number;
+    variantId?: string;
+    quantity?: number;
 };
 
 /**
@@ -54,7 +54,7 @@ export type UpdateCartItemDto = {
  *    type: string
  */
 export type RemoveCartItemDto = {
-  variantId: string;
+    variantId: string;
 };
 
 /**
@@ -114,9 +114,9 @@ export type RemoveCartItemDto = {
  *                       type: string
  */
 export type GetUserCartRes = {
-  id: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  items: CosmeticVariant[];
-}
+    id: string;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    items: CosmeticVariant[];
+};

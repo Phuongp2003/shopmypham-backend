@@ -12,7 +12,7 @@ import type { Cosmetic } from '../../cosmetic.types';
  *   - WARRANTY
  *   - CERTIFICATION
  */
-export type BadgeType = 
+export type BadgeType =
     | 'MADE_IN'
     | 'QUALITY'
     | 'SHIPPING'
@@ -70,4 +70,4 @@ export type CosmeticBadge = {
     createdAt: Date;
     updatedAt: Date;
     cosmetic?: Cosmetic;
-}; 
+};

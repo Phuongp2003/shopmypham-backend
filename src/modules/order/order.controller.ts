@@ -88,20 +88,24 @@ export class OrderController {
     )
     @RequireHeader()
     static async createOrder(req: Request, res: Response): Promise<void> {
-      try {
-        const data: CreateOrderDto = req.body;
-        if(!req.user) throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
-        const userId = req.user.id ;
-        console.log('Creating order for user:', userId, 'with data:', data);
+        try {
+            const data: CreateOrderDto = req.body;
+            if (!req.user)
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
+            const userId = req.user.id;
+            console.log('Creating order for user:', userId, 'with data:', data);
 
-        const user = await prisma.user.findUnique({
-            where: { id: '34906a8a-02d8-4721-ad2e-7b77aec89a13' },
-          });
-          console.log('Found user:', user);
+            const user = await prisma.user.findUnique({
+                where: { id: '34906a8a-02d8-4721-ad2e-7b77aec89a13' },
+            });
+            console.log('Found user:', user);
 
-        const order = await OrderService.createOrder(userId,data);
-        res.status(HttpStatus.CREATED).json(order);
-      } catch (error: unknown) {
+            const order = await OrderService.createOrder(userId, data);
+            res.status(HttpStatus.CREATED).json(order);
+        } catch (error: unknown) {
             const errorResponse: ErrorResponse = {
                 status:
                     error instanceof HttpException
@@ -167,15 +171,15 @@ export class OrderController {
             const { id } = req.params;
             const data = req.body as UpdateOrderStatusDto;
             if (!req.user) {
-                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
             }
             if (req.user.role !== UserRole.ADMIN) {
                 throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
             }
-            const order = await OrderService.updateOrderStatus(
-                id,
-                data,
-            );
+            const order = await OrderService.updateOrderStatus(id, data);
             res.status(HttpStatus.OK).json(order);
         } catch (error: any) {
             logger.error('Order update status error:', error, {
@@ -215,10 +219,12 @@ export class OrderController {
         try {
             const { id } = req.params;
             if (!req.user) {
-                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
             }
-            const cancelledOrder =
-                await OrderService.cancelOrder(id);
+            const cancelledOrder = await OrderService.cancelOrder(id);
             res.status(HttpStatus.OK).json(cancelledOrder);
         } catch (error: any) {
             logger.error('Order cancel error:', error, {
