@@ -10,7 +10,7 @@ import {
 } from '@/common/annotation/swagger.annotation';
 
 @Controller({
-    tag: 'CosmeticDistributor',
+    tag: 'cosmetics/distributors',
     description: 'Quản lý nhà phân phối',
 })
 export class CosmeticDistributorController {
@@ -18,7 +18,7 @@ export class CosmeticDistributorController {
         {
             name: 'get-all-distributors',
             description: 'Lấy tất cả nhà phân phối',
-            path: '/cosmetics/distributors',
+            path: '/',
         },
         {
             query: 'CosmeticDistributorQueryParams',
@@ -38,7 +38,7 @@ export class CosmeticDistributorController {
         {
             name: 'get-distributor-by-id',
             description: 'Lấy nhà phân phối theo id',
-            path: '/cosmetics/distributors/:id',
+            path: '/:id',
         },
         {
             query: 'GetCosmeticDistributorByIdQueryParams',
@@ -66,7 +66,7 @@ export class CosmeticDistributorController {
         {
             name: 'create-distributor',
             description: 'Tạo nhà phân phối',
-            path: '/cosmetics/distributors',
+            path: '',
         },
         {
             header: 'Authorization',
@@ -89,7 +89,7 @@ export class CosmeticDistributorController {
         {
             name: 'update-distributor',
             description: 'Cập nhật nhà phân phối',
-            path: '/cosmetics/distributors/:id',
+            path: '/:id',
         },
         {
             body: 'CosmeticDistributorUpdateReq',
@@ -120,7 +120,7 @@ export class CosmeticDistributorController {
         {
             name: 'delete-distributor',
             description: 'Xóa nhà phân phối',
-            path: '/cosmetics/distributors/:id',
+            path: '/:id',
         },
         {
             response: 'CosmeticDistributorResponse',

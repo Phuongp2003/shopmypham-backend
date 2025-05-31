@@ -7,6 +7,9 @@ import type { QueryParams } from '@/common/types/query.types';
  * title: CosmeticReviewCreateReq
  * type: object
  * properties:
+ *   cosmeticId:
+ *     type: string
+ *     description: ID mỹ phẩm
  *   rating:
  *     type: number
  *     minimum: 1
@@ -20,6 +23,7 @@ import type { QueryParams } from '@/common/types/query.types';
  *     description: Nội dung đánh giá
  */
 export type CosmeticReviewCreateReq = {
+    cosmeticId: string;
     rating: number;
     title?: string;
     content?: string;

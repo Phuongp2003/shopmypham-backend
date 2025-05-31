@@ -173,7 +173,7 @@ export interface GetAllCosmeticRes {
     price: Cosmetic['price'];
     stock: Cosmetic['stock'];
     image?: Cosmetic['image'];
-    averageRating?: number;
+    averageRating: number;
 }
 
 /**

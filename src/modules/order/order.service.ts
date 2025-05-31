@@ -21,7 +21,13 @@ export class OrderService {
             // 1. Lấy cart và cart details
             const cart = await tx.cart.findUnique({
                 where: { userId },
-                include: { details: true },
+                include: { details: {
+                    include: {
+                        variant: {
+                            include: { cosmetic: true },
+                        },
+                    },
+                } },
             });
 
             if (!cart || cart.details.length === 0) {
@@ -147,7 +153,13 @@ export class OrderService {
         const fullOrder = await tx.order.findUnique({
             where: { id: order.id },
             include: {
-                details: true,
+                details: {
+                    include: {
+                        variant: {
+                            include: { cosmetic: true }
+                        }
+                    }
+                },
                 address: true,
                 payment: true,
             },
@@ -165,8 +177,10 @@ export class OrderService {
             address: fullOrder.address,
             details: fullOrder.details.map((d) => ({
                 variantId: d.variantId,
+                name: d.variant.cosmetic.name + ' - ' + d.variant.name,
                 quantity: d.quantity,
                 price: d.price,
+                image: d.variant.cosmetic.image ?? '',
             })),
             payment: {
                 id: fullOrder.payment.id,
@@ -225,11 +239,6 @@ export class OrderService {
             prisma.order.count({ where }),
         ]);
 
-        console.log('Orders:', orders);
-        // if (!orders || orders.length === 0) {
-        //   throw new HttpException(HttpStatus.NOT_FOUND, 'No orders found');
-        // }
-
         const formattedOrders: OrderResponse[] = orders.map((order) => ({
             id: order.id,
             userId: order.user.id,
@@ -247,8 +256,10 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variant.id,
+                name: detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
                 price: detail.price,
+                image: detail.variant.cosmetic.image ?? '',
             })),
         }));
 
@@ -265,7 +276,15 @@ export class OrderService {
         const order = await prisma.order.findUnique({
             where: { id, userId },
             include: {
-                details: true,
+                details: {
+                    include: {
+                        variant: {
+                            include: {
+                                cosmetic: true,
+                            },
+                        },
+                    },
+                },
                 address: true,
                 payment: true,
             },
@@ -300,8 +319,10 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variantId,
+                name: detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
                 price: detail.price,
+                image: detail.variant.cosmetic.image ?? '',
             })),
         };
     
@@ -370,7 +391,23 @@ export class OrderService {
           },
         });
       
-        return updatedOrder;
+        const response: OrderResponse = {
+            id: updatedOrder.id,
+            userId: updatedOrder.userId,
+            status: updatedOrder.status,
+            note: updatedOrder.note ?? undefined,
+            address: updatedOrder.address,
+            payment: updatedOrder.payment,
+            details: updatedOrder.details.map((detail) => ({
+                variantId: detail.variantId,
+                name: detail.variant.cosmetic.name + ' - ' + detail.variant.name,
+                quantity: detail.quantity,
+                price: detail.price,
+                image: detail.variant.cosmetic.image ?? '',
+            })),
+        };
+
+        return response;
       }
 
     static async getAllOrders(
@@ -438,8 +475,10 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variant.id,
+                name: detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
                 price: detail.price,
+                image: detail.variant.cosmetic.image ?? '',
             })),
         }));
 

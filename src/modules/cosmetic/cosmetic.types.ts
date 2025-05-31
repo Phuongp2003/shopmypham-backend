@@ -19,6 +19,7 @@ import type { CosmeticSpec } from './submodules/specification/cosmeticSpecificat
  *     description: Số lượng tồn kho
  */
 export type VariantResponse = {
+    id: CosmeticVariant['id'];
     name: CosmeticVariant['name'];
     options: CosmeticVariant['CosmeticOption'];
     image?: CosmeticVariant['image'];

@@ -9,13 +9,13 @@ import {
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 
-@Controller({ tag: 'CosmeticVariant', description: 'Quản lý biến thể mỹ phẩm' })
+@Controller({ tag: 'cosmetics/variants', description: 'Quản lý biến thể mỹ phẩm' })
 export class CosmeticVariantController {
     @Get(
         {
             name: 'get-all-variants',
             description: 'Lấy tất cả biến thể',
-            path: '/cosmetics/variants',
+            path: '/',
         },
         { response: 'CosmeticVariantResponse' },
     )
@@ -32,7 +32,7 @@ export class CosmeticVariantController {
         {
             name: 'get-variant-by-id',
             description: 'Lấy biến thể theo id',
-            path: '/cosmetics/variants/:id',
+            path: '/:id',
         },
         { response: 'CosmeticVariantResponse' },
     )
@@ -52,7 +52,7 @@ export class CosmeticVariantController {
         {
             name: 'create-variant',
             description: 'Tạo biến thể',
-            path: '/cosmetics/variants',
+            path: '',
         },
         {
             body: 'CosmeticVariantCreateReq',
@@ -74,7 +74,7 @@ export class CosmeticVariantController {
         {
             name: 'update-variant',
             description: 'Cập nhật biến thể',
-            path: '/cosmetics/variants/:id',
+            path: '/:id',
         },
         {
             body: 'CosmeticVariantUpdateReq',
@@ -99,7 +99,7 @@ export class CosmeticVariantController {
         {
             name: 'delete-variant',
             description: 'Xoá biến thể',
-            path: '/cosmetics/variants/:id',
+            path: '/:id',
         },
         { response: 'CosmeticVariantResponse' },
     )

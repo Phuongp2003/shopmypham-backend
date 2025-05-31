@@ -215,67 +215,20 @@ export class CartService {
         return this.mapToResponse(updatedItem.id);
     }
 
-    // static async updateCart(
-    //   userId: string,
-    //   dto: UpdateCartItemDto,
-    // ): Promise<CartResponse> {
-    //   // Validate cosmetics and calculate prices
-    //   const validatedItems = await this.validateCartItems(dto.items);
+    static async addToCartItem(
+        userId: string,
+        dto: AddToCartDto,
+    ): Promise<CartItemResponse> {
+        const cart = await prisma.cart.findUnique({ where: { userId } });
+        if (!cart) {
+            const newCart = await prisma.cart.create({
+                data: { userId },
+            });
+            return this.addToCart(newCart.id, dto);
+        }
 
-    //   const cart = await prisma.cart.update({
-    //     where: { userId },
-    //     data: {
-    //       details: {
-    //         deleteMany: {},
-    //         create: validatedItems.map((item) => ({
-    //           cosmeticId: item.cosmeticId,
-    //           quantity: item.quantity,
-    //           price: item.price,
-    //         })),
-    //       },
-    //     },
-    //     include: {
-    //       details: {
-    //         include: {
-    //           cosmetic: true,
-    //         },
-    //       },
-    //     },
-    //   });
-
-    //   return cart;
-    // }
-
-    // static async updateCart(
-    //   userId: string,
-    //   dto: UpdateCartItemDto,
-    // ): Promise<CartResponse> {
-    //   // Validate cosmetics and calculate prices
-    //   const validatedItems = await this.validateCartItems(dto.items);
-
-    //   const cart = await prisma.cart.update({
-    //     where: { userId },
-    //     data: {
-    //       details: {
-    //         deleteMany: {},
-    //         create: validatedItems.map((item) => ({
-    //           cosmeticId: item.cosmeticId,
-    //           quantity: item.quantity,
-    //           price: item.price,
-    //         })),
-    //       },
-    //     },
-    //     include: {
-    //       details: {
-    //         include: {
-    //           cosmetic: true,
-    //         },
-    //       },
-    //     },
-    //   });
-
-    //   return cart;
-    // }
+        return this.addToCart(userId, dto);
+    }
 
     static async removeCartItem(
         userId: string,

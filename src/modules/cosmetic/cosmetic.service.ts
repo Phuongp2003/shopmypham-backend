@@ -111,7 +111,7 @@ export class CosmeticService {
                     orderBy: { orderIndex: 'asc' },
                 },
                 reviews: {
-                    where: { isApproved: true },
+                    // where: { isApproved: true },
                     include: {
                         user: {
                             select: { name: true },
@@ -476,6 +476,7 @@ export class CosmeticService {
     }
     private static mapVariants(variants: any[]) {
         return (variants || []).map((variant) => ({
+            id: variant.id,
             name: variant.name,
             options: variant.CosmeticOption || [],
             inStock: variant.stock,

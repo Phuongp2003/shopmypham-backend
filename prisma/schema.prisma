@@ -312,4 +312,5 @@ model CosmeticReview {
     
     @@index([cosmeticId])
     @@index([userId])
+    @@unique([cosmeticId, userId])
 }

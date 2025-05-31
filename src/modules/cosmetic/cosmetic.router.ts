@@ -9,6 +9,7 @@ import CosmeticDistributorRouter from './submodules/distributor/cosmeticDistribu
 import CosmeticVariantRouter from './submodules/variant/cosmeticVariant.router';
 import CosmeticSpecificationRouter from './submodules/specification/cosmeticSpecification.router';
 import CosmeticOptionRouter from './submodules/option/cosmesticOptions.router';
+import CosmeticReviewRouter from './submodules/review/cosmeticReview.router';
 const router = Router();
 
 // Distributor routes
@@ -22,6 +23,9 @@ router.use('/specifications', CosmeticSpecificationRouter);
 
 // Option routes
 router.use('/options', CosmeticOptionRouter);
+
+// Review routes
+router.use('/reviews', CosmeticReviewRouter);
 
 // Client routes
 router.get('/', CosmeticController.getCosmetics);

@@ -21,6 +21,7 @@ import {
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 import { GetCart, AddToCartDto, UpdateCartItemDto } from './cart.dto';
+import { UserRole } from '@/common/enums/user-role.enum';
 @Controller({ tag: 'Cart', description: 'Quản lý giỏ hàng' })
 export class CartController {
     @Get(
@@ -148,28 +149,49 @@ export class CartController {
         }
     }
 
-    // // static updateCart = async (req: Request, res: Response) => {
-    // //   try {
-    // //     if (!req.user) {
-    // //       throw new HttpException(
-    // //         HttpStatus.UNAUTHORIZED,
-    // //         "User not authenticated",
-    // //       );
-    // //     }
-    // //     const userId = req.user.id;
-    // //     const dto: UpdateCartDTO = req.body;
-    // //     const cart = await CartService.updateCart(userId, dto);
-    // //     res.json(cart);
-    // //   } catch (error) {
-    // //     if (error instanceof HttpException) {
-    // //       res.status(error.status).json({ message: error.message });
-    // //     } else {
-    // //       res
-    // //         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-    // //         .json({ message: "Internal server error" });
-    // //     }
-    // //   }
-    // // };
+    @Put({
+        name: 'add-cart-item',
+        description: 'Thêm sản phẩm vào giỏ hàng',
+        path: '/:variantId',
+    })
+    @RequireHeader()
+    static async addCartItem(req: Request, res: Response): Promise<void> {
+        try {
+            if (!req.user)
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
+            const userId = req.user.id;
+            const { variantId } = req.params;
+            if (!variantId) {
+                throw new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    'Missing variantId parameter',
+                );
+            }
+            if (req.user.role !== UserRole.USER) {
+                throw new HttpException(
+                    HttpStatus.FORBIDDEN,
+                    'Admin không có quyền thêm sản phẩm vào giỏ hàng',
+                );
+            }
+            const dto: AddToCartDto = {
+                variantId,
+                quantity: req.body.quantity,
+            };
+            await CartService.addToCartItem(userId, dto);
+            res.status(200).json({
+                message: 'Thêm sản phẩm vào giỏ hàng thành công',
+            } satisfies SuccessResponse);
+        } catch (error) {
+            if (error instanceof HttpException) {
+                res.status(error.status).json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Lỗi hệ thống' });
+            }
+        }
+    }
 
     @Delete(
         {

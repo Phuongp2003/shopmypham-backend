@@ -13,6 +13,7 @@ import { CosmeticOptionController } from '@/modules/cosmetic/submodules/option/c
 import { CartController } from '@/modules/cart/cart.controller';
 import { OrderController } from '@/modules/order/order.controller';
 import { PaymentController } from '@/modules/payment/payment.controller';
+import { CosmeticReviewController } from '@/modules/cosmetic/submodules/review/cosmeticReview.controller';
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
 const modulesDir = path.join(__dirname, '../modules');
 function getAllSchemaFiles(dir: string): string[] {
@@ -74,6 +75,7 @@ const swaggerBuilder = new SwaggerBuilder()
         CosmeticVariantController,
         CosmeticSpecificationController,
         CosmeticOptionController,
+        CosmeticReviewController,
         AuthController,
         CartController,
         OrderController,

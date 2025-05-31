@@ -172,8 +172,10 @@ export interface OrderResponse {
     }| null; // Thông tin thanh toán có thể null nếu chưa thanh toán
     details: {
         variantId: string;
+        name: string;
         quantity: number;
         price: number;
+        image: string;
     }[];
 }
 

@@ -10,7 +10,7 @@ import {
 } from '@/common/annotation/swagger.annotation';
 
 @Controller({
-    tag: 'CosmeticSpecification',
+    tag: 'cosmetics/specifications',
     description: 'Quản lý đặc điểm sản phẩm',
 })
 export class CosmeticSpecificationController {
@@ -18,7 +18,7 @@ export class CosmeticSpecificationController {
         {
             name: 'get-all-specifications',
             description: 'Lấy tất cả đặc điểm',
-            path: '/cosmetics/specifications',
+            path: '/',
         },
         { response: 'CosmeticSpecificationResponse' },
     )
@@ -35,7 +35,7 @@ export class CosmeticSpecificationController {
         {
             name: 'get-specification-by-id',
             description: 'Lấy đặc điểm theo id',
-            path: '/cosmetics/specifications/:id',
+            path: '/:id',
         },
         { response: 'CosmeticSpecificationResponse' },
     )
@@ -57,7 +57,7 @@ export class CosmeticSpecificationController {
         {
             name: 'create-specification',
             description: 'Tạo đặc điểm',
-            path: '/cosmetics/specifications',
+            path: '',
         },
         {
             body: 'CosmeticSpecificationCreateReq',
@@ -79,7 +79,7 @@ export class CosmeticSpecificationController {
         {
             name: 'update-specification',
             description: 'Cập nhật đặc điểm',
-            path: '/cosmetics/specifications/:id',
+            path: '/:id',
         },
         {
             body: 'CosmeticSpecificationUpdateReq',
@@ -106,7 +106,7 @@ export class CosmeticSpecificationController {
         {
             name: 'delete-specification',
             description: 'Xoá đặc điểm',
-            path: '/cosmetics/specifications/:id',
+            path: '/:id',
         },
         { response: 'CosmeticSpecificationResponse' },
     )
