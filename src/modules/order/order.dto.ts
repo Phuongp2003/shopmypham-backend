@@ -42,28 +42,6 @@ import { Paginated } from '@/common/types/paginated.type';
  *         type: string
  *         enum: [PENDING, COMPLETED, FAILED]
  *         description: Trạng thái thanh toán
- *   details:
- *     type: array
- *     description: Danh sách sản phẩm trong đơn hàng
- *     items:
- *       type: object
- *       required:
- *         - variantId
- *         - quantity
- *         - price
- *       properties:
- *         variantId:
- *           type: string
- *           description: ID biến thể sản phẩm
- *         quantity:
- *           type: integer
- *           example: 2
- *           description: Số lượng sản phẩm
- *         price:
- *           type: number
- *           format: float
- *           example: 250000
- *           description: Giá mỗi sản phẩm tại thời điểm đặt hàng
  */
 
 export interface CreateOrderDto {
@@ -80,13 +58,6 @@ export interface CreateOrderDto {
         updatedAt?: Date; // Ngày cập nhật thanh toán
         status?: 'PENDING' | 'COMPLETED' | 'FAILED'; // Trạng thái thanh toán
     };
-
-    // Danh sách sản phẩm trong đơn hàng
-    details: {
-        variantId: string;
-        quantity: number;
-        price: number;
-    }[];
 }
 
 // export const UpdateOrderStatusDto = z.object({
@@ -100,8 +71,11 @@ export interface CreateOrderDto {
  * properties:
  *   status:
  *     type: string
- *     enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED]
+ *     enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
  *     description: Trạng thái đơn hàng
+ *   userId:
+ *     type: string
+ *     description: ID người dùng (nếu cần lọc theo người dùng)
  *   page:
  *     type: integer
  *     description: Trang hiện tại (bắt đầu từ 1)
@@ -118,6 +92,7 @@ export interface CreateOrderDto {
  */
 
 export interface OrderQueryDto {
+    userId?: string; // ID người dùng (nếu cần lọc theo người dùng)
     status?: OrderStatus;
     page?: number;
     limit?: number;
@@ -184,9 +159,9 @@ export interface OrderResponse {
     id: Order['id'];
     userId: string;
     status: OrderStatus;
-    address: Address;
-    note?: string;
-    payments: {
+    address: Address|null; // Địa chỉ có thể null nếu chưa chọn
+    note?: string| null; // Ghi chú có thể null nếu không có
+    payment: {
         id: string;
         paymentMethod: string;
         amount: number;
@@ -194,7 +169,7 @@ export interface OrderResponse {
         transactionId?: string | null;
         createdAt: Date;
         updatedAt: Date;
-    };
+    }| null; // Thông tin thanh toán có thể null nếu chưa thanh toán
     details: {
         variantId: string;
         quantity: number;
@@ -239,8 +214,13 @@ export interface PaginatedOrderResponse extends Paginated {
  *     type: string
  *     enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
  *     description: Trạng thái đơn hàng
+ *   addressId:
+ *     type: string
+ *     description: ID của địa chỉ giao hàng mới (nếu cần cập nhật)
  */
+
 
 export interface UpdateOrderStatusDto {
     status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    addressId: string ; // Cập nhật địa chỉ nếu cần
 }

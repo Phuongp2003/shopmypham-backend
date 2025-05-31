@@ -28,14 +28,10 @@ router.get('/', AuthMiddleware.handle, OrderController.getOrders);
 router.post('/', AuthMiddleware.handle, OrderController.createOrder);
 
 router.get('/:id', AuthMiddleware.handle, OrderController.getOrderById);
+router.put('/:id', AuthMiddleware.handle, OrderController.updateOrderById);
+router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
+//router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
 
-router.patch(
-    '/:id/status',
-    AuthMiddleware.handle,
-    roleMiddleware([UserRole.ADMIN]),
-    OrderController.updateOrderStatus,
-);
-
-router.post('/:id/cancel', AuthMiddleware.handle, OrderController.cancelOrder);
+// router.post('/:id/cancel', AuthMiddleware.handle, OrderController.cancelOrder);
 
 export default router;

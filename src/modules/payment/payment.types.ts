@@ -1,4 +1,5 @@
 import type { Order } from '@/modules/order/order.types';
+import { PaymentStatus } from '@prisma/client';
 export type Payment = {
     id: string;
     orderId: string;
@@ -11,4 +12,3 @@ export type Payment = {
     order: Order;
 };
 
-export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
