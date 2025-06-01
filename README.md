@@ -1,6 +1,9 @@
 # Shop Mỹ Phẩm Backend
 
-> [Repo GitHub: Frontend](https://github.com/Phuongp2003/shopmypham-web)
+ĐỀ TÀI: Xây dựng hệ thống web bán mỹ phẩm
+GIẢNG VIÊN HƯỚNG DẪN: ThS. Nguyễn Văn Hữu Hoàng
+
+> [Repo GitHub: Frontend](https://github.com/Phuongp2003/shopmypham-frontend)
 
 Backend Node.js + TypeScript cho hệ thống e-commerce mỹ phẩm. Hỗ trợ xác thực JWT, Google OAuth, quản lý sản phẩm, đơn hàng, giỏ hàng, người dùng, thanh toán MOMO, cache Redis, Prisma ORM, và tài liệu API tự động.
 
