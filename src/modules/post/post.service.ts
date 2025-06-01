@@ -9,181 +9,167 @@ import {
     PostUpdateInput,
     PostWithAuthor,
 } from './post.types';
+import { CreatePostDto, PaginatedPostResponse, PostQueryParamsSchema, PostResponse } from './post.dto';
 
 export class PostService {
     static readonly CACHE_PREFIX = 'post';
 
-    static async getPosts(
-        params: PostQueryParams,
-    ): Promise<{ posts: PostWithAuthor[]; total: number }> {
-        const cacheKey = CacheService.generateKey(
-            `${PostService.CACHE_PREFIX}:list`,
-            params,
-        );
-        const cached = await CacheService.getOrSet(cacheKey, async () => {
-            const {
-                search,
-                sortBy,
-                sortOrder,
-                page = 1,
-                limit = 10,
-                published,
-            } = params;
-            const where = {
-                ...(search && {
-                    OR: [
-                        { title: { contains: search, mode: 'insensitive' } },
-                        { content: { contains: search, mode: 'insensitive' } },
-                    ],
-                }),
-                ...(published !== undefined && { published }),
-            };
-            const [posts, total] = await Promise.all([
-                prisma.post.findMany({
-                    where,
-                    include: {
-                        author: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                            },
-                        },
-                    },
-                    orderBy: sortBy
-                        ? { [sortBy]: sortOrder || 'desc' }
-                        : { createdAt: 'desc' },
-                    skip: (page - 1) * limit,
-                    take: limit,
-                }),
-                prisma.post.count({ where }),
-            ]);
-            return { posts, total };
-        });
-        if (cached) return cached;
-        // fallback: fetch from DB (same as cache miss logic)
+    static async getPosts(query: PostQueryParamsSchema): Promise<PaginatedPostResponse> {
         const {
-            search,
-            sortBy,
-            sortOrder,
+            authorId,
+            published,
             page = 1,
             limit = 10,
-            published,
-        } = params;
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+        } = query;
+    
+        // Tạo điều kiện truy vấn
         const where = {
-            ...(search && {
-                OR: [
-                    { title: { contains: search, mode: 'insensitive' } },
-                    { content: { contains: search, mode: 'insensitive' } },
-                ],
-            }),
+            ...(authorId && { authorId }),
             ...(published !== undefined && { published }),
         };
+    
         const [posts, total] = await Promise.all([
             prisma.post.findMany({
                 where,
                 include: {
-                    author: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                        },
-                    },
+                    author: true, // assuming relation to User model
+                    comments: true, // assuming relation to Comment model
                 },
-                orderBy: sortBy
-                    ? { [sortBy]: sortOrder || 'desc' }
-                    : { createdAt: 'desc' },
                 skip: (page - 1) * limit,
                 take: limit,
+                orderBy: {
+                    [sortBy]: sortOrder,
+                },
             }),
             prisma.post.count({ where }),
         ]);
-        return { posts, total };
+    
+        const formattedPosts: PostResponse[] = posts.map((post) => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            published: post.published,
+            authorId: post.authorId,
+            comments: post.comments.map((c) => c.id), // assuming you just want the comment IDs
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+        }));
+    
+        return {
+            posts: formattedPosts,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
+    
 
-    static async getPostById(id: string): Promise<PostWithAuthor> {
-        const cacheKey = CacheService.generateKey(
-            `${PostService.CACHE_PREFIX}:detail`,
-            { id },
-        );
-        const cached = await CacheService.getOrSet(cacheKey, async () => {
-            const post = await prisma.post.findUnique({
-                where: { id },
-                include: {
-                    author: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                        },
-                    },
-                },
-            });
-            if (!post) {
-                throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
-            }
-            return post;
-        });
-        if (cached) return cached;
-        // fallback: fetch from DB (same as cache miss logic)
+    static async getPostById(userId: string, postId: string): Promise<PostResponse> {
         const post = await prisma.post.findUnique({
-            where: { id },
+            where: { id: postId },
             include: {
-                author: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                    },
-                },
+                author: true,
+                comments: true,
             },
         });
+    
         if (!post) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
         }
-        return post;
-    }
 
+    
+        const response: PostResponse = {
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            published: post.published,
+            authorId: post.authorId,
+            comments: post.comments.map((c) => c.id),
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+        };
+    
+        return response;
+    }
+    
     static async createPost(
         userId: string,
-        data: PostCreateInput,
-    ): Promise<PostWithAuthor> {
-        const post = await prisma.post.create({
+        dto: CreatePostDto
+      ): Promise<PostResponse> {
+        const { title, content, published } = dto;
+        console.log('>>> userId truyền vào:', userId);
+
+        // Tạo bài viết trong transaction để dễ mở rộng (gắn tag, gắn category...)
+        return await prisma.$transaction(async (tx) => {
+          // 1. Kiểm tra user tồn tại
+          const user = await tx.user.findUnique({
+            where: { id: userId },
+          });
+      
+          if (!user) {
+            throw new HttpException(
+              HttpStatus.BAD_REQUEST,
+              'Người dùng không tồn tại'
+            );
+          }
+      
+          // 2. Tạo bài viết
+          const post = await tx.post.create({
             data: {
-                ...data,
-                authorId: userId,
+              title,
+              content,
+              published: published ?? false,
+              authorId: userId,
             },
             include: {
-                author: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                    },
-                },
+              author: true,
+              comments: true,
             },
+          });
+      
+          // 3. Trả về dữ liệu
+          const response: PostResponse = {
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            published: post.published,
+            authorId: post.authorId,
+            comments: post.comments.map((c) => c.id),
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+          };
+      
+          return response;
         });
-        await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
-        return post;
-    }
+      }
 
     static async updatePost(
-        id: string,
         userId: string,
+        postId: string,
         data: PostUpdateInput,
-    ): Promise<PostWithAuthor> {
+    ): Promise<PostResponse> {
         const post = await prisma.post.findUnique({
-            where: { id },
+            where: { id: postId },
+            include: {
+                author: true,
+                comments: true,
+            },
         });
+        console.log('postId received:', postId);
+
         if (!post) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+            throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
         }
+    
+        // Kiểm tra quyền truy cập (chỉ tác giả mới xem được)
         if (post.authorId !== userId) {
-            throw new HttpException(HttpStatus.UNAUTHORIZED, 'Unauthorized');
+            throw new HttpException(HttpStatus.FORBIDDEN, 'Bạn không có quyền xem bài viết này');
         }
         const updatedPost = await prisma.post.update({
-            where: { id },
+            where: { id: postId },
             data,
             include: {
                 author: {
@@ -198,30 +184,39 @@ export class PostService {
         await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
         await CacheService.delete(
             CacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, {
-                id,
+                postId,
             }),
         );
         return updatedPost;
     }
 
-    static async deletePost(id: string, userId: string): Promise<void> {
+    static async deletePost(userId: string, postId: string): Promise<void> {
+        // 1. Tìm bài viết
         const post = await prisma.post.findUnique({
-            where: { id },
+          where: { id: postId },
         });
+      
         if (!post) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Post not found');
+          throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
         }
+      
+        // 2. Kiểm tra quyền xóa (chỉ tác giả mới được xóa)
         if (post.authorId !== userId) {
-            throw new HttpException(HttpStatus.UNAUTHORIZED, 'Unauthorized');
+          throw new HttpException(
+            HttpStatus.FORBIDDEN,
+            'Bạn không có quyền xóa bài viết này',
+          );
         }
-        await prisma.post.delete({
-            where: { id },
+      
+        // 3. Xóa các liên kết nếu cần (ví dụ: comment, tag)
+        await prisma.comment.deleteMany({
+          where: { postId },
         });
-        await CacheService.clearByPrefix(`${PostService.CACHE_PREFIX}:list`);
-        await CacheService.delete(
-            CacheService.generateKey(`${PostService.CACHE_PREFIX}:detail`, {
-                id,
-            }),
-        );
-    }
+      
+        // 4. Xóa bài viết
+        await prisma.post.delete({
+          where: { id: postId },
+        });
+      }
+      
 }

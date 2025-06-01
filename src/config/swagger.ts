@@ -13,6 +13,7 @@ import { CosmeticSpecificationController } from '@/modules/cosmetic/submodules/s
 import { CosmeticOptionController } from '@/modules/cosmetic/submodules/option/cosmesticOptions.controller';
 import { CartController } from '@/modules/cart/cart.controller';
 import { OrderController } from '@/modules/order/order.controller';
+import { PostController } from '@/modules/post/post.controller';
 import { PaymentController } from '@/modules/payment/payment.controller';
 import { CosmeticReviewController } from '@/modules/cosmetic/submodules/review/cosmeticReview.controller';
 import { ShippingPolicyController } from '@/modules/cosmetic/submodules/shipping/shippingPolicy.controller';
@@ -85,6 +86,7 @@ const swaggerBuilder = new SwaggerBuilder()
         AuthController,
         CartController,
         OrderController,
+        PostController,
         PaymentController,
     ]);
 

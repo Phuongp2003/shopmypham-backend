@@ -31,6 +31,49 @@ interface AuthenticatedRequest extends Request {
 }
 @Controller({ tag: 'Orders', description: 'Quản lý đơn hàng' })
 export class OrderController {
+
+    
+    @Get(
+        {
+            name: 'get-all-orders',
+            description: 'Lấy danh sách đơn hàng',
+            path: '/ADMIN',
+        },
+        {
+            query: 'OrderQueryDto',
+            response: 'PaginatedOrderResponse',
+        },
+    )
+    @RequireHeader()
+    static async getAllOrders(req: Request, res: Response): Promise<void> {
+        console.log('Get orders called. User:', req.user);
+        try {
+            if (!req.user) {
+                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+            }
+            const user = req.user;
+            // Lấy params từ query và ép kiểu
+            const params: OrderQueryDto = {
+                ...req.query,
+                userId: user.id,
+            } as OrderQueryDto;
+            const result = await OrderService.getAllOrders(params);
+            res.status(200).json(result);
+        } catch (error: unknown) {
+            const errorResponse: ErrorResponse = {
+                status:
+                    error instanceof HttpException
+                        ? error.status
+                        : HttpStatus.INTERNAL_SERVER_ERROR,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            };
+            res.status(errorResponse.status).json(errorResponse);
+        }
+    }
+    
     @Get(
         {
             name: 'get-orders-by-user',
@@ -212,46 +255,6 @@ export class OrderController {
         }
     }
 
-    @Get(
-        {
-            name: 'get-all-orders',
-            description: 'Lấy danh sách đơn hàng',
-            path: '/ADMIN',
-        },
-        {
-            query: 'OrderQueryDto',
-            response: 'PaginatedOrderResponse',
-        },
-    )
-    @RequireHeader()
-    static async getAllOrders(req: Request, res: Response): Promise<void> {
-        console.log('Get orders called. User:', req.user);
-        try {
-            if (!req.user) {
-                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
-            }
-            const user = req.user;
-            // Lấy params từ query và ép kiểu
-            const params: OrderQueryDto = {
-                ...req.query,
-                userId: user.id,
-            } as OrderQueryDto;
-            const result = await OrderService.getAllOrders(params);
-            res.status(200).json(result);
-        } catch (error: unknown) {
-            const errorResponse: ErrorResponse = {
-                status:
-                    error instanceof HttpException
-                        ? error.status
-                        : HttpStatus.INTERNAL_SERVER_ERROR,
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : 'Internal server error',
-            };
-            res.status(errorResponse.status).json(errorResponse);
-        }
-    }
     // @Delete(
     //     {
     //         name: 'cancel-order',
