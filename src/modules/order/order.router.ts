@@ -26,7 +26,6 @@ const router = Router();
 router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
 router.get('/', AuthMiddleware.handle, OrderController.getOrders);
 router.post('/', AuthMiddleware.handle, OrderController.createOrder);
-router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
 
 router.get('/:id', AuthMiddleware.handle, OrderController.getOrderById);
 router.put('/:id', AuthMiddleware.handle, OrderController.updateOrderById);
