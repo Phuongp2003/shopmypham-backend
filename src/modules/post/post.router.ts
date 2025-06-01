@@ -7,29 +7,12 @@ import { roleMiddleware } from '@/common/middlewares/role.middleware';
 import { PostController } from './post.controller';
 
 const router = Router();
+router.get('/', AuthMiddleware.handle, PostController.getPosts);
+router.post('/', AuthMiddleware.handle, PostController.createPost);
 
-// Client routes
-router.get('/', PostController.getPosts);
-router.get('/:id', PostController.getPostById);
+router.get('/:id', AuthMiddleware.handle, PostController.getPostById);
+router.put('/:id', AuthMiddleware.handle, PostController.updatePost);
+router.delete('/:id', AuthMiddleware.handle, PostController.deletePost);
 
-// Manager routes
-router.post(
-    '/',
-    AuthMiddleware.handle,
-    roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
-    PostController.createPost,
-);
-router.put(
-    '/:id',
-    AuthMiddleware.handle,
-    roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
-    ...PostController.updatePost,
-);
-router.delete(
-    '/:id',
-    AuthMiddleware.handle,
-    roleMiddleware([UserRole.ADMIN, UserRole.MANAGER]),
-    PostController.deletePost,
-);
 
 export default router;

@@ -151,7 +151,7 @@ export class AppInitializer {
 
         // Register module routes
         this.app.use('/auth', authRouter);
-        this.app.use('/posts', postRouter);
+        this.app.use('/post', postRouter);
         this.app.use('/cosmetics', cosmeticRouter);
         this.app.use('/cart', cartRouter);
         this.app.use('/users', userRouter);
