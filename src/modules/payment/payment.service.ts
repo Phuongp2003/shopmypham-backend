@@ -12,7 +12,6 @@ import {
 } from './payment.types';
 import { prisma } from '@/config/prisma';
 export class PaymentService {
-
     static async createPayment(data: CreatePaymentDto) {
         const order = await prisma.order.findUnique({
             where: { id: data.orderId },
@@ -86,7 +85,10 @@ export class PaymentService {
     static async handleMOMOCallback(data: MOMOPaymentCallback) {
         const secretKey = process.env.MOMO_SECRET_KEY;
         if (!secretKey) {
-            throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, 'MOMO secret key missing');
+            throw new HttpException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                'MOMO secret key missing',
+            );
         }
 
         // Tạo rawSignature theo tài liệu MoMo
@@ -111,7 +113,10 @@ export class PaymentService {
             .digest('hex');
 
         if (signature !== data.signature) {
-            throw new HttpException(HttpStatus.BAD_REQUEST, 'Invalid MoMo signature');
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                'Invalid MoMo signature',
+            );
         }
 
         const payment = await prisma.payment.findFirst({

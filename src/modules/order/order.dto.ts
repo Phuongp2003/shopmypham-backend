@@ -159,8 +159,8 @@ export interface OrderResponse {
     id: Order['id'];
     userId: string;
     status: OrderStatus;
-    address: Address|null; // Địa chỉ có thể null nếu chưa chọn
-    note?: string| null; // Ghi chú có thể null nếu không có
+    address: Address | null; // Địa chỉ có thể null nếu chưa chọn
+    note?: string | null; // Ghi chú có thể null nếu không có
     payment: {
         id: string;
         paymentMethod: string;
@@ -169,7 +169,7 @@ export interface OrderResponse {
         transactionId?: string | null;
         createdAt: Date;
         updatedAt: Date;
-    }| null; // Thông tin thanh toán có thể null nếu chưa thanh toán
+    } | null; // Thông tin thanh toán có thể null nếu chưa thanh toán
     details: {
         variantId: string;
         name: string;
@@ -221,8 +221,7 @@ export interface PaginatedOrderResponse extends Paginated {
  *     description: ID của địa chỉ giao hàng mới (nếu cần cập nhật)
  */
 
-
 export interface UpdateOrderStatusDto {
     status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    addressId?: string ; // Cập nhật địa chỉ nếu cần
+    addressId?: string; // Cập nhật địa chỉ nếu cần
 }

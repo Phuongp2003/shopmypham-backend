@@ -14,11 +14,14 @@ import {
     description: 'Quản lý huy hiệu tin cậy',
 })
 export class CosmeticBadgeController {
-    @Get({
-        name: 'get-all-badges',
-        description: 'Lấy tất cả huy hiệu',
-        path: '/',
-    }, { response: 'CosmeticBadgeResponse' })
+    @Get(
+        {
+            name: 'get-all-badges',
+            description: 'Lấy tất cả huy hiệu',
+            path: '/',
+        },
+        { response: 'CosmeticBadgeResponse' },
+    )
     static async getAll(req: Request, res: Response) {
         try {
             const badges = await CosmeticBadgeService.getAll();
@@ -28,11 +31,14 @@ export class CosmeticBadgeController {
         }
     }
 
-    @Get({
-        name: 'get-badge-by-id',
-        description: 'Lấy huy hiệu theo id',
-        path: '/:id',
-    }, { response: 'CosmeticBadgeResponse' })
+    @Get(
+        {
+            name: 'get-badge-by-id',
+            description: 'Lấy huy hiệu theo id',
+            path: '/:id',
+        },
+        { response: 'CosmeticBadgeResponse' },
+    )
     static async getById(req: Request, res: Response) {
         try {
             const { id } = req.params;
@@ -45,11 +51,14 @@ export class CosmeticBadgeController {
         }
     }
 
-    @Post({
-        name: 'create-badge',
-        description: 'Tạo huy hiệu',
-        path: '',
-    }, { body: 'CosmeticBadgeCreateReq', response: 'CosmeticBadgeResponse' })
+    @Post(
+        {
+            name: 'create-badge',
+            description: 'Tạo huy hiệu',
+            path: '',
+        },
+        { body: 'CosmeticBadgeCreateReq', response: 'CosmeticBadgeResponse' },
+    )
     @RequireHeader()
     static async create(req: Request, res: Response) {
         try {
@@ -61,11 +70,14 @@ export class CosmeticBadgeController {
         }
     }
 
-    @Put({
-        name: 'update-badge',
-        description: 'Cập nhật huy hiệu',
-        path: '/:id',
-    }, { body: 'CosmeticBadgeUpdateReq', response: 'CosmeticBadgeResponse' })
+    @Put(
+        {
+            name: 'update-badge',
+            description: 'Cập nhật huy hiệu',
+            path: '/:id',
+        },
+        { body: 'CosmeticBadgeUpdateReq', response: 'CosmeticBadgeResponse' },
+    )
     @RequireHeader()
     static async update(req: Request, res: Response) {
         try {
@@ -80,11 +92,14 @@ export class CosmeticBadgeController {
         }
     }
 
-    @Delete({
-        name: 'delete-badge',
-        description: 'Xoá huy hiệu',
-        path: '/:id',
-    }, { response: 'CosmeticBadgeResponse' })
+    @Delete(
+        {
+            name: 'delete-badge',
+            description: 'Xoá huy hiệu',
+            path: '/:id',
+        },
+        { response: 'CosmeticBadgeResponse' },
+    )
     @RequireHeader()
     static async delete(req: Request, res: Response) {
         try {
@@ -95,4 +110,4 @@ export class CosmeticBadgeController {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
-} 
+}

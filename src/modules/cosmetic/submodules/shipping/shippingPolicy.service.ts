@@ -64,9 +64,7 @@ export class ShippingPolicyService {
                 description: data.description,
                 deliveryTime: data.deliveryTime,
                 freeShippingThreshold: data.freeShippingThreshold,
-                features: data.features
-                    ? { create: data.features }
-                    : undefined,
+                features: data.features ? { create: data.features } : undefined,
             },
             include: { features: true },
         });
@@ -94,4 +92,4 @@ export class ShippingPolicyService {
     static async delete(id: string): Promise<void> {
         await prisma.shippingPolicy.delete({ where: { id } });
     }
-} 
+}

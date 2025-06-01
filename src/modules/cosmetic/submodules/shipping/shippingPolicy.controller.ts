@@ -14,11 +14,14 @@ import {
     description: 'Quản lý chính sách vận chuyển',
 })
 export class ShippingPolicyController {
-    @Get({
-        name: 'get-all-shipping-policies',
-        description: 'Lấy tất cả chính sách vận chuyển',
-        path: '/',
-    }, { response: 'ShippingPolicyResponse' })
+    @Get(
+        {
+            name: 'get-all-shipping-policies',
+            description: 'Lấy tất cả chính sách vận chuyển',
+            path: '/',
+        },
+        { response: 'ShippingPolicyResponse' },
+    )
     static async getAll(req: Request, res: Response) {
         try {
             const policies = await ShippingPolicyService.getAll();
@@ -28,28 +31,36 @@ export class ShippingPolicyController {
         }
     }
 
-    @Get({
-        name: 'get-shipping-policy-by-id',
-        description: 'Lấy chính sách vận chuyển theo id',
-        path: '/:id',
-    }, { response: 'ShippingPolicyResponse' })
+    @Get(
+        {
+            name: 'get-shipping-policy-by-id',
+            description: 'Lấy chính sách vận chuyển theo id',
+            path: '/:id',
+        },
+        { response: 'ShippingPolicyResponse' },
+    )
     static async getById(req: Request, res: Response) {
         try {
             const { id } = req.params;
             const policy = await ShippingPolicyService.getById(id);
             if (!policy)
-                return res.status(404).json({ message: 'Shipping policy not found' });
+                return res
+                    .status(404)
+                    .json({ message: 'Shipping policy not found' });
             res.json(policy);
         } catch (error) {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
 
-    @Post({
-        name: 'create-shipping-policy',
-        description: 'Tạo chính sách vận chuyển',
-        path: '',
-    }, { body: 'ShippingPolicyCreateReq', response: 'ShippingPolicyResponse' })
+    @Post(
+        {
+            name: 'create-shipping-policy',
+            description: 'Tạo chính sách vận chuyển',
+            path: '',
+        },
+        { body: 'ShippingPolicyCreateReq', response: 'ShippingPolicyResponse' },
+    )
     @RequireHeader()
     static async create(req: Request, res: Response) {
         try {
@@ -61,11 +72,14 @@ export class ShippingPolicyController {
         }
     }
 
-    @Put({
-        name: 'update-shipping-policy',
-        description: 'Cập nhật chính sách vận chuyển',
-        path: '/:id',
-    }, { body: 'ShippingPolicyUpdateReq', response: 'ShippingPolicyResponse' })
+    @Put(
+        {
+            name: 'update-shipping-policy',
+            description: 'Cập nhật chính sách vận chuyển',
+            path: '/:id',
+        },
+        { body: 'ShippingPolicyUpdateReq', response: 'ShippingPolicyResponse' },
+    )
     @RequireHeader()
     static async update(req: Request, res: Response) {
         try {
@@ -73,18 +87,23 @@ export class ShippingPolicyController {
             const data = req.body;
             const policy = await ShippingPolicyService.update(id, data);
             if (!policy)
-                return res.status(404).json({ message: 'Shipping policy not found' });
+                return res
+                    .status(404)
+                    .json({ message: 'Shipping policy not found' });
             res.json(policy);
         } catch (error) {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
 
-    @Delete({
-        name: 'delete-shipping-policy',
-        description: 'Xoá chính sách vận chuyển',
-        path: '/:id',
-    }, { response: 'ShippingPolicyResponse' })
+    @Delete(
+        {
+            name: 'delete-shipping-policy',
+            description: 'Xoá chính sách vận chuyển',
+            path: '/:id',
+        },
+        { response: 'ShippingPolicyResponse' },
+    )
     @RequireHeader()
     static async delete(req: Request, res: Response) {
         try {
@@ -95,4 +114,4 @@ export class ShippingPolicyController {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
-} 
+}

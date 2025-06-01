@@ -31,8 +31,6 @@ interface AuthenticatedRequest extends Request {
 }
 @Controller({ tag: 'Orders', description: 'Quản lý đơn hàng' })
 export class OrderController {
-
-    
     @Get(
         {
             name: 'get-all-orders',
@@ -49,7 +47,10 @@ export class OrderController {
         console.log('Get orders called. User:', req.user);
         try {
             if (!req.user) {
-                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
             }
             const user = req.user;
             // Lấy params từ query và ép kiểu
@@ -73,7 +74,7 @@ export class OrderController {
             res.status(errorResponse.status).json(errorResponse);
         }
     }
-    
+
     @Get(
         {
             name: 'get-orders-by-user',
@@ -90,7 +91,10 @@ export class OrderController {
         console.log('Get orders called. User:', req.user);
         try {
             if (!req.user) {
-                throw new HttpException(HttpStatus.UNAUTHORIZED, 'User not authenticated');
+                throw new HttpException(
+                    HttpStatus.UNAUTHORIZED,
+                    'User not authenticated',
+                );
             }
             const user = req.user;
             // Lấy params từ query và ép kiểu
@@ -187,7 +191,7 @@ export class OrderController {
                     'User not authenticated',
                 );
             const userId = req.user.id;
-            const order = await OrderService.getOrderById(userId,id);
+            const order = await OrderService.getOrderById(userId, id);
             console.log('Found order:', order);
             res.status(HttpStatus.OK).json(order);
         } catch (error: unknown) {
@@ -205,7 +209,7 @@ export class OrderController {
         }
     }
 
-    @Put(   
+    @Put(
         {
             name: 'update-order-status',
             description: 'Cập nhật trạng thái đơn hàng',
@@ -220,7 +224,7 @@ export class OrderController {
     static async updateOrderById(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const data: UpdateOrderStatusDto =req.body;
+            const data: UpdateOrderStatusDto = req.body;
             console.log('Updating order with ID:', id, 'and data:', data);
             if (!id || typeof id !== 'string') {
                 res.status(HttpStatus.BAD_REQUEST).json({
@@ -234,11 +238,7 @@ export class OrderController {
                     'User not authenticated',
                 );
             const userId = req.user.id;
-            const order = await OrderService.updateOrderById(
-                userId,
-                id,
-                data,
-            );
+            const order = await OrderService.updateOrderById(userId, id, data);
             res.status(HttpStatus.OK).json(order);
         } catch (error: unknown) {
             const errorResponse: ErrorResponse = {
@@ -255,16 +255,22 @@ export class OrderController {
         }
     }
 
-    @Put({
-        name: 'admin-update-order-status',
-        description: 'Admin cập nhật trạng thái đơn hàng',
-        path: '/ADMIN/:id',
-    }, {
-        body: 'UpdateOrderStatusDto',
-        response: 'OrderResponse',
-    })
+    @Put(
+        {
+            name: 'admin-update-order-status',
+            description: 'Admin cập nhật trạng thái đơn hàng',
+            path: '/ADMIN/:id',
+        },
+        {
+            body: 'UpdateOrderStatusDto',
+            response: 'OrderResponse',
+        },
+    )
     @RequireHeader()
-    static async adminUpdateOrderStatus(req: Request, res: Response): Promise<void> {
+    static async adminUpdateOrderStatus(
+        req: Request,
+        res: Response,
+    ): Promise<void> {
         try {
             const { id } = req.params;
             const data: UpdateOrderStatusDto = req.body;
@@ -291,5 +297,4 @@ export class OrderController {
             res.status(errorResponse.status).json(errorResponse);
         }
     }
-
 }

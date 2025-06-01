@@ -50,7 +50,10 @@ export class CosmeticBadgeService {
         id: string,
         data: CosmeticBadgeUpdateReq,
     ): Promise<CosmeticBadgeResponse | null> {
-        const badge = await prisma.cosmeticBadge.update({ where: { id }, data });
+        const badge = await prisma.cosmeticBadge.update({
+            where: { id },
+            data,
+        });
         return badge
             ? {
                   ...badge,
@@ -63,4 +66,4 @@ export class CosmeticBadgeService {
     static async delete(id: string): Promise<void> {
         await prisma.cosmeticBadge.delete({ where: { id } });
     }
-} 
+}

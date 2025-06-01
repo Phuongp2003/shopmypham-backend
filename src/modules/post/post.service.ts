@@ -9,12 +9,19 @@ import {
     PostUpdateInput,
     PostWithAuthor,
 } from './post.types';
-import { CreatePostDto, PaginatedPostResponse, PostQueryParamsSchema, PostResponse } from './post.dto';
+import {
+    CreatePostDto,
+    PaginatedPostResponse,
+    PostQueryParamsSchema,
+    PostResponse,
+} from './post.dto';
 
 export class PostService {
     static readonly CACHE_PREFIX = 'post';
 
-    static async getPosts(query: PostQueryParamsSchema): Promise<PaginatedPostResponse> {
+    static async getPosts(
+        query: PostQueryParamsSchema,
+    ): Promise<PaginatedPostResponse> {
         const {
             authorId,
             published,
@@ -23,13 +30,13 @@ export class PostService {
             sortBy = 'createdAt',
             sortOrder = 'desc',
         } = query;
-    
+
         // Tạo điều kiện truy vấn
         const where = {
             ...(authorId && { authorId }),
             ...(published !== undefined && { published }),
         };
-    
+
         const [posts, total] = await Promise.all([
             prisma.post.findMany({
                 where,
@@ -45,7 +52,7 @@ export class PostService {
             }),
             prisma.post.count({ where }),
         ]);
-    
+
         const formattedPosts: PostResponse[] = posts.map((post) => ({
             id: post.id,
             title: post.title,
@@ -56,7 +63,7 @@ export class PostService {
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
         }));
-    
+
         return {
             posts: formattedPosts,
             total,
@@ -65,9 +72,11 @@ export class PostService {
             totalPages: Math.ceil(total / limit),
         };
     }
-    
 
-    static async getPostById(userId: string, postId: string): Promise<PostResponse> {
+    static async getPostById(
+        userId: string,
+        postId: string,
+    ): Promise<PostResponse> {
         const post = await prisma.post.findUnique({
             where: { id: postId },
             include: {
@@ -75,12 +84,14 @@ export class PostService {
                 comments: true,
             },
         });
-    
+
         if (!post) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
+            throw new HttpException(
+                HttpStatus.NOT_FOUND,
+                'Không tìm thấy bài viết',
+            );
         }
 
-    
         const response: PostResponse = {
             id: post.id,
             title: post.title,
@@ -91,60 +102,60 @@ export class PostService {
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
         };
-    
+
         return response;
     }
-    
+
     static async createPost(
         userId: string,
-        dto: CreatePostDto
-      ): Promise<PostResponse> {
+        dto: CreatePostDto,
+    ): Promise<PostResponse> {
         const { title, content, published } = dto;
         console.log('>>> userId truyền vào:', userId);
 
         // Tạo bài viết trong transaction để dễ mở rộng (gắn tag, gắn category...)
         return await prisma.$transaction(async (tx) => {
-          // 1. Kiểm tra user tồn tại
-          const user = await tx.user.findUnique({
-            where: { id: userId },
-          });
-      
-          if (!user) {
-            throw new HttpException(
-              HttpStatus.BAD_REQUEST,
-              'Người dùng không tồn tại'
-            );
-          }
-      
-          // 2. Tạo bài viết
-          const post = await tx.post.create({
-            data: {
-              title,
-              content,
-              published: published ?? false,
-              authorId: userId,
-            },
-            include: {
-              author: true,
-              comments: true,
-            },
-          });
-      
-          // 3. Trả về dữ liệu
-          const response: PostResponse = {
-            id: post.id,
-            title: post.title,
-            content: post.content,
-            published: post.published,
-            authorId: post.authorId,
-            comments: post.comments.map((c) => c.id),
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
-          };
-      
-          return response;
+            // 1. Kiểm tra user tồn tại
+            const user = await tx.user.findUnique({
+                where: { id: userId },
+            });
+
+            if (!user) {
+                throw new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    'Người dùng không tồn tại',
+                );
+            }
+
+            // 2. Tạo bài viết
+            const post = await tx.post.create({
+                data: {
+                    title,
+                    content,
+                    published: published ?? false,
+                    authorId: userId,
+                },
+                include: {
+                    author: true,
+                    comments: true,
+                },
+            });
+
+            // 3. Trả về dữ liệu
+            const response: PostResponse = {
+                id: post.id,
+                title: post.title,
+                content: post.content,
+                published: post.published,
+                authorId: post.authorId,
+                comments: post.comments.map((c) => c.id),
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+            };
+
+            return response;
         });
-      }
+    }
 
     static async updatePost(
         userId: string,
@@ -161,12 +172,18 @@ export class PostService {
         console.log('postId received:', postId);
 
         if (!post) {
-            throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
+            throw new HttpException(
+                HttpStatus.NOT_FOUND,
+                'Không tìm thấy bài viết',
+            );
         }
-    
+
         // Kiểm tra quyền truy cập (chỉ tác giả mới xem được)
         if (post.authorId !== userId) {
-            throw new HttpException(HttpStatus.FORBIDDEN, 'Bạn không có quyền xem bài viết này');
+            throw new HttpException(
+                HttpStatus.FORBIDDEN,
+                'Bạn không có quyền xem bài viết này',
+            );
         }
         const updatedPost = await prisma.post.update({
             where: { id: postId },
@@ -193,30 +210,32 @@ export class PostService {
     static async deletePost(userId: string, postId: string): Promise<void> {
         // 1. Tìm bài viết
         const post = await prisma.post.findUnique({
-          where: { id: postId },
+            where: { id: postId },
         });
-      
+
         if (!post) {
-          throw new HttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy bài viết');
+            throw new HttpException(
+                HttpStatus.NOT_FOUND,
+                'Không tìm thấy bài viết',
+            );
         }
-      
+
         // 2. Kiểm tra quyền xóa (chỉ tác giả mới được xóa)
         if (post.authorId !== userId) {
-          throw new HttpException(
-            HttpStatus.FORBIDDEN,
-            'Bạn không có quyền xóa bài viết này',
-          );
+            throw new HttpException(
+                HttpStatus.FORBIDDEN,
+                'Bạn không có quyền xóa bài viết này',
+            );
         }
-      
+
         // 3. Xóa các liên kết nếu cần (ví dụ: comment, tag)
         await prisma.comment.deleteMany({
-          where: { postId },
+            where: { postId },
         });
-      
+
         // 4. Xóa bài viết
         await prisma.post.delete({
-          where: { id: postId },
+            where: { id: postId },
         });
-      }
-      
+    }
 }

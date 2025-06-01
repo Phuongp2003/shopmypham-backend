@@ -21,7 +21,6 @@ export class CosmeticDistributorService {
                 name: {
                     contains: query.search || '',
                 },
-                
             };
 
             const distributors = await prisma.cosmeticDistributor.findMany({
@@ -32,7 +31,8 @@ export class CosmeticDistributorService {
             const total = await prisma.cosmeticDistributor.count();
             const totalPages = Math.ceil(total / limit);
             const paginatedDistributors = {
-                distributors: distributors as unknown as CosmeticDistributorType[],
+                distributors:
+                    distributors as unknown as CosmeticDistributorType[],
                 total,
                 page,
                 limit,

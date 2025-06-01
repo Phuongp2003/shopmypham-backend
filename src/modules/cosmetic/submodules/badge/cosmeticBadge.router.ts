@@ -10,4 +10,4 @@ router.post('/', AuthMiddleware.handle, CosmeticBadgeController.create);
 router.put('/:id', AuthMiddleware.handle, CosmeticBadgeController.update);
 router.delete('/:id', AuthMiddleware.handle, CosmeticBadgeController.delete);
 
-export default router; 
+export default router;

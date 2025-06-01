@@ -10,7 +10,10 @@ import {
 } from '@/common/annotation/swagger.annotation';
 import type { CosmeticReviewCreateReq } from './cosmeticReview.dto';
 
-@Controller({ tag: 'cosmetics/reviews', description: 'Quản lý đánh giá mỹ phẩm' })
+@Controller({
+    tag: 'cosmetics/reviews',
+    description: 'Quản lý đánh giá mỹ phẩm',
+})
 export class CosmeticReviewController {
     @Get(
         {
@@ -60,7 +63,8 @@ export class CosmeticReviewController {
     static async getByCosmeticId(req: Request, res: Response) {
         try {
             const { cosmeticId } = req.params;
-            const reviews = await CosmeticReviewService.getByCosmeticId(cosmeticId);
+            const reviews =
+                await CosmeticReviewService.getByCosmeticId(cosmeticId);
             res.json(reviews);
         } catch (error) {
             res.status(500).json({ message: 'Internal server error' });
@@ -132,4 +136,4 @@ export class CosmeticReviewController {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
-} 
+}

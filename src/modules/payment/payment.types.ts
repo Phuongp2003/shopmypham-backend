@@ -50,10 +50,7 @@ export interface Payment {
  *   - COMPLETED (Đã thanh toán)
  *   - FAILED (Thất bại)
  */
-export type PaymentStatus =
-    | 'PENDING'
-    | 'COMPLETED'
-    | 'FAILED';
+export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
 
 /**
  * @swagger
@@ -104,7 +101,6 @@ export interface CreatePaymentDto {
  *     description: Dữ liệu bổ sung (base64)
  */
 export interface MOMOPaymentRequest {
-
     orderId: string;
     amount: number;
     orderInfo: string;

@@ -11,4 +11,4 @@ router.post('/', AuthMiddleware.handle, CosmeticReviewController.create);
 router.put('/:id', AuthMiddleware.handle, CosmeticReviewController.update);
 router.delete('/:id', AuthMiddleware.handle, CosmeticReviewController.delete);
 
-export default router; 
+export default router;

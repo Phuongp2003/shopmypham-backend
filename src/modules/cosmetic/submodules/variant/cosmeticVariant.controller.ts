@@ -9,7 +9,10 @@ import {
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 
-@Controller({ tag: 'cosmetics/variants', description: 'Quản lý biến thể mỹ phẩm' })
+@Controller({
+    tag: 'cosmetics/variants',
+    description: 'Quản lý biến thể mỹ phẩm',
+})
 export class CosmeticVariantController {
     @Get(
         {

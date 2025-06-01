@@ -10,4 +10,4 @@ router.post('/', AuthMiddleware.handle, ShippingPolicyController.create);
 router.put('/:id', AuthMiddleware.handle, ShippingPolicyController.update);
 router.delete('/:id', AuthMiddleware.handle, ShippingPolicyController.delete);
 
-export default router; 
+export default router;

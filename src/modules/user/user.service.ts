@@ -18,16 +18,16 @@ import { UserRole } from '@/common/enums/user-role.enum';
 import { CacheService } from '@/common/services/cache.service';
 
 export class UserService {
-    private static readonly stackKey = 'userKey'
-    static async findAll(page: number, limit: number): Promise<PaginationUserRes> {
+    private static readonly stackKey = 'userKey';
+    static async findAll(
+        page: number,
+        limit: number,
+    ): Promise<PaginationUserRes> {
         const users = await prisma.user.findMany({
             skip: (page - 1) * limit,
             take: limit,
         });
-        const cacheKey = CacheService.generateKeyV2(
-            'user',
-            { page, limit },
-        );
+        const cacheKey = CacheService.generateKeyV2('user', { page, limit });
         const cachedUsers = await CacheService.get(cacheKey);
         if (cachedUsers) {
             CacheService.refreshCache(cacheKey);
@@ -72,10 +72,7 @@ export class UserService {
             where: { email: data.email },
         });
         if (existingUser) {
-            throw new HttpException(
-                HttpStatus.BAD_REQUEST,
-                'Email đã tồn tại',
-            );
+            throw new HttpException(HttpStatus.BAD_REQUEST, 'Email đã tồn tại');
         }
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const secretKey = crypto.randomBytes(32).toString('hex');
@@ -117,7 +114,10 @@ export class UserService {
         return UserService.mapToResponse(updatedUser, isNoPassword);
     }
 
-    static async changeStatus(id: string, data: ChangeStatusReq): Promise<void> {
+    static async changeStatus(
+        id: string,
+        data: ChangeStatusReq,
+    ): Promise<void> {
         const user = await prisma.user.findUnique({
             where: { id },
         });

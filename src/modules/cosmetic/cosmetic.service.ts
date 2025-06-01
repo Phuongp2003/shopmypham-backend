@@ -301,10 +301,12 @@ export class CosmeticService {
             // Xử lý variants (tạo, update, xoá)
             if (data.variants) {
                 // Get all variant IDs for this cosmetic
-                const variantIds = (await tx.cosmeticVariant.findMany({
-                    where: { cosmeticId: id },
-                    select: { id: true },
-                })).map(v => v.id);
+                const variantIds = (
+                    await tx.cosmeticVariant.findMany({
+                        where: { cosmeticId: id },
+                        select: { id: true },
+                    })
+                ).map((v) => v.id);
 
                 // Delete dependent records
                 await tx.orderDetail.deleteMany({
@@ -386,7 +388,10 @@ export class CosmeticService {
                 },
             });
             if (!cosmeticWithVariants) {
-                throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+                throw new HttpException(
+                    HttpStatus.NOT_FOUND,
+                    'Cosmetic not found',
+                );
             }
             CacheService.clearStack(CosmeticService.stackKey);
             return this.toCosmeticResponse(cosmeticWithVariants);

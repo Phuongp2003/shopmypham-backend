@@ -28,7 +28,7 @@ import { Paginated } from '@/common/types/paginated.type';
  *     description: Thứ tự sắp xếp (tăng hoặc giảm)
  */
 
-export interface PostQueryParamsSchema{
+export interface PostQueryParamsSchema {
     authorId?: string; // ID người dùng (nếu cần lọc theo người dùng)
     published?: boolean;
     page?: number;
