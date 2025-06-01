@@ -22,19 +22,21 @@ export class PostService {
     static async getPosts(
         query: PostQueryParamsSchema,
     ): Promise<PaginatedPostResponse> {
-        const {
-            authorId,
-            published,
-            page = 1,
-            limit = 10,
-            sortBy = 'createdAt',
-            sortOrder = 'desc',
-        } = query;
-
+        const { authorId, sortBy = 'createdAt', sortOrder = 'desc', search } = query;
+        const published = query.published ? query.published == 'true' : undefined;
+        const page = Number(query.page) || 1;
+        const limit = Number(query.limit) || 10;
         // Tạo điều kiện truy vấn
         const where = {
             ...(authorId && { authorId }),
             ...(published !== undefined && { published }),
+            ...(search && {
+                OR: [
+                    { title: { contains: search } },
+                    { description: { contains: search } },
+                    { content: { contains: search } },
+                ],
+            }),
         };
 
         const [posts, total] = await Promise.all([
@@ -56,6 +58,9 @@ export class PostService {
         const formattedPosts: PostResponse[] = posts.map((post) => ({
             id: post.id,
             title: post.title,
+            description: post.description,
+            image: post.image || '',
+            slug: post.slug,
             content: post.content,
             published: post.published,
             authorId: post.authorId,
@@ -95,6 +100,9 @@ export class PostService {
         const response: PostResponse = {
             id: post.id,
             title: post.title,
+            description: post.description,
+            image: post.image || '',
+            slug: post.slug,
             content: post.content,
             published: post.published,
             authorId: post.authorId,
@@ -110,8 +118,7 @@ export class PostService {
         userId: string,
         dto: CreatePostDto,
     ): Promise<PostResponse> {
-        const { title, content, published } = dto;
-        console.log('>>> userId truyền vào:', userId);
+        const { title, content, published, description, image } = dto;
 
         // Tạo bài viết trong transaction để dễ mở rộng (gắn tag, gắn category...)
         return await prisma.$transaction(async (tx) => {
@@ -128,12 +135,16 @@ export class PostService {
             }
 
             // 2. Tạo bài viết
+            const slug = this.generateSlug(title);
             const post = await tx.post.create({
                 data: {
                     title,
                     content,
                     published: published ?? false,
                     authorId: userId,
+                    description,
+                    image,
+                    slug,
                 },
                 include: {
                     author: true,
@@ -147,8 +158,11 @@ export class PostService {
                 title: post.title,
                 content: post.content,
                 published: post.published,
+                description: post.description,
+                image: post.image || '',
+                slug: post.slug,
                 authorId: post.authorId,
-                comments: post.comments.map((c) => c.id),
+                comments: [],
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
             };
@@ -169,7 +183,6 @@ export class PostService {
                 comments: true,
             },
         });
-        console.log('postId received:', postId);
 
         if (!post) {
             throw new HttpException(
@@ -177,17 +190,15 @@ export class PostService {
                 'Không tìm thấy bài viết',
             );
         }
-
-        // Kiểm tra quyền truy cập (chỉ tác giả mới xem được)
-        if (post.authorId !== userId) {
-            throw new HttpException(
-                HttpStatus.FORBIDDEN,
-                'Bạn không có quyền xem bài viết này',
-            );
-        }
+        const slug = this.generateSlug(data.title || '');
         const updatedPost = await prisma.post.update({
             where: { id: postId },
-            data,
+            data: {
+                ...data,
+                description: data.description,
+                image: data.image || '',
+                slug: slug,
+            },
             include: {
                 author: {
                     select: {
@@ -204,7 +215,20 @@ export class PostService {
                 postId,
             }),
         );
-        return updatedPost;
+        const response: PostResponse = {
+            id: updatedPost.id,
+            title: updatedPost.title,
+            description: updatedPost.description,
+            image: updatedPost.image || '',
+            slug: updatedPost.slug,
+            content: updatedPost.content,
+            published: updatedPost.published,
+            authorId: updatedPost.author.id,
+            comments: [],
+            createdAt: updatedPost.createdAt,
+            updatedAt: updatedPost.updatedAt,
+        };
+        return response;
     }
 
     static async deletePost(userId: string, postId: string): Promise<void> {
@@ -220,22 +244,26 @@ export class PostService {
             );
         }
 
-        // 2. Kiểm tra quyền xóa (chỉ tác giả mới được xóa)
-        if (post.authorId !== userId) {
-            throw new HttpException(
-                HttpStatus.FORBIDDEN,
-                'Bạn không có quyền xóa bài viết này',
-            );
-        }
-
-        // 3. Xóa các liên kết nếu cần (ví dụ: comment, tag)
         await prisma.comment.deleteMany({
             where: { postId },
         });
-
-        // 4. Xóa bài viết
+        
         await prisma.post.delete({
             where: { id: postId },
         });
+    }
+
+    private static generateSlug(title: string): string {
+        const randomString = Math.random()
+            .toString(36)
+            .replace(/[^a-z]+/g, '')
+            .substring(0, 5)
+        const slug = `${title}-${randomString}`
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[^\u0000-\u007F]/g, '') // Remove non-ASCII characters
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/[^\w-]+/g, '') // Remove all non-word characters
+        return slug
     }
 }

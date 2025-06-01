@@ -20,7 +20,7 @@ export function extractPathParams(path: string): string[] {
 }
 
 // --- Annotation Decorators ---
-export function Controller(options: { tag: string; description?: string }) {
+export function Controller(options: { tag: string; description?: string; path?: string }) {
     return function (target: Function) {
         Reflect.defineMetadata('swagger:controller', options, target);
     };
@@ -177,6 +177,19 @@ export function Fetch(
     },
 ) {
     return SwaggerMethod({ ...meta, method: 'fetch' }, swaggerInfo);
+}
+
+export function FileBody(fieldName: string = 'file') {
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        Reflect.defineMetadata(
+            'swagger:fileBody',
+            {
+                fieldName,
+            },
+            target,
+            propertyKey,
+        );
+    };
 }
 
 // --- Annotation Registration Utility ---

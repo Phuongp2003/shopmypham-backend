@@ -180,7 +180,26 @@ export class SwaggerBuilder {
         }
         // Body
         let requestBody;
-        if (methodMeta.body && typeof methodMeta.body === 'string') {
+        // Support @FileBody annotation
+        const fileBodyMeta = Reflect.getMetadata('swagger:fileBody', target, methodName);
+        if (fileBodyMeta && fileBodyMeta.fieldName) {
+            requestBody = {
+                content: {
+                    'multipart/form-data': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                [fileBodyMeta.fieldName]: {
+                                    type: 'string',
+                                    format: 'binary',
+                                    description: `File upload field: ${fileBodyMeta.fieldName}`,
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+        } else if (methodMeta.body && typeof methodMeta.body === 'string') {
             requestBody = {
                 content: {
                     'application/json': {
@@ -210,25 +229,21 @@ export class SwaggerBuilder {
         const path =
             methodMeta.path || `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
 
-        // Construct full path: if methodMeta.path starts with '/', combine with controller tag
-        // Otherwise use the path as-is for backward compatibility
+        // Construct full path: if methodMeta.path starts with '/', combine with controller path (if present) or tag
         let fullPath: string;
+        const basePath = ctrlMeta.path ? ctrlMeta.path : `/${ctrlMeta.tag.toLowerCase()}`;
         if (methodMeta.path) {
             if (methodMeta.path.startsWith('/')) {
-                // Relative path - combine with controller tag
-                const basePath = `/${ctrlMeta.tag.toLowerCase()}`;
                 if (methodMeta.path === '/') {
                     fullPath = basePath;
                 } else {
                     fullPath = basePath + methodMeta.path;
                 }
             } else {
-                // Absolute path - use as-is (legacy support)
                 fullPath = methodMeta.path;
             }
         } else {
-            // No path specified - use default
-            fullPath = `/${ctrlMeta.tag.toLowerCase()}/${methodName}`;
+            fullPath = basePath + `/${methodName}`;
         }
 
         // Convert Express path format (:id) to OpenAPI format ({id})

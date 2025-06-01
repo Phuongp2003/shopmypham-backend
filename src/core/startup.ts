@@ -18,7 +18,8 @@ import orderRouter from '../modules/order/order.router';
 import { initAdminUser } from './init-admin';
 import { registerSwaggerAnnotations } from '../common/annotation/swagger.annotation';
 import paymentRouter from '@/modules/payment/payment.router';
-
+import uploadRouter from '@/modules/upload/upload.router';
+import { IMAGE_DIR } from '../common/utils/fileHandler';
 /**
  * AppInitializer class handles the initialization and configuration of the Express application.
  * It sets up middleware, services, routes, and error handling.
@@ -150,6 +151,9 @@ export class AppInitializer {
             res.json({ status: 'ok' });
         });
 
+        // Serve static images
+        this.app.use('/images', express.static(IMAGE_DIR));
+
         // Register module routes
         this.app.use('/auth', authRouter);
         this.app.use('/post', postRouter);
@@ -158,6 +162,7 @@ export class AppInitializer {
         this.app.use('/users', userRouter);
         this.app.use('/orders', orderRouter);
         this.app.use('/payment', paymentRouter);
+        this.app.use('/upload', uploadRouter);
     }
 
     private static registerErrorHandler() {

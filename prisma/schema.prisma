@@ -8,37 +8,40 @@ datasource db {
 }
 
 model User {
-    id        String    @id @default(uuid())
-    email     String    @unique
-    password  String
-    name      String
-    phone     String?
-    role      String    @default("user")
-    googleId  String?   @unique
-    googleName String?
+    id          String           @id @default(uuid())
+    email       String           @unique
+    password    String
+    name        String
+    phone       String?
+    role        String           @default("user")
+    googleId    String?          @unique
+    googleName  String?
     googleEmail String?
-    secretKey String
-    status    UserStatus @default(ACTIVE)
-    posts     Post[]
-    comments  Comment[]
-    orders    Order[]
-    cart      Cart?
-    reviews   CosmeticReview[]
-    addresses    Address[] 
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+    secretKey   String
+    status      UserStatus       @default(ACTIVE)
+    posts       Post[]
+    comments    Comment[]
+    orders      Order[]
+    cart        Cart?
+    reviews     CosmeticReview[]
+    addresses   Address[]
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
 }
 
 model Post {
-    id        String    @id @default(uuid())
-    title     String
-    content   String
-    published Boolean   @default(false)
-    authorId  String
-    author    User      @relation(fields: [authorId], references: [id])
-    comments  Comment[]
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+    id          String    @id @default(uuid())
+    title       String
+    description String    @db.Text
+    content     String    @db.Text
+    image       String?
+    slug        String
+    published   Boolean   @default(false)
+    authorId    String
+    author      User      @relation(fields: [authorId], references: [id])
+    comments    Comment[]
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 }
 
 model Comment {
@@ -53,56 +56,56 @@ model Comment {
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  userId        String
-  status        OrderStatus @default(PENDING)
-  addressId     String     // FK đến address (nullable)
-  note          String?
-  user          User        @relation(fields: [userId], references: [id])
-  address       Address?    @relation(fields: [addressId], references: [id])  // Quan hệ 1 order có 1 address
-  details       OrderDetail[]
-  payment       Payment?   @relation(fields: [paymentId], references: [id]) // mối quan hệ 1-1 với Payment
-  paymentId     String?    @unique  // paymentId là FK duy nhất (unique)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+    id        String        @id @default(uuid())
+    userId    String
+    status    OrderStatus   @default(PENDING)
+    addressId String // FK đến address (nullable)
+    note      String?
+    user      User          @relation(fields: [userId], references: [id])
+    address   Address?      @relation(fields: [addressId], references: [id]) // Quan hệ 1 order có 1 address
+    details   OrderDetail[]
+    payment   Payment?      @relation(fields: [paymentId], references: [id]) // mối quan hệ 1-1 với Payment
+    paymentId String?       @unique // paymentId là FK duy nhất (unique)
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
 }
 
 model Address {
-  id            String    @id @default(uuid())
-  userId        String
-  recipientName String
-  phone         String
-  addressLine   String
-  district      String
-  city          String
-  isDefault     Boolean   @default(false)
-  user          User      @relation(fields: [userId], references: [id])
-  orders        Order[]   // 1 address có thể liên quan nhiều orders
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+    id            String   @id @default(uuid())
+    userId        String
+    recipientName String
+    phone         String
+    addressLine   String
+    district      String
+    city          String
+    isDefault     Boolean  @default(false)
+    user          User     @relation(fields: [userId], references: [id])
+    orders        Order[] // 1 address có thể liên quan nhiều orders
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
 }
 
 model Payment {
     id            String        @id @default(uuid())
-    order         Order?         @relation
+    order         Order?        @relation
     amount        Float
     status        PaymentStatus @default(PENDING)
     paymentMethod String
     transactionId String?
     createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt     
-
+    updatedAt     DateTime      @updatedAt
 }
+
 model OrderDetail {
-    id         String   @id @default(uuid())
-    orderId    String
-    variantId  String   // Thay cosmeticId bằng variantId
-    quantity   Int
-    price      Float
-    order      Order    @relation(fields: [orderId], references: [id])
-    variant    CosmeticVariant  @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+    id        String          @id @default(uuid())
+    orderId   String
+    variantId String // Thay cosmeticId bằng variantId
+    quantity  Int
+    price     Float
+    order     Order           @relation(fields: [orderId], references: [id])
+    variant   CosmeticVariant @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
+    createdAt DateTime        @default(now())
+    updatedAt DateTime        @updatedAt
 }
 
 model Cart {
@@ -115,14 +118,14 @@ model Cart {
 }
 
 model CartDetail {
-    id         String   @id @default(uuid())
-    cartId     String
-    variantId  String   // Thay cosmeticId bằng variantId
-    quantity   Int
-    cart       Cart     @relation(fields: [cartId], references: [id])
-    variant    CosmeticVariant  @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+    id        String          @id @default(uuid())
+    cartId    String
+    variantId String // Thay cosmeticId bằng variantId
+    quantity  Int
+    cart      Cart            @relation(fields: [cartId], references: [id])
+    variant   CosmeticVariant @relation(fields: [variantId], references: [id]) // Thay cosmetic bằng variant
+    createdAt DateTime        @default(now())
+    updatedAt DateTime        @updatedAt
 }
 
 model Cosmetic {
@@ -150,40 +153,40 @@ model Cosmetic {
 }
 
 model CosmeticVariant {
-  id          String     @id @default(uuid())
-  name        String     @unique
-  cosmeticId  String
-  cosmetic    Cosmetic   @relation(fields: [cosmeticId], references: [id])
-  sku         String     @unique
-  price       Float
-  stock       Int        @default(0)
-  image       String?
-  cartItems   CartDetail[]
-  orderItems  OrderDetail[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+    id         String        @id @default(uuid())
+    name       String        @unique
+    cosmeticId String
+    cosmetic   Cosmetic      @relation(fields: [cosmeticId], references: [id])
+    sku        String        @unique
+    price      Float
+    stock      Int           @default(0)
+    image      String?
+    cartItems  CartDetail[]
+    orderItems OrderDetail[]
+    createdAt  DateTime      @default(now())
+    updatedAt  DateTime      @updatedAt
 
-  CosmeticOption CosmeticOption[]
+    CosmeticOption CosmeticOption[]
 }
 
 model CosmeticOption {
-  id        String   @id @default(uuid())
-  optionKey       String   // VD "color", "size"
-  optionValue     String   // VD "Đỏ cam", "50ml"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    id          String   @id @default(uuid())
+    optionKey   String // VD "color", "size"
+    optionValue String // VD "Đỏ cam", "50ml"
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 
-  CosmeticVariant CosmeticVariant[]
+    CosmeticVariant CosmeticVariant[]
 }
 
 model CosmeticSpec {
-  id         String   @id @default(uuid())
-  cosmeticId String
-  cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
-  specKey    String   // VD "ingredients", "benefits"
-  specValue  String   // VD "Vitamin E", "Dưỡng ẩm 24h"
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+    id         String   @id @default(uuid())
+    cosmeticId String
+    cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id])
+    specKey    String // VD "ingredients", "benefits"
+    specValue  String // VD "Vitamin E", "Dưỡng ẩm 24h"
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
 }
 
 model CosmeticDistributor {
@@ -231,30 +234,30 @@ enum UserStatus {
 model CosmeticBenefit {
     id           String   @id @default(uuid())
     cosmeticId   String
-    benefitKey   String   // e.g., "Chất lượng cao cấp"
+    benefitKey   String // e.g., "Chất lượng cao cấp"
     benefitValue String   @db.Text // e.g., "Công thức chất lượng cao..."
     orderIndex   Int      @default(0) // For sorting display order
     createdAt    DateTime @default(now())
     updatedAt    DateTime @updatedAt
-    
-    cosmetic     Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
-    
+
+    cosmetic Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
+
     @@index([cosmeticId])
 }
 
 model CosmeticBadge {
     id         String    @id @default(uuid())
     badgeType  BadgeType // MADE_IN, QUALITY, SHIPPING, etc.
-    title      String    // e.g., "Sản xuất tại Việt Nam"
-    icon       String?   // Icon identifier or emoji
-    color      String?   // CSS color class
+    title      String // e.g., "Sản xuất tại Việt Nam"
+    icon       String? // Icon identifier or emoji
+    color      String? // CSS color class
     isActive   Boolean   @default(true)
     orderIndex Int       @default(0)
     createdAt  DateTime  @default(now())
     updatedAt  DateTime  @updatedAt
     cosmeticId String
-    
-    cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
+
+    cosmetic Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
 
     @@index([cosmeticId])
 }
@@ -269,48 +272,48 @@ enum BadgeType {
 }
 
 model ShippingPolicy {
-    id                     String            @id @default(uuid())
-    name                   String            // e.g., "Standard Shipping Policy"
-    description            String?           @db.Text // Brief description
-    deliveryTime           String?           // e.g., "3-5 ngày làm việc"
-    freeShippingThreshold  Float?            // Minimum order for free shipping
-    isActive               Boolean           @default(true)
-    createdAt              DateTime          @default(now())
-    updatedAt              DateTime          @updatedAt
-    
-    features               ShippingFeature[]
-    cosmetics              Cosmetic[]
+    id                    String   @id @default(uuid())
+    name                  String // e.g., "Standard Shipping Policy"
+    description           String?  @db.Text // Brief description
+    deliveryTime          String? // e.g., "3-5 ngày làm việc"
+    freeShippingThreshold Float? // Minimum order for free shipping
+    isActive              Boolean  @default(true)
+    createdAt             DateTime @default(now())
+    updatedAt             DateTime @updatedAt
+
+    features  ShippingFeature[]
+    cosmetics Cosmetic[]
 }
 
 model ShippingFeature {
-    id                String         @id @default(uuid())
-    shippingPolicyId  String
-    title             String         // e.g., "Miễn phí giao hàng"
-    description       String?        // e.g., "cho đơn từ 500.000₫"
-    icon              String?        // Icon identifier
-    orderIndex        Int            @default(0)
-    
-    shippingPolicy    ShippingPolicy @relation(fields: [shippingPolicyId], references: [id], onDelete: Cascade)
-    
+    id               String  @id @default(uuid())
+    shippingPolicyId String
+    title            String // e.g., "Miễn phí giao hàng"
+    description      String? // e.g., "cho đơn từ 500.000₫"
+    icon             String? // Icon identifier
+    orderIndex       Int     @default(0)
+
+    shippingPolicy ShippingPolicy @relation(fields: [shippingPolicyId], references: [id], onDelete: Cascade)
+
     @@index([shippingPolicyId])
 }
 
 model CosmeticReview {
-    id          String   @id @default(uuid())
-    cosmeticId  String
-    userId      String?  // Optional if anonymous reviews allowed
-    rating      Int      // 1-5 stars
-    title       String?  // Optional review title
-    content     String?  @db.Text // Review content
-    isVerified  Boolean  @default(false) // Verified purchase
-    isApproved  Boolean  @default(false) // Admin approval
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    
-    cosmetic    Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
-    user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-    
+    id         String   @id @default(uuid())
+    cosmeticId String
+    userId     String? // Optional if anonymous reviews allowed
+    rating     Int // 1-5 stars
+    title      String? // Optional review title
+    content    String?  @db.Text // Review content
+    isVerified Boolean  @default(false) // Verified purchase
+    isApproved Boolean  @default(false) // Admin approval
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    cosmetic Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
+    user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    @@unique([cosmeticId, userId])
     @@index([cosmeticId])
     @@index([userId])
-    @@unique([cosmeticId, userId])
 }

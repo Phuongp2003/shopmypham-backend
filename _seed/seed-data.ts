@@ -7,10 +7,12 @@ import { seedCosmetics } from './seed-cosmetics';
 import { seedCarts } from './seed-carts';
 import { seedAddresses } from './seed-addresses';
 import { seedOrders } from './seed-orders';
+import { seedPosts } from './seed-posts';
 
 export async function main() {
   await seedAdmins();
   const users = await seedUsers();
+  await seedPosts(users);
   await seedOptions();
   await seedDistributors();
   await seedShippingPolicies();

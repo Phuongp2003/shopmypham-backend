@@ -35,7 +35,6 @@ export class PostController {
     )
     @RequireHeader()
     static async getPosts(req: Request, res: Response): Promise<void> {
-        console.log('Get posts called. User:', req.user);
         try {
             if (!req.user) {
                 throw new HttpException(
@@ -43,11 +42,9 @@ export class PostController {
                     'User not authenticated',
                 );
             }
-            const user = req.user;
             // Lấy params từ query và ép kiểu
             const params: PostQueryParamsSchema = {
-                ...req.query,
-                authorId: user.id, // Gán ID người dùng hiện tại làm authorId
+                ...req.query
             } as PostQueryParamsSchema;
 
             const result = await PostService.getPosts(params);
@@ -179,8 +176,6 @@ export class PostController {
         try {
             const { id } = req.params;
             const data: CreatePostDto = req.body;
-
-            console.log('Updating post with ID:', id, 'and data:', data);
 
             if (!id || typeof id !== 'string') {
                 res.status(HttpStatus.BAD_REQUEST).json({

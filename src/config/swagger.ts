@@ -18,7 +18,7 @@ import { PaymentController } from '@/modules/payment/payment.controller';
 import { CosmeticReviewController } from '@/modules/cosmetic/submodules/review/cosmeticReview.controller';
 import { ShippingPolicyController } from '@/modules/cosmetic/submodules/shipping/shippingPolicy.controller';
 import { CosmeticBadgeController } from '@/modules/cosmetic/submodules/badge/cosmeticBadge.controller';
-
+import { UploadController } from '@/modules/upload/upload.controller';
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
 const modulesDir = path.join(__dirname, '../modules');
 function getAllSchemaFiles(dir: string): string[] {
@@ -88,6 +88,7 @@ const swaggerBuilder = new SwaggerBuilder()
         OrderController,
         PostController,
         PaymentController,
+        UploadController,
     ]);
 
 const swaggerOptions = {

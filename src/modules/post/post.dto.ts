@@ -1,6 +1,7 @@
 import { User } from '@prisma/client';
 //import { Payment } from './order.types';
 import { Paginated } from '@/common/types/paginated.type';
+import type { QueryParams } from '@/common/types/query.types';
 
 /**
  * @swagger
@@ -28,13 +29,10 @@ import { Paginated } from '@/common/types/paginated.type';
  *     description: Thứ tự sắp xếp (tăng hoặc giảm)
  */
 
-export interface PostQueryParamsSchema {
+export interface PostQueryParamsSchema extends QueryParams {
     authorId?: string; // ID người dùng (nếu cần lọc theo người dùng)
-    published?: boolean;
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    published?: string;
+    sortBy?: 'createdAt' | 'title' | 'updatedAt' | 'published';
 }
 
 /**
@@ -65,8 +63,8 @@ export interface CreatePostDto {
     title: string;
     content: string;
     published: boolean; // Trạng thái công khai của bài viết
-    //authorId: string; // ID của người viết bài
-    //comments?: string[]; // ID của các bình luận liên quan
+    description: string;
+    image: string;
     createdAt?: Date; // Ngày tạo bài viết
     updatedAt?: Date; // Ngày cập nhật bài viết
 }
@@ -111,6 +109,9 @@ export interface PostResponse {
     title: string;
     content: string;
     published: boolean;
+    description: string;
+    image: string;
+    slug: string;
     authorId: string; // ID của người viết bài
     comments?: string[]; // ID của các bình luận liên quan
     createdAt: Date; // Ngày tạo bài viết
