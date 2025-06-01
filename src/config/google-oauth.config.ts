@@ -19,17 +19,7 @@ export const googleStrategy = new GoogleStrategy(
     },
     async (accessToken, refreshToken, profile, done) => {
         try {
-            // This function will be implemented in the auth service
-            if (!profile.emails || !profile.emails[0] || !profile.emails[0].value) {
-                return done(new Error('Email not found'), false);
-            }
-            const user = {
-                id: profile.id,
-                email: profile.emails[0].value,
-                name: profile.displayName,
-                role: 'user' as UserRole, // Assuming a default role for simplicity
-            };
-            return done(null, user);
+            return done(null, profile);
         } catch (error) {
             return done(error as Error);
         }
