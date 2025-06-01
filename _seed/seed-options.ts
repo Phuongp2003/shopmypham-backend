@@ -10,7 +10,17 @@ const optionSampleData = [
   { optionKey: "Chỉ số chống nắng", optionValue: "SPF 30", id: "option-7" },
   { optionKey: "Chỉ số chống nắng", optionValue: "SPF 50+", id: "option-8" },
   { optionKey: "Dạng sản phẩm", optionValue: "Tuýp", id: "option-9" },
-  { optionKey: "Dạng sản phẩm", optionValue: "Xịt", id: "option-10" }
+  { optionKey: "Dạng sản phẩm", optionValue: "Xịt", id: "option-10" },
+  { optionKey: "Loại da", optionValue: "Da nhạy cảm", id: "option-11" },
+  { optionKey: "Loại da", optionValue: "Da thường", id: "option-12" },
+  { optionKey: "Mùi hương", optionValue: "Bạc hà", id: "option-13" },
+  { optionKey: "Mùi hương", optionValue: "Cam", id: "option-14" },
+  { optionKey: "Chỉ số chống nắng", optionValue: "SPF 15", id: "option-15" },
+  { optionKey: "Chỉ số chống nắng", optionValue: "SPF 100", id: "option-16" },
+  { optionKey: "Dạng sản phẩm", optionValue: "Hũ", id: "option-17" },
+  { optionKey: "Dạng sản phẩm", optionValue: "Lọ", id: "option-18" },
+  { optionKey: "Thành phần", optionValue: "Vitamin C", id: "option-19" },
+  { optionKey: "Thành phần", optionValue: "Niacinamide", id: "option-20" }
 ];
 
 export async function seedOptions() {
