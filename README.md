@@ -1,7 +1,7 @@
 # Shop Mỹ Phẩm Backend
 
-ĐỀ TÀI: Xây dựng hệ thống web bán mỹ phẩm
-GIẢNG VIÊN HƯỚNG DẪN: ThS. Nguyễn Văn Hữu Hoàng
+- ĐỀ TÀI: Xây dựng hệ thống web bán mỹ phẩm
+- GIẢNG VIÊN HƯỚNG DẪN: ThS. Nguyễn Văn Hữu Hoàng
 
 > [Repo GitHub: Frontend](https://github.com/Phuongp2003/shopmypham-frontend)
 
