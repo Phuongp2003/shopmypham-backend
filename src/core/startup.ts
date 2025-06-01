@@ -152,7 +152,16 @@ export class AppInitializer {
         });
 
         // Serve static images
-        this.app.use('/images', express.static(IMAGE_DIR));
+        this.app.use(
+            '/images',
+            (req, res, next) => {
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                next();
+            },
+            helmet.crossOriginResourcePolicy({ policy: "cross-origin" }),
+            cors({ origin: true, credentials: true }),
+            express.static(IMAGE_DIR),
+        );
 
         // Register module routes
         this.app.use('/auth', authRouter);
