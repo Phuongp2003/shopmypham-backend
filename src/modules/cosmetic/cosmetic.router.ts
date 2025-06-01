@@ -10,6 +10,9 @@ import CosmeticVariantRouter from './submodules/variant/cosmeticVariant.router';
 import CosmeticSpecificationRouter from './submodules/specification/cosmeticSpecification.router';
 import CosmeticOptionRouter from './submodules/option/cosmesticOptions.router';
 import CosmeticReviewRouter from './submodules/review/cosmeticReview.router';
+import ShippingPolicyRouter from './submodules/shipping/shippingPolicy.router';
+import CosmeticBadgeRouter from './submodules/badge/cosmeticBadge.router';
+
 const router = Router();
 
 // Distributor routes
@@ -26,6 +29,12 @@ router.use('/options', CosmeticOptionRouter);
 
 // Review routes
 router.use('/reviews', CosmeticReviewRouter);
+
+// Shipping policy routes
+router.use('/shipping-policies', ShippingPolicyRouter);
+
+// Badge routes
+router.use('/badges', CosmeticBadgeRouter);
 
 // Client routes
 router.get('/', CosmeticController.getCosmetics);

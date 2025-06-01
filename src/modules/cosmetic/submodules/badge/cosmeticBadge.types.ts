@@ -60,7 +60,6 @@ export type BadgeType =
  */
 export type CosmeticBadge = {
     id: string;
-    cosmeticId: Cosmetic['id'];
     badgeType: BadgeType;
     title: string;
     icon?: string;
@@ -69,5 +68,4 @@ export type CosmeticBadge = {
     orderIndex: number;
     createdAt: Date;
     updatedAt: Date;
-    cosmetic?: Cosmetic;
 };

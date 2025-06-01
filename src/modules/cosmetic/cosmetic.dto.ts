@@ -57,6 +57,7 @@ export interface CosmeticRes {
     id: Cosmetic['id'];
     name: Cosmetic['name'];
     description: Cosmetic['description'];
+    type: Cosmetic['type'];
     price: Cosmetic['price'];
     stock: Cosmetic['stock'];
     image?: Cosmetic['image'];

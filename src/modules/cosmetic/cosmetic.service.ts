@@ -159,6 +159,7 @@ export class CosmeticService {
                     type: request.type,
                     image: request.image,
                     distributorId: request.distributorId,
+                    usageInstructions: request.usageInstructions,
                 },
             });
             // Tạo specifications
@@ -253,6 +254,7 @@ export class CosmeticService {
                     type: data.type,
                     image: data.image,
                     distributorId: data.distributorId,
+                    usageInstructions: data.usageInstructions,
                 },
             });
             // Xử lý specifications
@@ -442,6 +444,7 @@ export class CosmeticService {
             id: cosmetic.id,
             name: cosmetic.name,
             description: cosmetic.description,
+            type: cosmetic.type,
             price: cosmetic.price,
             stock: cosmetic.stock,
             image: cosmetic.image,
@@ -478,6 +481,7 @@ export class CosmeticService {
         return (variants || []).map((variant) => ({
             id: variant.id,
             name: variant.name,
+            sku: variant.sku,
             options: variant.CosmeticOption || [],
             inStock: variant.stock,
             image: variant.image,
@@ -492,6 +496,7 @@ export class CosmeticService {
             id: cosmetic.id,
             name: cosmetic.name,
             description: cosmetic.description,
+            type: cosmetic.type,
             price: cosmetic.price,
             stock: cosmetic.stock,
             image: cosmetic.image,

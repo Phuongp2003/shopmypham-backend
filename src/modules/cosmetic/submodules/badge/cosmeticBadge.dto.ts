@@ -66,8 +66,6 @@ export type CosmeticBadgeUpdateReq = Partial<CosmeticBadgeCreateReq>;
  * properties:
  *   id:
  *     type: string
- *   cosmeticId:
- *     type: string
  *   badgeType:
  *     $ref: '#/components/schemas/BadgeType'
  *   title:
@@ -88,14 +86,13 @@ export type CosmeticBadgeUpdateReq = Partial<CosmeticBadgeCreateReq>;
  *     format: date-time
  */
 export type CosmeticBadgeResponse = {
-    id: CosmeticBadge['id'];
-    cosmeticId: CosmeticBadge['cosmeticId'];
-    badgeType: CosmeticBadge['badgeType'];
-    title: CosmeticBadge['title'];
-    icon?: CosmeticBadge['icon'];
-    color?: CosmeticBadge['color'];
-    isActive: CosmeticBadge['isActive'];
-    orderIndex: CosmeticBadge['orderIndex'];
-    createdAt: CosmeticBadge['createdAt'];
-    updatedAt: CosmeticBadge['updatedAt'];
+    id: string;
+    badgeType: BadgeType;
+    title: string;
+    icon?: string;
+    color?: string;
+    isActive: boolean;
+    orderIndex: number;
+    createdAt: Date;
+    updatedAt: Date;
 };
