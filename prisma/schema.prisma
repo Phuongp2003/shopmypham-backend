@@ -252,8 +252,11 @@ model CosmeticBadge {
     orderIndex Int       @default(0)
     createdAt  DateTime  @default(now())
     updatedAt  DateTime  @updatedAt
+    cosmeticId String
+    
+    cosmetic   Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
 
-    cosmetic Cosmetic[]
+    @@index([cosmeticId])
 }
 
 enum BadgeType {

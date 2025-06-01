@@ -26,7 +26,7 @@ export class PaymentService {
             data: {
                 order: { connect: { id: data.orderId } },
                 amount: data.amount,
-                status: 'PENDING',
+                status: 'COMPLETED',
                 paymentMethod: data.paymentMethod,
             },
         });
@@ -144,6 +144,12 @@ export class PaymentService {
                 where: { id: payment.id },
                 data: {
                     status: 'FAILED',
+                },
+            });
+            await prisma.order.update({
+                where: { id: payment.order?.id },
+                data: {
+                    status: 'CANCELLED',
                 },
             });
         }

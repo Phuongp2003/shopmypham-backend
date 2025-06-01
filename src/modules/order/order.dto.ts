@@ -224,5 +224,5 @@ export interface PaginatedOrderResponse extends Paginated {
 
 export interface UpdateOrderStatusDto {
     status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    addressId: string ; // Cập nhật địa chỉ nếu cần
+    addressId?: string ; // Cập nhật địa chỉ nếu cần
 }

@@ -52,7 +52,7 @@ export class CosmeticDistributorService {
             where: { id },
             include: { cosmetics: true },
         });
-        return distributor as CosmeticDistributorType | null;
+        return distributor as unknown as CosmeticDistributorType | null;
     }
 
     static async create(
@@ -62,7 +62,7 @@ export class CosmeticDistributorService {
             data,
             include: { cosmetics: true },
         });
-        return distributor as CosmeticDistributorType;
+        return distributor as unknown as CosmeticDistributorType;
     }
 
     static async update(
@@ -74,7 +74,7 @@ export class CosmeticDistributorService {
             data,
             include: { cosmetics: true },
         });
-        return distributor as CosmeticDistributorType | null;
+        return distributor as unknown as CosmeticDistributorType | null;
     }
 
     static async delete(id: string): Promise<void> {

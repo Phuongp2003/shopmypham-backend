@@ -255,44 +255,41 @@ export class OrderController {
         }
     }
 
-    // @Delete(
-    //     {
-    //         name: 'cancel-order',
-    //         description: 'Hủy đơn hàng',
-    //         path: '/orders/:id',
-    //     },
-    //     {
-    //         params: 'id',
-    //         //response: "OrderResponse",
-    //     },
-    // )
-    // @RequireHeader()
-    // static async cancelOrder(req: AuthenticatedRequest, res: Response) {
-    //     try {
-    //         const { id } = req.params;
-    //         const userId = req.user.id;
-    //         const order = await OrderController.orderService.getOrderById(id);
-    //         if (req.user.role !== UserRole.ADMIN && order.userId !== userId) {
-    //             throw new HttpException(HttpStatus.FORBIDDEN, 'Access denied');
-    //         }
-    //         const cancelledOrder =
-    //             await OrderController.orderService.cancelOrder(id);
-    //         res.status(HttpStatus.OK).json(cancelledOrder);
-    //     } catch (error: any) {
-    //         logger.error('Order cancel error:', error, {
-    //             service: 'OrderController',
-    //         });
-    //         if (error instanceof HttpException) {
-    //             res.status(error.status).json({
-    //                 status: 'error',
-    //                 message: error.message,
-    //             });
-    //         } else {
-    //             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-    //                 status: 'error',
-    //                 message: 'Internal server error',
-    //             });
-    //         }
-    //     }
-    // }
+    @Put({
+        name: 'admin-update-order-status',
+        description: 'Admin cập nhật trạng thái đơn hàng',
+        path: '/ADMIN/:id',
+    }, {
+        body: 'UpdateOrderStatusDto',
+        response: 'OrderResponse',
+    })
+    @RequireHeader()
+    static async adminUpdateOrderStatus(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const data: UpdateOrderStatusDto = req.body;
+            if (!id || typeof id !== 'string') {
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "Missing or invalid 'id' parameter",
+                });
+                return;
+            }
+            // No userId check for admin
+            const order = await OrderService.adminUpdateOrderStatus(id, data);
+            res.status(HttpStatus.OK).json(order);
+        } catch (error: unknown) {
+            const errorResponse: ErrorResponse = {
+                status:
+                    error instanceof HttpException
+                        ? error.status
+                        : HttpStatus.INTERNAL_SERVER_ERROR,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Internal server error',
+            };
+            res.status(errorResponse.status).json(errorResponse);
+        }
+    }
+
 }

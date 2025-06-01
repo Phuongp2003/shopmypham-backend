@@ -49,7 +49,7 @@ export class CartService {
                     totalPrice: detail.quantity * variant.price,
                     sku: variant.sku,
                     stock: variant.stock,
-                    cosmeticName: variant.cosmetic.name,
+                    cosmeticName: variant.cosmetic.name + ' - ' + variant.name,
                     image: variant.image,
                     options: (variant.CosmeticOption || []).map((opt: any) => ({
                         key: opt.optionKey,

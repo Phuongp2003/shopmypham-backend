@@ -13,7 +13,7 @@ import {
     GetAllCosmeticRes,
     EnhancedCosmeticDetailRes,
 } from './cosmetic.dto';
-
+import type { BadgeType } from '@/modules/cosmetic/submodules/badge/cosmeticBadge.types';
 export class CosmeticService {
     static stackKey = 'cosmeticKey';
     static async getCosmetics(
@@ -160,6 +160,7 @@ export class CosmeticService {
                     image: request.image,
                     distributorId: request.distributorId,
                     usageInstructions: request.usageInstructions,
+                    shippingPolicyId: request.shippingPolicyId,
                 },
             });
             // Tạo specifications
@@ -194,6 +195,33 @@ export class CosmeticService {
                     });
                 }
             }
+            // Tạo benefits
+            if (request.benefits && request.benefits.length > 0) {
+                for (const benefit of request.benefits) {
+                    await tx.cosmeticBenefit.create({
+                        data: {
+                            cosmeticId: cosmetic.id,
+                            benefitKey: benefit.benefitKey,
+                            benefitValue: benefit.benefitValue,
+                            orderIndex: benefit.orderIndex,
+                        },
+                    });
+                }
+            }
+            // Tạo badges
+            if (request.badges && request.badges.length > 0) {
+                for (const badge of request.badges) {
+                    await tx.cosmeticBadge.create({
+                        data: {
+                            cosmeticId: cosmetic.id,
+                            badgeType: badge.badgeType as BadgeType,
+                            title: badge.title,
+                            icon: badge.icon,
+                            color: badge.color,
+                        },
+                    });
+                }
+            }
             // Lấy lại cosmetic với các trường liên quan
             const cosmeticWithVariants = await tx.cosmetic.findUnique({
                 where: { id: cosmetic.id },
@@ -214,7 +242,7 @@ export class CosmeticService {
 
     static async updateCosmetic(
         id: string,
-        data: CosmeticUpdateReq,
+        data: CosmeticCreateReq,
     ): Promise<CosmeticRes> {
         return await prisma.$transaction(async (tx) => {
             // Kiểm tra sự tồn tại của mỹ phẩm
@@ -272,52 +300,73 @@ export class CosmeticService {
             }
             // Xử lý variants (tạo, update, xoá)
             if (data.variants) {
-                // Xoá các variant
-                if (data.variants.delete && data.variants.delete.length > 0) {
-                    for (const variantId of data.variants.delete) {
-                        await tx.cosmeticVariant.delete({
-                            where: { id: variantId },
-                        });
-                    }
+                // Get all variant IDs for this cosmetic
+                const variantIds = (await tx.cosmeticVariant.findMany({
+                    where: { cosmeticId: id },
+                    select: { id: true },
+                })).map(v => v.id);
+
+                // Delete dependent records
+                await tx.orderDetail.deleteMany({
+                    where: { variantId: { in: variantIds } },
+                });
+                await tx.cartDetail.deleteMany({
+                    where: { variantId: { in: variantIds } },
+                });
+
+                // Now delete the variants
+                await tx.cosmeticVariant.deleteMany({
+                    where: { cosmeticId: id },
+                });
+
+                for (const variant of data.variants) {
+                    await tx.cosmeticVariant.create({
+                        data: {
+                            cosmeticId: id,
+                            name: variant.name,
+                            sku: variant.sku,
+                            price: variant.price,
+                            stock: variant.stock,
+                            image: variant.image,
+                            CosmeticOption: {
+                                connect: variant.optionIds.map((id) => ({
+                                    id,
+                                })),
+                            },
+                        },
+                    });
                 }
-                // Update các variant
-                if (data.variants.update && data.variants.update.length > 0) {
-                    for (const variant of data.variants.update) {
-                        await tx.cosmeticVariant.update({
-                            where: { id: variant.id },
+            }
+            if (data.benefits) {
+                await tx.cosmeticBenefit.deleteMany({
+                    where: { cosmeticId: id },
+                });
+                if (data.benefits.length > 0) {
+                    for (const benefit of data.benefits) {
+                        await tx.cosmeticBenefit.create({
                             data: {
-                                name: variant.name,
-                                sku: variant.sku,
-                                price: variant.price,
-                                stock: variant.stock,
-                                image: variant.image,
-                                ...(variant.optionIds && {
-                                    CosmeticOption: {
-                                        set: variant.optionIds.map((id) => ({
-                                            id,
-                                        })),
-                                    },
-                                }),
+                                cosmeticId: cosmetic.id,
+                                benefitKey: benefit.benefitKey,
+                                benefitValue: benefit.benefitValue,
+                                orderIndex: benefit.orderIndex,
                             },
                         });
                     }
                 }
-                // Tạo mới các variant
-                if (data.variants.create && data.variants.create.length > 0) {
-                    for (const variant of data.variants.create) {
-                        await tx.cosmeticVariant.create({
+            }
+            if (data.badges) {
+                await tx.cosmeticBadge.deleteMany({
+                    where: { cosmetic: { id } },
+                });
+                if (data.badges.length > 0) {
+                    for (const badge of data.badges) {
+                        await tx.cosmeticBadge.create({
                             data: {
-                                cosmeticId: id,
-                                name: variant.name,
-                                sku: variant.sku,
-                                price: variant.price,
-                                stock: variant.stock,
-                                image: variant.image,
-                                CosmeticOption: {
-                                    connect: variant.optionIds.map((id) => ({
-                                        id,
-                                    })),
-                                },
+                                cosmeticId: cosmetic.id,
+                                badgeType: badge.badgeType as BadgeType,
+                                title: badge.title,
+                                icon: badge.icon,
+                                color: badge.color,
                             },
                         });
                     }
@@ -336,8 +385,11 @@ export class CosmeticService {
                     distributor: true,
                 },
             });
+            if (!cosmeticWithVariants) {
+                throw new HttpException(HttpStatus.NOT_FOUND, 'Cosmetic not found');
+            }
             CacheService.clearStack(CosmeticService.stackKey);
-            return this.toCosmeticResponse(cosmeticWithVariants!);
+            return this.toCosmeticResponse(cosmeticWithVariants);
         });
     }
 
