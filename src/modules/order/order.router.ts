@@ -23,13 +23,13 @@ const router = Router();
 // orderRouter.get("/", AuthMiddleware.handle, (req: Request, res: Response) =>
 //   OrderController.getOrders(req as AuthenticatedRequest, res),
 // );
-
+router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
 router.get('/', AuthMiddleware.handle, OrderController.getOrders);
 router.post('/', AuthMiddleware.handle, OrderController.createOrder);
 
 router.get('/:id', AuthMiddleware.handle, OrderController.getOrderById);
 router.put('/:id', AuthMiddleware.handle, OrderController.updateOrderById);
-router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
+
 //router.get('/ADMIN', AuthMiddleware.handle, OrderController.getAllOrders);
 
 // router.post('/:id/cancel', AuthMiddleware.handle, OrderController.cancelOrder);
