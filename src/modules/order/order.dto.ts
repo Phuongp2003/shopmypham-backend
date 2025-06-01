@@ -1,5 +1,5 @@
-import { User, Order, OrderStatus } from '@prisma/client';
-import { Address, Payment } from './order.types';
+import { Order, OrderStatus } from '@/modules/order/order.types';
+import { Address } from '@/modules/user/submodules/address/address.types';
 import { Paginated } from '@/common/types/paginated.type';
 
 /**
@@ -172,8 +172,10 @@ export interface OrderResponse {
     }| null; // Thông tin thanh toán có thể null nếu chưa thanh toán
     details: {
         variantId: string;
+        name: string;
         quantity: number;
         price: number;
+        image: string;
     }[];
 }
 

@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { type User } from '@/modules/user/user.types';
 
 export type AuthUser = Pick<User, 'id' | 'email' | 'role' | 'name'> & {
     googleId?: string;

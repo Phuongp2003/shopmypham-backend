@@ -10,7 +10,7 @@ import {
 } from '@/common/annotation/swagger.annotation';
 
 @Controller({
-    tag: 'CosmeticOption',
+    tag: 'cosmetics/options',
     description: 'Quản lý tuỳ chọn thuộc tính mỹ phẩm',
 })
 export class CosmeticOptionController {
@@ -18,7 +18,7 @@ export class CosmeticOptionController {
         {
             name: 'get-all-options',
             description: 'Lấy tất cả tuỳ chọn',
-            path: '/cosmetics/options',
+            path: '/',
         },
         { response: 'CosmeticOptionResponse' },
     )
@@ -35,7 +35,7 @@ export class CosmeticOptionController {
         {
             name: 'get-option-by-id',
             description: 'Lấy tuỳ chọn theo id',
-            path: '/cosmetics/options/:id',
+            path: '/:id',
         },
         { response: 'CosmeticOptionResponse' },
     )
@@ -55,7 +55,7 @@ export class CosmeticOptionController {
         {
             name: 'create-option',
             description: 'Tạo tuỳ chọn',
-            path: '/cosmetics/options',
+            path: '',
         },
         { body: 'CosmeticOptionCreateReq', response: 'CosmeticOptionResponse' },
     )
@@ -74,7 +74,7 @@ export class CosmeticOptionController {
         {
             name: 'update-option',
             description: 'Cập nhật tuỳ chọn',
-            path: '/cosmetics/options/:id',
+            path: '/:id',
         },
         { body: 'CosmeticOptionUpdateReq', response: 'CosmeticOptionResponse' },
     )
@@ -96,7 +96,7 @@ export class CosmeticOptionController {
         {
             name: 'delete-option',
             description: 'Xoá tuỳ chọn',
-            path: '/cosmetics/options/:id',
+            path: '/:id',
         },
         { response: 'CosmeticOptionResponse' },
     )

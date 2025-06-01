@@ -11,8 +11,7 @@ paymentRouter.post('/', AuthMiddleware.handle, (req: Request, res: Response) =>
 paymentRouter.post(
     '/momo',
     AuthMiddleware.handle,
-    (req: Request, res: Response) =>
-        PaymentController.createMOMOPayment(req as any, res),
+    PaymentController.createMOMOPayment,
 );
 
 paymentRouter.post('/momo/callback', (req: Request, res: Response) =>
@@ -22,7 +21,7 @@ paymentRouter.post('/momo/callback', (req: Request, res: Response) =>
 paymentRouter.get(
     '/:id',
     AuthMiddleware.handle,
-    (req: Request, res: Response) => PaymentController.getPaymentById(req, res),
+    PaymentController.getPaymentById,
 );
 
 export default paymentRouter;

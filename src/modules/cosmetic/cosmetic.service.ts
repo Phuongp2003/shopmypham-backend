@@ -15,6 +15,7 @@ import {
 } from './cosmetic.dto';
 
 export class CosmeticService {
+    static stackKey = 'cosmeticKey';
     static async getCosmetics(
         params: CosmeticQueryParams,
     ): Promise<PaginatedCosmeticRes> {
@@ -84,6 +85,8 @@ export class CosmeticService {
             limit,
             totalPages: Math.ceil(total / limit),
         };
+        await CacheService.set(cacheKey, result);
+        await CacheService.pushToStack(CosmeticService.stackKey, cacheKey);
         return result;
     }
 
@@ -108,7 +111,7 @@ export class CosmeticService {
                     orderBy: { orderIndex: 'asc' },
                 },
                 reviews: {
-                    where: { isApproved: true },
+                    // where: { isApproved: true },
                     include: {
                         user: {
                             select: { name: true },
@@ -156,6 +159,7 @@ export class CosmeticService {
                     type: request.type,
                     image: request.image,
                     distributorId: request.distributorId,
+                    usageInstructions: request.usageInstructions,
                 },
             });
             // Tạo specifications
@@ -203,6 +207,7 @@ export class CosmeticService {
                     distributor: true,
                 },
             });
+            CacheService.clearStack(CosmeticService.stackKey);
             return this.toCosmeticResponse(cosmeticWithVariants!);
         });
     }
@@ -249,6 +254,7 @@ export class CosmeticService {
                     type: data.type,
                     image: data.image,
                     distributorId: data.distributorId,
+                    usageInstructions: data.usageInstructions,
                 },
             });
             // Xử lý specifications
@@ -330,6 +336,7 @@ export class CosmeticService {
                     distributor: true,
                 },
             });
+            CacheService.clearStack(CosmeticService.stackKey);
             return this.toCosmeticResponse(cosmeticWithVariants!);
         });
     }
@@ -357,6 +364,7 @@ export class CosmeticService {
             await tx.cosmeticSpec.deleteMany({ where: { cosmeticId: id } });
             // Cuối cùng xoá mỹ phẩm
             await tx.cosmetic.delete({ where: { id } });
+            CacheService.clearStack(CosmeticService.stackKey);
         });
     }
 
@@ -421,6 +429,7 @@ export class CosmeticService {
             },
         });
 
+        CacheService.clearStack(CosmeticService.stackKey);
         return {
             ...createdVariant,
             options: createdVariant.CosmeticOption,
@@ -435,6 +444,7 @@ export class CosmeticService {
             id: cosmetic.id,
             name: cosmetic.name,
             description: cosmetic.description,
+            type: cosmetic.type,
             price: cosmetic.price,
             stock: cosmetic.stock,
             image: cosmetic.image,
@@ -469,7 +479,9 @@ export class CosmeticService {
     }
     private static mapVariants(variants: any[]) {
         return (variants || []).map((variant) => ({
+            id: variant.id,
             name: variant.name,
+            sku: variant.sku,
             options: variant.CosmeticOption || [],
             inStock: variant.stock,
             image: variant.image,
@@ -484,6 +496,7 @@ export class CosmeticService {
             id: cosmetic.id,
             name: cosmetic.name,
             description: cosmetic.description,
+            type: cosmetic.type,
             price: cosmetic.price,
             stock: cosmetic.stock,
             image: cosmetic.image,

@@ -8,7 +8,6 @@ import addressRouter from './submodules/address/address.router';
 const router = Router();
 
 // Public routes
-router.post('/', UserController.create);
 
 // Protected routes
 router.use(AuthMiddleware.handle);
@@ -26,8 +25,10 @@ router.use('/addresses', addressRouter);
 // Admin routes
 router.use(roleMiddleware([UserRole.ADMIN]));
 router.get('/', UserController.findAll);
+router.post('/', UserController.create);
 router.get('/:id', UserController.findById);
 router.put('/:id', UserController.update);
+router.patch('/:id/status', UserController.changeStatus);
 router.delete('/:id', UserController.delete);
 
 export default router;

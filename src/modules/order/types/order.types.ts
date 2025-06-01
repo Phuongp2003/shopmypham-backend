@@ -1,4 +1,4 @@
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@/modules/order/order.types';
 
 export interface Order {
     id: string;

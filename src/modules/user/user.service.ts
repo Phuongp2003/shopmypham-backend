@@ -7,15 +7,42 @@ import {
     UpdateUserReq,
     GetUserRes,
     ChangePasswordReq,
+    type ChangeStatusReq,
+    type PaginationUserRes,
 } from './user.dto';
 import crypto from 'crypto';
 import { AccountRecoveryService } from '../accountRecovery/accountRecovery.service';
 import { prisma } from '@/config/prisma';
 import { EmailService } from '@/common/services/email.service';
+import { UserRole } from '@/common/enums/user-role.enum';
+import { CacheService } from '@/common/services/cache.service';
+
 export class UserService {
-    static async findAll(): Promise<GetUserRes[]> {
-        const users = await prisma.user.findMany();
-        return users.map((user) => UserService.mapToResponse(user));
+    private static readonly stackKey = 'userKey'
+    static async findAll(page: number, limit: number): Promise<PaginationUserRes> {
+        const users = await prisma.user.findMany({
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+        const cacheKey = CacheService.generateKeyV2(
+            'user',
+            { page, limit },
+        );
+        const cachedUsers = await CacheService.get(cacheKey);
+        if (cachedUsers) {
+            CacheService.refreshCache(cacheKey);
+            return cachedUsers as PaginationUserRes;
+        }
+        const total = await prisma.user.count();
+        const response = {
+            users: users.map((user) => UserService.mapToResponse(user)),
+            total,
+            page,
+            limit,
+        };
+        await CacheService.set(cacheKey, response);
+        await CacheService.pushToStack(UserService.stackKey, cacheKey);
+        return response;
     }
 
     static async findById(id: string): Promise<GetUserRes> {
@@ -47,7 +74,7 @@ export class UserService {
         if (existingUser) {
             throw new HttpException(
                 HttpStatus.BAD_REQUEST,
-                'Email already exists',
+                'Email đã tồn tại',
             );
         }
         const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -59,6 +86,7 @@ export class UserService {
                 secretKey,
             },
         });
+        await CacheService.clearStack(UserService.stackKey);
         return UserService.mapToResponse(user);
     }
 
@@ -85,7 +113,22 @@ export class UserService {
             data,
         });
         const isNoPassword = updatedUser.password === ``;
+        await CacheService.clearStack(UserService.stackKey);
         return UserService.mapToResponse(updatedUser, isNoPassword);
+    }
+
+    static async changeStatus(id: string, data: ChangeStatusReq): Promise<void> {
+        const user = await prisma.user.findUnique({
+            where: { id },
+        });
+        if (!user) {
+            throw new HttpException(HttpStatus.NOT_FOUND, 'User not found');
+        }
+        await prisma.user.update({
+            where: { id },
+            data: { status: data.status },
+        });
+        await CacheService.clearStack(UserService.stackKey);
     }
 
     static async changePassword(
@@ -119,6 +162,7 @@ export class UserService {
             where: { id },
             data: { password: hashedPassword },
         });
+        await CacheService.clearStack(UserService.stackKey);
     }
 
     static async unlinkGoogleAccount(id: string) {
@@ -156,6 +200,7 @@ export class UserService {
             'Bạn đã gỡ liên kết với tài khoản Google!',
             'Bạn đã gỡ liên kết với tài khoản Google, nếu có bất khì sai sót gì, hãy liên hệ với chúng tối trong vòng 12h để giải quyết!',
         );
+        await CacheService.clearStack(UserService.stackKey);
     }
 
     static async delete(id: string): Promise<void> {
@@ -165,9 +210,21 @@ export class UserService {
         if (!user) {
             throw new HttpException(HttpStatus.NOT_FOUND, 'User not found');
         }
+        if (user.role === UserRole.ADMIN) {
+            throw new HttpException(
+                HttpStatus.BAD_REQUEST,
+                'Không thể xóa tài khoản admin',
+            );
+        }
         await prisma.user.delete({
             where: { id },
         });
+        await EmailService.sendEmailWithTemplate(
+            user.email,
+            'Tài khoản của bạn đã bị xóa',
+            'Tài khoản của bạn đã bị xóa, nếu có bất khì sai sót gì, hãy liên hệ với chúng tối trong vòng 12h để giải quyết!',
+        );
+        await CacheService.clearStack(UserService.stackKey);
     }
 
     private static mapToResponse(

@@ -4,10 +4,10 @@ import bcrypt from 'bcrypt';
 export async function seedUsers() {
   const userNames = [
     'Nguyễn Văn A',
-    'Trần Thị B',
-    'Lê Văn C',
-    'Phạm Thị D',
-    'Hoàng Văn E',
+    'Nguyễn Văn B',
+    'Nguyễn Văn C',
+    'Nguyễn Văn D',
+    'Nguyễn Văn E',
   ];
   const users = [];
   for (const name of userNames) {

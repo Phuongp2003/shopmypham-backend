@@ -19,6 +19,9 @@ router.post('/', CartController.createCart);
 // // Update cart
 router.put('/', CartController.updateCart);
 
+// Add cart item
+router.put('/:variantId', CartController.addCartItem);
+
 // Remove cart item
 router.delete('/:variantId', CartController.removeCartItem);
 

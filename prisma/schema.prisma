@@ -244,7 +244,6 @@ model CosmeticBenefit {
 
 model CosmeticBadge {
     id         String    @id @default(uuid())
-    cosmeticId String
     badgeType  BadgeType // MADE_IN, QUALITY, SHIPPING, etc.
     title      String    // e.g., "Sản xuất tại Việt Nam"
     icon       String?   // Icon identifier or emoji
@@ -253,10 +252,8 @@ model CosmeticBadge {
     orderIndex Int       @default(0)
     createdAt  DateTime  @default(now())
     updatedAt  DateTime  @updatedAt
-    
-    cosmetic   Cosmetic  @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
-    
-    @@index([cosmeticId])
+
+    cosmetic Cosmetic[]
 }
 
 enum BadgeType {
@@ -312,4 +309,5 @@ model CosmeticReview {
     
     @@index([cosmeticId])
     @@index([userId])
+    @@unique([cosmeticId, userId])
 }

@@ -1,3 +1,4 @@
+import { Cosmetic } from './../modules/cosmetic/cosmetic.types';
 import { Express, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { logger } from '../common/logger/logger.factory';
@@ -13,6 +14,11 @@ import { CosmeticOptionController } from '@/modules/cosmetic/submodules/option/c
 import { CartController } from '@/modules/cart/cart.controller';
 import { OrderController } from '@/modules/order/order.controller';
 import { PostController } from '@/modules/post/post.controller';
+import { PaymentController } from '@/modules/payment/payment.controller';
+import { CosmeticReviewController } from '@/modules/cosmetic/submodules/review/cosmeticReview.controller';
+import { ShippingPolicyController } from '@/modules/cosmetic/submodules/shipping/shippingPolicy.controller';
+import { CosmeticBadgeController } from '@/modules/cosmetic/submodules/badge/cosmeticBadge.controller';
+
 // Tự động lấy toàn bộ file *.types.ts và *.dto.ts trong src/modules
 const modulesDir = path.join(__dirname, '../modules');
 function getAllSchemaFiles(dir: string): string[] {
@@ -74,10 +80,14 @@ const swaggerBuilder = new SwaggerBuilder()
         CosmeticVariantController,
         CosmeticSpecificationController,
         CosmeticOptionController,
+        CosmeticReviewController,
+        CosmeticBadgeController,
+        ShippingPolicyController,
         AuthController,
         CartController,
         OrderController,
         PostController,
+        PaymentController,
     ]);
 
 const swaggerOptions = {
