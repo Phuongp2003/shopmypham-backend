@@ -1,3 +1,4 @@
+import type { Paginated } from '@/common/types/paginated.type';
 import type { Cosmetic } from '../../cosmetic.types';
 
 /**
@@ -42,4 +43,8 @@ export type CosmeticDistributor = {
     createdAt: Date;
     updatedAt: Date;
     cosmetics: Cosmetic[];
+};
+
+export type PaginatedDistributor = Paginated & {
+    distributors: CosmeticDistributor[];
 };

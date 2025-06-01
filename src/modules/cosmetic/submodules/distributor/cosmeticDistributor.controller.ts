@@ -8,6 +8,7 @@ import {
     Controller,
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
+import type { QueryParams } from '@/common/types/query.types';
 
 @Controller({
     tag: 'cosmetics/distributors',
@@ -27,7 +28,8 @@ export class CosmeticDistributorController {
     )
     static async getAll(req: Request, res: Response) {
         try {
-            const distributors = await CosmeticDistributorService.getAll();
+            const data: QueryParams = req.query;
+            const distributors = await CosmeticDistributorService.getAll(data);
             res.json(distributors);
         } catch (error) {
             res.status(500).json({ message: 'Internal server error' });
@@ -66,7 +68,7 @@ export class CosmeticDistributorController {
         {
             name: 'create-distributor',
             description: 'Tạo nhà phân phối',
-            path: '',
+            path: '/',
         },
         {
             header: 'Authorization',
@@ -99,7 +101,7 @@ export class CosmeticDistributorController {
     @RequireHeader()
     static async update(req: Request, res: Response) {
         try {
-            const { id } = req.query;
+            const { id } = req.params;
             const data = req.body;
             const distributor = await CosmeticDistributorService.update(
                 id as string,
@@ -129,7 +131,7 @@ export class CosmeticDistributorController {
     @RequireHeader()
     static async delete(req: Request, res: Response) {
         try {
-            const { id } = req.query;
+            const { id } = req.params;
             await CosmeticDistributorService.delete(id as string);
             res.status(204).send();
         } catch (error) {

@@ -1,19 +1,44 @@
 import { prisma } from '@/config/prisma';
-import type { CosmeticDistributor as CosmeticDistributorType } from './cosmeticDistributor.types';
+import type {
+    CosmeticDistributor as CosmeticDistributorType,
+    PaginatedDistributor,
+} from './cosmeticDistributor.types';
 import type {
     CosmeticDistributorCreateReq,
     CosmeticDistributorUpdateReq,
 } from './cosmeticDistributor.dto';
 import { HttpException } from '@/common/exceptions/http.exception';
 import { HttpStatus } from '@/common/enums/http-status.enum';
-
+import type { QueryParams } from '@/common/types/query.types';
 export class CosmeticDistributorService {
-    static async getAll(): Promise<CosmeticDistributorType[]> {
+    static async getAll(query: QueryParams): Promise<PaginatedDistributor> {
         try {
+            const page = Number(query.page) || 1;
+            const limit = Number(query.limit) || 10;
+            const skip = (page - 1) * limit;
+
+            const where = {
+                name: {
+                    contains: query.search || '',
+                },
+                
+            };
+
             const distributors = await prisma.cosmeticDistributor.findMany({
-                include: { cosmetics: true },
+                where,
+                take: limit,
+                skip,
             });
-            return distributors as CosmeticDistributorType[];
+            const total = await prisma.cosmeticDistributor.count();
+            const totalPages = Math.ceil(total / limit);
+            const paginatedDistributors = {
+                distributors: distributors as unknown as CosmeticDistributorType[],
+                total,
+                page,
+                limit,
+                totalPages,
+            };
+            return paginatedDistributors;
         } catch (error) {
             throw new HttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
