@@ -2,61 +2,70 @@
 
 ## Mục Lục
 
-1. [Design Patterns](./design-patterns.md)
-   - [I. Các Design Patterns Đã Áp Dụng](./design-patterns.md#các-pattern-đã-triển-khai)
-     - [1. Creational Patterns](./design-patterns.md#1-creational-patterns)
-     - [2. Structural Patterns](./design-patterns.md#2-structural-patterns)
-     - [3. Behavioral Patterns](./design-patterns.md#3-behavioral-patterns)
-   - [II. Các Pattern Có Thể Áp Dụng](./design-patterns.md#các-pattern-có-thể-áp-dụng-thêm)
+1. [Tổng Quan & Tính Năng](#tổng-quan--tính-năng)
+   - Mô tả chung về dự án, các tính năng nổi bật, module chính
+2. [Feature Overview & Module List](#feature-overview--module-list)
+   - Danh sách module, chức năng từng module
+3. [Design Patterns](./design-patterns.md)
+   - Các pattern đã áp dụng và gợi ý mở rộng
+4. [Cấu Trúc Dự Án](./project-structure.md)
+   - Sơ đồ, giải thích cấu trúc thư mục, module
+5. [Hướng Dẫn Cài Đặt](./setup-guide.md)
+   - Cách setup môi trường, cài đặt, run local/dev
+6. API Documentation - kiểm tra swagger tại `http://localhost:3000/docs` sau khi chạy local
+   - Swagger, mô tả endpoint, response, error
+7. [Triển Khai OAuth (Google)](./oauth-implementation.md)
+   - Hướng dẫn tích hợp OAuth Google
+8. [Testing Guide](./testing-guide.md)
+   - Hướng dẫn viết test, cấu trúc test, best practice, coverage
+9. [Deployment Guide](./deployment-guide.md)
+   - Hướng dẫn build, deploy, Docker, NGINX, CI/CD
+10. [Troubleshooting Guide](./troubleshooting.md)
+    - Xử lý sự cố thường gặp, log, health, migration, cache
+11. [Coding Standards](./coding-standards.md)
+    - Quy tắc đặt tên, style code, comment, review, checklist
+12. [Security Guidelines](./security-guidelines.md)
+    - Quy tắc bảo mật API, input validation, secret, checklist
+13. [Technical Pattern](./technical/utility-class-pattern.md)
+    - Các pattern kỹ thuật đặc biệt, ví dụ: singleton cache, auto-detect param, ...
 
-2. [Cấu Trúc Dự Án](./project-structure.md)
-   - [1. Thư Mục](./project-structure.md#1-thư-mục)
-   - [2. Module](./project-structure.md#2-module)
-     - [2.1 Config Module](./project-structure.md#21-config-module)
-     - [2.2 Common Module](./project-structure.md#22-common-module)
-     - [2.3 Auth Module](./project-structure.md#23-auth-module)
-   - [3. Cấu Hình](./project-structure.md#3-cấu-hình)
-     - [3.1 Database](./project-structure.md#31-database)
-     - [3.2 Redis](./project-structure.md#32-redis)
-     - [3.3 Server](./project-structure.md#33-server)
-     - [3.4 JWT](./project-structure.md#34-jwt)
-   - [4. Design Patterns](./project-structure.md#4-design-patterns)
+---
 
-3. [Hướng Dẫn Cài Đặt](./setup-guide.md)
-   - [1. Yêu Cầu Hệ Thống](./setup-guide.md#1-yêu-cầu-hệ-thống)
-     - [1.1 Phần Cứng](./setup-guide.md#11-phần-cứng)
-     - [1.2 Phần Mềm](./setup-guide.md#12-phần-mềm)
-   - [2. Cài Đặt](./setup-guide.md#2-cài-đặt)
-     - [2.1 Clone Repository](./setup-guide.md#21-clone-repository)
-     - [2.2 Cài Đặt Dependencies](./setup-guide.md#22-cài-đặt-dependencies)
-     - [2.3 Cấu Hình Môi Trường](./setup-guide.md#23-cấu-hình-môi-trường)
-     - [2.4 Khởi Tạo Database](./setup-guide.md#24-khởi-tạo-database)
-   - [3. Chạy Ứng Dụng](./setup-guide.md#3-chạy-ứng-dụng)
-     - [3.1 Development Mode](./setup-guide.md#31-development-mode)
-     - [3.2 Production Mode](./setup-guide.md#32-production-mode)
-     - [3.3 Docker](./setup-guide.md#33-docker)
-   - [4. Kiểm Tra](./setup-guide.md#4-kiểm-tra)
-   - [5. Troubleshooting](./setup-guide.md#5-troubleshooting)
-   - [6. Development Workflow](./setup-guide.md#6-development-workflow)
+## Tổng Quan & Tính Năng
+- Backend Node.js + TypeScript cho hệ thống e-commerce mỹ phẩm
+- Module hóa: Auth (JWT, Google OAuth, OTP Recovery), Post, Cosmetic (Option, Variant, Badge, Benefit, Review, Shipping, Specification), Order, Cart, User (Address), Payment (MOMO)
+- ORM: Prisma (MySQL), cache Redis, tài liệu API tự động (Swagger), Docker, NGINX, bảo mật, rate limiting
+- Hỗ trợ auto-detect path param cho Swagger, singleton pattern cho cache, technical memory-bank
+- Tích hợp thanh toán MoMo, luồng OTP khôi phục tài khoản, quản lý session, refresh token, rate limiting, logging, monitoring
 
-4. [API Documentation](./api-docs.md)
-   - [1. Authentication](./api-docs.md#1-authentication)
-     - [1.1 Đăng Ký](./api-docs.md#11-đăng-ký)
-     - [1.2 Đăng Nhập](./api-docs.md#12-đăng-nhập)
-     - [1.3 Làm Mới Token](./api-docs.md#13-làm-mới-token)
-     - [1.4 Đăng Xuất](./api-docs.md#14-đăng-xuất)
-     - [1.5 Google OAuth](./api-docs.md#15-google-oauth)
-   - [2. Health Check](./api-docs.md#2-health-check)
-   - [3. Error Responses](./api-docs.md#3-error-responses)
-   - [4. Security](./api-docs.md#4-security)
-   - [5. Best Practices](./api-docs.md#5-best-practices)
+## Feature Overview & Module List
+- **Auth**: JWT, Google OAuth, refresh token, session, role-based, OTP recovery
+- **Post**: CRUD, search, filter, pagination
+- **Cosmetic**: CRUD, options, variants, badges, benefits, shipping, reviews, specification
+- **Order**: CRUD, payment status, MOMO integration
+- **Cart**: CRUD, checkout, mapping variant/option
+- **User**: CRUD, profile, address (submodule)
+- **Payment**: MOMO payment, status, callback
 
-5. [Triển Khai OAuth](./oauth-implementation.md)
-   - [1. Tổng Quan](./oauth-implementation.md#tổng-quan)
-   - [2. Kiến Trúc](./oauth-implementation.md#kiến-trúc)
-   - [3. Chi Tiết Triển Khai](./oauth-implementation.md#chi-tiết-triển-khai)
-   - [4. Biện Pháp Bảo Mật](./oauth-implementation.md#biện-pháp-bảo-mật)
-   - [5. Xử Lý Lỗi](./oauth-implementation.md#xử-lý-lỗi)
-   - [6. Kiểm Thử](./oauth-implementation.md#kiểm-thử)
-   - [7. Tích Hợp Frontend](./oauth-implementation.md#tích-hợp-frontend)
-   - [8. Bảo Trì](./oauth-implementation.md#bảo-trì) 
+## Hướng dẫn sử dụng, chi tiết từng module và technical pattern xem tại các file tương ứng trong thư mục docs/.
+
+---
+
+## Xem thêm:
+- [Design Patterns](./design-patterns.md)
+- [Cấu Trúc Dự Án](./project-structure.md)
+- [Hướng Dẫn Cài Đặt](./setup-guide.md)
+- [API Documentation](./api-docs.md)
+- [Triển Khai OAuth (Google)](./oauth-implementation.md)
+- [Technical Patterns](./technical/utility-class-pattern.md)
+- [Testing Guide](./testing-guide.md)
+- [Deployment Guide](./deployment-guide.md)
+- [Troubleshooting](./troubleshooting.md)
+- [Coding Standards](./coding-standards.md)
+- [Security Guidelines](./security-guidelines.md)
+
+---
+> Mọi thắc mắc/cải tiến vui lòng tạo issue hoặc PR tại repo chính. 
+
+---
+> Luôn cập nhật tài liệu khi có thay đổi codebase, schema, technical rule hoặc memory-bank. 

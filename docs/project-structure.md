@@ -17,8 +17,7 @@ src/
 │       ├── auth.controller.ts
 │       ├── auth.service.ts
 │       ├── auth.repository.ts
-│       ├── auth.router.ts
-│       └── strategies/    # Các chiến lược xác thực
+│       └── auth.router.ts
 └── core/                  # Core của ứng dụng
     └── startup.ts         # Khởi tạo ứng dụng
 ```
