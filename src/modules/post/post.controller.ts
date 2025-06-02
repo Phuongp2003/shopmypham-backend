@@ -36,15 +36,8 @@ export class PostController {
     @RequireHeader()
     static async getPosts(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.user) {
-                throw new HttpException(
-                    HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
-                );
-            }
-            // Lấy params từ query và ép kiểu
             const params: PostQueryParamsSchema = {
-                ...req.query
+                ...req.query,
             } as PostQueryParamsSchema;
 
             const result = await PostService.getPosts(params);
@@ -84,14 +77,7 @@ export class PostController {
                 });
                 return;
             }
-            if (!req.user) {
-                throw new HttpException(
-                    HttpStatus.UNAUTHORIZED,
-                    'User not authenticated',
-                );
-            }
-            const userId = req.user.id;
-            const post = await PostService.getPostById(userId, id);
+            const post = await PostService.getPostById(id);
             console.log('Found post:', post);
             res.status(HttpStatus.OK).json(post);
         } catch (error: unknown) {

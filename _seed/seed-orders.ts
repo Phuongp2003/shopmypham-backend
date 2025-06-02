@@ -21,13 +21,17 @@ export async function seedOrders(
   const allVariants = await prisma.cosmeticVariant.findMany();
   let totalOrdersCreated = 0;
 
+  // Lấy 5 user mới nhất
+  const reviewUsers = users.slice(-5);
+
   for (const user of users) {
     await prisma.$transaction(async (tx) => {
-       const ordersToCreate = 2 + Math.floor(Math.random() * 3);
+      // Nếu là user mới, tạo nhiều đơn hàng DELIVERED
+      const isReviewUser = reviewUsers.some(u => u.id === user.id);
+      const ordersToCreate = isReviewUser ? 6 : 2 + Math.floor(Math.random() * 3);
       for (let i = 0; i < ordersToCreate; i++) {
-        // Chọn ngẫu nhiên 1–3 sản phẩm (variant) cho mỗi đơn
+        // Chọn random 1–3 sản phẩm (variant) cho mỗi đơn
         const variantsInOrder = allVariants.sort(() => 0.5 - Math.random()).slice(0, 1 + Math.floor(Math.random() * 3));
-
         const details = variantsInOrder.map((variant: any) => {
           const quantity = 1 + Math.floor(Math.random() * 3);
           return {
@@ -36,11 +40,9 @@ export async function seedOrders(
             price: 100000, // Hoặc lấy variant.price nếu muốn
           };
         });
-
-        const randomStatus = getRandomOrderStatus();
-
+        // Nếu là user mới, ép status là DELIVERED
+        const randomStatus = isReviewUser ? 'DELIVERED' : getRandomOrderStatus();
         const amount = details.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
         // Tạo order
         const order = await tx.order.create({
           data: {
@@ -51,23 +53,20 @@ export async function seedOrders(
             details: { create: details },
           },
         });
-
         // Tạo payment
         await tx.payment.create({
           data: {
             order: { connect: { id: order.id } },
             paymentMethod: 'CASH',
             amount,
-            status: PaymentStatus.PENDING,
+            status: 'PENDING',
           },
         });
-
         totalOrdersCreated++;
       }
     });
   }
-
-  console.log(`✅ Đã tạo tổng cộng ${totalOrdersCreated} đơn hàng cho ${users.length} users`);
+  console.log(`✅ Đã tạo tổng cộng ${totalOrdersCreated} đơn hàng cho ${users.length} users (ưu tiên DELIVERED cho 5 user mới)`);
 }
 // export async function seedOrders(users: any[], addressMap: Record<string, string>) {
 //   for (const user of users) {

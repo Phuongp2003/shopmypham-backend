@@ -9,6 +9,7 @@ import {
     RequireHeader,
 } from '@/common/annotation/swagger.annotation';
 import type { CosmeticReviewCreateReq } from './cosmeticReview.dto';
+import { HttpException } from '@/common/exceptions/http.exception';
 
 @Controller({
     tag: 'cosmetics/reviews',
@@ -28,7 +29,13 @@ export class CosmeticReviewController {
             const reviews = await CosmeticReviewService.getAll();
             res.json(reviews);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 
@@ -48,7 +55,13 @@ export class CosmeticReviewController {
                 return res.status(404).json({ message: 'Review not found' });
             res.json(review);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 
@@ -67,7 +80,13 @@ export class CosmeticReviewController {
                 await CosmeticReviewService.getByCosmeticId(cosmeticId);
             res.json(reviews);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 
@@ -92,7 +111,13 @@ export class CosmeticReviewController {
             });
             res.status(201).json(review);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 
@@ -114,7 +139,13 @@ export class CosmeticReviewController {
                 return res.status(404).json({ message: 'Review not found' });
             res.json(review);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 
@@ -133,7 +164,13 @@ export class CosmeticReviewController {
             await CosmeticReviewService.delete(id);
             res.status(204).send();
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            if (error instanceof HttpException) {
+                return res
+                    .status(error.status)
+                    .json({ message: error.message });
+            } else {
+                res.status(500).json({ message: 'Internal server error' });
+            }
         }
     }
 }

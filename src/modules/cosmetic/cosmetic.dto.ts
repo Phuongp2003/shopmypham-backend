@@ -175,6 +175,7 @@ export interface GetAllCosmeticRes {
     stock: Cosmetic['stock'];
     image?: Cosmetic['image'];
     averageRating: number;
+    totalReviews: number;
 }
 
 /**

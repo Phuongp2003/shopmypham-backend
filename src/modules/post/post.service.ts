@@ -79,7 +79,6 @@ export class PostService {
     }
 
     static async getPostById(
-        userId: string,
         postId: string,
     ): Promise<PostResponse> {
         const post = await prisma.post.findUnique({

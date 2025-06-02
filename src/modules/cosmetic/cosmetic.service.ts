@@ -61,6 +61,7 @@ export class CosmeticService {
                     stock: true,
                     image: true,
                     averageRating: true,
+                    totalReviews: true,
                 },
                 orderBy: sortBy
                     ? { [sortBy]: sortOrder || 'desc' }
@@ -79,6 +80,7 @@ export class CosmeticService {
                 stock: cosmetic.stock,
                 image: cosmetic.image,
                 averageRating: cosmetic.averageRating,
+                totalReviews: cosmetic.totalReviews,
             })) as GetAllCosmeticRes[],
             total,
             page,

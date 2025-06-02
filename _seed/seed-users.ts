@@ -8,6 +8,11 @@ export async function seedUsers() {
     'Nguyễn Văn C',
     'Nguyễn Văn D',
     'Nguyễn Văn E',
+    'Trần Thị F',
+    'Lê Văn G',
+    'Phạm Thị H',
+    'Vũ Văn I',
+    'Đặng Thị K',
   ];
   const users = [];
   for (const name of userNames) {

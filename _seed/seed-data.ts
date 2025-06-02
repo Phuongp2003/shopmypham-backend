@@ -8,6 +8,7 @@ import { seedCarts } from './seed-carts';
 import { seedAddresses } from './seed-addresses';
 import { seedOrders } from './seed-orders';
 import { seedPosts } from './seed-posts';
+import { seedReviews } from './seed-reviews';
 
 export async function main() {
   await seedAdmins();
@@ -20,6 +21,7 @@ export async function main() {
   await seedCarts(users, allVariants);
   const addressMap = await seedAddresses(users);
   await seedOrders(users, addressMap);
+  await seedReviews(users);
 }
 
 if (require.main === module) {

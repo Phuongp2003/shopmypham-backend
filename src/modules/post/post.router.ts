@@ -1,17 +1,17 @@
 import { Router } from 'express';
 
-import { UserRole } from '@/common/enums/user-role.enum';
 import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
-import { roleMiddleware } from '@/common/middlewares/role.middleware';
 
 import { PostController } from './post.controller';
+import { roleMiddleware } from '@/common/middlewares/role.middleware';
+import { UserRole } from '@/common/enums/user-role.enum';
 
 const router = Router();
-router.get('/', AuthMiddleware.handle, PostController.getPosts);
-router.post('/', AuthMiddleware.handle, PostController.createPost);
+router.get('/', PostController.getPosts);
+router.post('/', AuthMiddleware.handle, roleMiddleware([UserRole.ADMIN]), PostController.createPost);
 
-router.get('/:id', AuthMiddleware.handle, PostController.getPostById);
-router.put('/:id', AuthMiddleware.handle, PostController.updatePost);
-router.delete('/:id', AuthMiddleware.handle, PostController.deletePost);
+router.get('/:id', PostController.getPostById);
+router.put('/:id', AuthMiddleware.handle, roleMiddleware([UserRole.ADMIN]), PostController.updatePost);
+router.delete('/:id', AuthMiddleware.handle, roleMiddleware([UserRole.ADMIN]), PostController.deletePost);
 
 export default router;

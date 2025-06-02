@@ -136,10 +136,15 @@ export class CosmeticReviewService {
                         0,
                     ) / cosmetic.reviews.length;
             }
+            // Cập nhật lại totalReviews cho sản phẩm
+            const totalReviews = await prisma.cosmeticReview.count({
+                where: { cosmeticId: data.cosmeticId },
+            });
             await prisma.cosmetic.update({
                 where: { id: data.cosmeticId },
                 data: {
                     averageRating: averageRating,
+                    totalReviews: totalReviews,
                 },
             });
             return {
@@ -166,7 +171,23 @@ export class CosmeticReviewService {
             where: { id },
             data,
         }) as any;
-        const { userId, title, content, orderId, ...rest } = review;
+        const { userId, title, content, orderId, cosmeticId, ...rest } = review;
+        // Tính lại averageRating và totalReviews cho cosmetic
+        if (cosmeticId) {
+            const reviews = await prisma.cosmeticReview.findMany({ where: { cosmeticId } });
+            let averageRating = 0;
+            if (reviews.length > 0) {
+                averageRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+            }
+            const totalReviews = reviews.length;
+            await prisma.cosmetic.update({
+                where: { id: cosmeticId },
+                data: {
+                    averageRating,
+                    totalReviews,
+                },
+            });
+        }
         return {
             ...rest,
             userId: userId === null ? undefined : userId,
@@ -177,6 +198,26 @@ export class CosmeticReviewService {
     }
 
     static async delete(id: string): Promise<void> {
+        // Lấy thông tin review để biết cosmeticId
+        const review = await prisma.cosmeticReview.findUnique({ where: { id } });
+        if (!review) return;
+        const cosmeticId = review.cosmeticId;
+        // Xóa review
         await prisma.cosmeticReview.delete({ where: { id } });
+        // Tính lại averageRating và totalReviews
+        const reviews = await prisma.cosmeticReview.findMany({ where: { cosmeticId } });
+        let averageRating = 0;
+        if (reviews.length > 0) {
+            averageRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+        }
+        const totalReviews = reviews.length;
+        // Cập nhật lại cosmetic
+        await prisma.cosmetic.update({
+            where: { id: cosmeticId },
+            data: {
+                averageRating,
+                totalReviews,
+            },
+        });
     }
 }

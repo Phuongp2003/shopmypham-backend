@@ -77,6 +77,9 @@ const initializeRedis = async (): Promise<boolean> => {
             });
         }
         global.redisAvailable = true;
+        await redis.flushDb().then(() => {
+            logger.info('Redis flushed', { service: 'Redis' });
+        });
         return true;
     } catch (error) {
         logger.error('Failed to initialize global Redis instance:', error, {
