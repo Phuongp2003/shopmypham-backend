@@ -1,6 +1,7 @@
 import { Order, OrderStatus } from '@/modules/order/order.types';
 import { Address } from '@/modules/user/submodules/address/address.types';
 import { Paginated } from '@/common/types/paginated.type';
+import { CosmeticReviewResponse } from '@/modules/cosmetic/submodules/review/cosmeticReview.dto';
 
 /**
  * @swagger
@@ -172,11 +173,14 @@ export interface OrderResponse {
     } | null; // Thông tin thanh toán có thể null nếu chưa thanh toán
     details: {
         variantId: string;
+        cosmeticId: string;
         name: string;
         quantity: number;
         price: number;
         image: string;
     }[];
+    review?: CosmeticReviewResponse | null;
+    reviews?: CosmeticReviewResponse[] | undefined;
 }
 
 /**

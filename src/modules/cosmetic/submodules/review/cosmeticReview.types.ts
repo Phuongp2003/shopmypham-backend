@@ -15,6 +15,9 @@ import type { User } from '@/modules/user/user.types';
  *   userId:
  *     type: string
  *     description: ID người dùng (có thể null cho đánh giá ẩn danh)
+ *   orderId:
+ *     type: string
+ *     description: ID đơn hàng
  *   rating:
  *     type: number
  *     description: Điểm đánh giá (1-5 sao)
@@ -24,12 +27,6 @@ import type { User } from '@/modules/user/user.types';
  *   content:
  *     type: string
  *     description: Nội dung đánh giá
- *   isVerified:
- *     type: boolean
- *     description: Đánh giá đã được xác thực
- *   isApproved:
- *     type: boolean
- *     description: Đánh giá đã được phê duyệt
  *   createdAt:
  *     type: string
  *     format: date-time
@@ -43,11 +40,10 @@ export type CosmeticReview = {
     id: string;
     cosmeticId: Cosmetic['id'];
     userId?: string;
+    orderId: string;
     rating: number;
     title?: string;
     content?: string;
-    isVerified: boolean;
-    isApproved: boolean;
     createdAt: Date;
     updatedAt: Date;
     cosmetic?: Cosmetic;

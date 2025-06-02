@@ -8,6 +8,7 @@ import {
     UpdateOrderStatusDto,
     PaginatedOrderResponse,
 } from './order.dto';
+import type { CosmeticReviewResponse } from '../cosmetic/submodules/review/cosmeticReview.dto';
 
 export class OrderService {
     prisma: any;
@@ -184,6 +185,7 @@ export class OrderService {
                 address: fullOrder.address,
                 details: fullOrder.details.map((d) => ({
                     variantId: d.variantId,
+                    cosmeticId: d.variant.cosmeticId,
                     name: d.variant.cosmetic.name + ' - ' + d.variant.name,
                     quantity: d.quantity,
                     price: d.price,
@@ -216,7 +218,7 @@ export class OrderService {
 
         const where = {
             ...(status && { status }),
-            userId, // Assuming userId is passed in query
+            userId,
         };
 
         const [orders, total] = await Promise.all([
@@ -231,6 +233,11 @@ export class OrderService {
                                     cosmetic: true,
                                 },
                             },
+                        },
+                    },
+                    reviews: {
+                        include: {
+                            user: true,
                         },
                     },
                     user: true,
@@ -249,7 +256,7 @@ export class OrderService {
             id: order.id,
             userId: order.user.id,
             status: order.status,
-            address: order.address!,
+            address: order.address ?? null,
             note: order.note || undefined,
             payment: order.payment ?? {
                 id: '',
@@ -262,12 +269,17 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variant.id,
+                cosmeticId: detail.variant.cosmeticId,
                 name:
                     detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
                 price: detail.price,
                 image: detail.variant.cosmetic.image ?? '',
             })),
+            review:
+                order.reviews && order.reviews[0]
+                    ? (order.reviews[0] as CosmeticReviewResponse)
+                    : null,
         }));
 
         return {
@@ -293,6 +305,11 @@ export class OrderService {
                                 cosmetic: true,
                             },
                         },
+                    },
+                },
+                reviews: {
+                    include: {
+                        user: true,
                     },
                 },
                 address: true,
@@ -338,12 +355,16 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variantId,
+                cosmeticId: detail.variant.cosmeticId,
                 name:
                     detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
                 price: detail.price,
                 image: detail.variant.cosmetic.image ?? '',
             })),
+            reviews: order.reviews
+                ? (order.reviews as CosmeticReviewResponse[])
+                : undefined,
         };
 
         return response;
@@ -422,6 +443,7 @@ export class OrderService {
             payment: updatedOrder.payment,
             details: updatedOrder.details.map((detail) => ({
                 variantId: detail.variantId,
+                cosmeticId: detail.variant.cosmeticId,
                 name:
                     detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
@@ -496,6 +518,7 @@ export class OrderService {
             },
             details: order.details.map((detail) => ({
                 variantId: detail.variant.id,
+                cosmeticId: detail.variant.cosmeticId,
                 name:
                     detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,
@@ -556,6 +579,7 @@ export class OrderService {
             payment: updatedOrder.payment,
             details: updatedOrder.details.map((detail) => ({
                 variantId: detail.variantId,
+                cosmeticId: detail.variant.cosmeticId,
                 name:
                     detail.variant.cosmetic.name + ' - ' + detail.variant.name,
                 quantity: detail.quantity,

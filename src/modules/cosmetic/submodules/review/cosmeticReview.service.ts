@@ -14,12 +14,13 @@ export class CosmeticReviewService {
         try {
             const reviews = await prisma.cosmeticReview.findMany();
             return reviews.map((r) => {
-                const { userId, title, content, ...rest } = r;
+                const { userId, title, content, orderId, ...rest } = r as any;
                 return {
                     ...rest,
                     userId: userId === null ? undefined : userId,
                     title: title === null ? undefined : title,
                     content: content === null ? undefined : content,
+                    orderId: orderId,
                 };
             });
         } catch (error) {
@@ -33,14 +34,15 @@ export class CosmeticReviewService {
     static async getById(id: string): Promise<CosmeticReviewResponse | null> {
         const review = await prisma.cosmeticReview.findUnique({
             where: { id },
-        });
+        }) as any;
         if (!review) return null;
-        const { userId, title, content, ...rest } = review;
+        const { userId, title, content, orderId, ...rest } = review;
         return {
             ...rest,
             userId: userId === null ? undefined : userId,
             title: title === null ? undefined : title,
             content: content === null ? undefined : content,
+            orderId: orderId,
         };
     }
 
@@ -52,12 +54,13 @@ export class CosmeticReviewService {
                 where: { cosmeticId },
             });
             return reviews.map((r) => {
-                const { userId, title, content, ...rest } = r;
+                const { userId, title, content, orderId, ...rest } = r as any;
                 return {
                     ...rest,
                     userId: userId === null ? undefined : userId,
                     title: title === null ? undefined : title,
                     content: content === null ? undefined : content,
+                    orderId: orderId,
                 };
             });
         } catch (error) {
@@ -71,57 +74,88 @@ export class CosmeticReviewService {
     static async create(
         data: CosmeticReviewCreateReq & { userId: string },
     ): Promise<CosmeticReviewResponse> {
-        const existed = await prisma.cosmeticReview.findFirst({
-            where: {
-                cosmeticId: data.cosmeticId,
-                userId: data.userId,
-            },
-        });
-        if (existed) {
+        try {
+            // Kiểm tra user đã mua và nhận hàng sản phẩm này trong order này chưa
+            const deliveredOrder = await prisma.order.findFirst({
+                where: {
+                    id: data.orderId,
+                    userId: data.userId,
+                    status: 'DELIVERED',
+                    details: {
+                        some: {
+                            variant: {
+                                cosmeticId: data.cosmeticId,
+                            },
+                        },
+                    },
+                },
+            });
+            if (!deliveredOrder) {
+                throw new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    'Bạn chỉ có thể đánh giá sản phẩm này trong đơn hàng đã nhận (DELIVERED)',
+                );
+            }
+            // Kiểm tra đã đánh giá chưa (theo userId, cosmeticId, orderId)
+            const existed = await prisma.cosmeticReview.findFirst({
+                where: {
+                    cosmeticId: data.cosmeticId,
+                    userId: data.userId,
+                    orderId: data.orderId,
+                },
+            });
+            if (existed) {
+                throw new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi',
+                );
+            }
+            const review = await prisma.cosmeticReview.create({
+                data: {
+                    cosmeticId: data.cosmeticId,
+                    userId: data.userId,
+                    orderId: data.orderId,
+                    rating: data.rating,
+                    title: data.title,
+                    content: data.content,
+                },
+            }) as any;
+            const { userId: uId, title, content, orderId, ...rest } = review;
+            // Cập nhật lại averageRating cho sản phẩm
+            const cosmetic = await prisma.cosmetic.findUnique({
+                where: { id: data.cosmeticId },
+                include: {
+                    reviews: true,
+                },
+            });
+            let averageRating = 0;
+            if (cosmetic && cosmetic.reviews && cosmetic.reviews.length > 0) {
+                averageRating =
+                    cosmetic.reviews.reduce(
+                        (acc, review) => acc + review.rating,
+                        0,
+                    ) / cosmetic.reviews.length;
+            }
+            await prisma.cosmetic.update({
+                where: { id: data.cosmeticId },
+                data: {
+                    averageRating: averageRating,
+                },
+            });
+            return {
+                ...rest,
+                userId: uId === null ? undefined : uId,
+                title: title === null ? undefined : title,
+                content: content === null ? undefined : content,
+                orderId: orderId,
+            };
+        } catch (error) {
+            console.error(error);
             throw new HttpException(
-                HttpStatus.BAD_REQUEST,
-                'Bạn đã đánh giá sản phẩm này rồi',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                'Internal server error',
             );
         }
-
-        const review = await prisma.cosmeticReview.create({
-            data: {
-                cosmeticId: data.cosmeticId,
-                userId: data.userId,
-                rating: data.rating,
-                title: data.title,
-                content: data.content,
-                isVerified: true,
-                isApproved: true,
-            },
-        });
-        const { userId: uId, title, content, ...rest } = review;
-        const cosmetic = await prisma.cosmetic.findUnique({
-            where: { id: data.cosmeticId },
-            include: {
-                reviews: true,
-            },
-        });
-        let averageRating = 0;
-        if (cosmetic && cosmetic.reviews && cosmetic.reviews.length > 0) {
-            averageRating =
-                cosmetic.reviews.reduce(
-                    (acc, review) => acc + review.rating,
-                    0,
-                ) / cosmetic.reviews.length;
-        }
-        await prisma.cosmetic.update({
-            where: { id: data.cosmeticId },
-            data: {
-                averageRating: averageRating,
-            },
-        });
-        return {
-            ...rest,
-            userId: uId === null ? undefined : uId,
-            title: title === null ? undefined : title,
-            content: content === null ? undefined : content,
-        };
     }
 
     static async update(
@@ -131,13 +165,14 @@ export class CosmeticReviewService {
         const review = await prisma.cosmeticReview.update({
             where: { id },
             data,
-        });
-        const { userId, title, content, ...rest } = review;
+        }) as any;
+        const { userId, title, content, orderId, ...rest } = review;
         return {
             ...rest,
             userId: userId === null ? undefined : userId,
             title: title === null ? undefined : title,
             content: content === null ? undefined : content,
+            orderId: orderId,
         };
     }
 

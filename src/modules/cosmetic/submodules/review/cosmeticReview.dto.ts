@@ -10,6 +10,9 @@ import type { QueryParams } from '@/common/types/query.types';
  *   cosmeticId:
  *     type: string
  *     description: ID mỹ phẩm
+ *   orderId:
+ *     type: string
+ *     description: ID đơn hàng
  *   rating:
  *     type: number
  *     minimum: 1
@@ -24,6 +27,7 @@ import type { QueryParams } from '@/common/types/query.types';
  */
 export type CosmeticReviewCreateReq = {
     cosmeticId: string;
+    orderId: string;
     rating: number;
     title?: string;
     content?: string;
@@ -45,13 +49,8 @@ export type CosmeticReviewCreateReq = {
  *   content:
  *     type: string
  *     description: Nội dung đánh giá
- *   isApproved:
- *     type: boolean
- *     description: Trạng thái phê duyệt (chỉ admin)
  */
-export type CosmeticReviewUpdateReq = Partial<CosmeticReviewCreateReq> & {
-    isApproved?: boolean;
-};
+export type CosmeticReviewUpdateReq = Partial<CosmeticReviewCreateReq>;
 
 /**
  * @swagger
@@ -61,12 +60,6 @@ export type CosmeticReviewUpdateReq = Partial<CosmeticReviewCreateReq> & {
  *   rating:
  *     type: number
  *     description: Lọc theo điểm đánh giá
- *   isApproved:
- *     type: boolean
- *     description: Lọc theo trạng thái phê duyệt
- *   isVerified:
- *     type: boolean
- *     description: Lọc theo trạng thái xác thực
  *   sortBy:
  *     type: string
  *     enum: [rating, createdAt]
@@ -84,8 +77,6 @@ export type CosmeticReviewUpdateReq = Partial<CosmeticReviewCreateReq> & {
  */
 export type CosmeticReviewQueryParams = QueryParams & {
     rating?: number;
-    isApproved?: boolean;
-    isVerified?: boolean;
     sortBy?: 'rating' | 'createdAt';
 };
 
@@ -100,16 +91,14 @@ export type CosmeticReviewQueryParams = QueryParams & {
  *     type: string
  *   userId:
  *     type: string
+ *   orderId:
+ *     type: string
  *   rating:
  *     type: number
  *   title:
  *     type: string
  *   content:
  *     type: string
- *   isVerified:
- *     type: boolean
- *   isApproved:
- *     type: boolean
  *   userName:
  *     type: string
  *     description: Tên người đánh giá
@@ -124,11 +113,10 @@ export type CosmeticReviewResponse = {
     id: CosmeticReview['id'];
     cosmeticId: CosmeticReview['cosmeticId'];
     userId?: CosmeticReview['userId'];
+    orderId: CosmeticReview['orderId'];
     rating: CosmeticReview['rating'];
     title?: CosmeticReview['title'];
     content?: CosmeticReview['content'];
-    isVerified: CosmeticReview['isVerified'];
-    isApproved: CosmeticReview['isApproved'];
     userName?: string;
     createdAt: CosmeticReview['createdAt'];
     updatedAt: CosmeticReview['updatedAt'];

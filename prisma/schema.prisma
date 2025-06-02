@@ -68,6 +68,7 @@ model Order {
     paymentId String?       @unique // paymentId là FK duy nhất (unique)
     createdAt DateTime      @default(now())
     updatedAt DateTime      @updatedAt
+    reviews   CosmeticReview[]
 }
 
 model Address {
@@ -302,18 +303,19 @@ model CosmeticReview {
     id         String   @id @default(uuid())
     cosmeticId String
     userId     String? // Optional if anonymous reviews allowed
+    orderId    String
     rating     Int // 1-5 stars
     title      String? // Optional review title
     content    String?  @db.Text // Review content
-    isVerified Boolean  @default(false) // Verified purchase
-    isApproved Boolean  @default(false) // Admin approval
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 
     cosmetic Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
     user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+    order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-    @@unique([cosmeticId, userId])
+    @@unique([cosmeticId, userId, orderId])
     @@index([cosmeticId])
     @@index([userId])
+    @@index([orderId])
 }
