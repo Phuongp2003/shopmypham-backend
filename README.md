@@ -68,6 +68,7 @@ $ npm run dev
 - Đơn hàng: `/orders`, `/orders/:id`
 - Giỏ hàng: `/cart`
 - Thanh toán MOMO: `/payment/momo`
+- Upload ảnh: `/upload`
 
 ## Google OAuth
 - Đăng nhập Google: Truy cập `/auth/google` trên backend
