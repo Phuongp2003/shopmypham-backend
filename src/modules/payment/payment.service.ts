@@ -133,7 +133,7 @@ export class PaymentService {
                 where: { id: payment.id },
                 data: {
                     status: 'COMPLETED',
-                    transactionId: data.transId,
+                    transactionId: String(data.transId),
                 },
             });
 

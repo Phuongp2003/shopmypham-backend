@@ -44,7 +44,6 @@ export class OrderController {
     )
     @RequireHeader()
     static async getAllOrders(req: Request, res: Response): Promise<void> {
-        console.log('Get orders called. User:', req.user);
         try {
             if (!req.user) {
                 throw new HttpException(
@@ -88,7 +87,6 @@ export class OrderController {
     )
     @RequireHeader()
     static async getOrders(req: Request, res: Response): Promise<void> {
-        console.log('Get orders called. User:', req.user);
         try {
             if (!req.user) {
                 throw new HttpException(

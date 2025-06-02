@@ -180,6 +180,12 @@ export class CosmeticService {
             // Tạo variants và liên kết option
             if (request.variants && request.variants.length > 0) {
                 for (const variant of request.variants) {
+                    const existing = await tx.cosmeticVariant.findUnique({
+                        where: { name: variant.name },
+                    });
+                    if (existing) {
+                        continue;
+                    }
                     await tx.cosmeticVariant.create({
                         data: {
                             cosmeticId: cosmetic.id,
@@ -324,6 +330,12 @@ export class CosmeticService {
                 });
 
                 for (const variant of data.variants) {
+                    const existing = await tx.cosmeticVariant.findUnique({
+                        where: { name: variant.name },
+                    });
+                    if (existing) {
+                        continue;
+                    }
                     await tx.cosmeticVariant.create({
                         data: {
                             cosmeticId: id,
