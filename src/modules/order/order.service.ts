@@ -9,6 +9,7 @@ import {
     PaginatedOrderResponse,
 } from './order.dto';
 import type { CosmeticReviewResponse } from '../cosmetic/submodules/review/cosmeticReview.dto';
+import { CacheService } from '@/common/services/cache.service';
 
 export class OrderService {
     prisma: any;
@@ -154,6 +155,8 @@ export class OrderService {
                     },
                 });
             }
+
+            CacheService.clearStack('cosmeticKey');
 
             // 11. Lấy lại đơn hàng đầy đủ
             const fullOrder = await tx.order.findUnique({
