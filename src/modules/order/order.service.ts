@@ -43,8 +43,15 @@ export class OrderService {
 
             const cartDetails = cart.details;
 
-            // 2. Lấy danh sách variantId từ cart
+            // 2. Lấy danh sách variantId từ cart và lấy danh sách cosmeticId tương ứng
             const variantIds = cartDetails.map((d) => d.variantId);
+            const cosmeticIds_mapVariant = new Map(
+                variantIds.map((id) => [
+                    id,
+                    cartDetails.find((d) => d.variantId === id)?.variant
+                        .cosmeticId,
+                ]),
+            );
 
             // 3. Kiểm tra tất cả các variant có tồn tại không + lấy thông tin tồn kho và giá
             const variants = await tx.cosmeticVariant.findMany({
@@ -152,6 +159,15 @@ export class OrderService {
                     where: { id: detail.variantId },
                     data: {
                         stock: { decrement: detail.quantity },
+                    },
+                });
+                await tx.cosmetic.update({
+                    where: { id: cosmeticIds_mapVariant.get(detail.variantId) },
+                    data: {
+                        updatedAt: new Date(),
+                        stock: {
+                            decrement: detail.quantity,
+                        },
                     },
                 });
             }
